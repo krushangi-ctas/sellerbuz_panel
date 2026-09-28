@@ -23,7 +23,7 @@
         <form class="auth-ref-form" [formGroup]="signInForm" #signInNgForm="ngForm">
           @if (step === "email") {
           <mat-form-field class="auth-ref-field w-full" [appearance]="'outline'" [subscriptSizing]="'dynamic'">
-            <mat-label>Email address hello</mat-label>
+            <mat-label>Email address</mat-label>
             <input id="email" matInput [formControlName]="'email'" (keyup.enter)="sendOtp()" />
             @if (
             signInForm.get("email")?.touched &&
