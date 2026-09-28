@@ -1,0 +1,1313 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white"
+>
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_outline:document-report'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">
+            Uploaded Files
+          </h1>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <!-- Search -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="searchInputControl"
+            maxlength="50"
+            [autocomplete]="'off'"
+            [placeholder]="'Search uploaded files...'"
+          />
+        </mat-form-field>
+
+        <!-- Filters Form -->
+        <form
+          [formGroup]="filterFormGroup"
+          class="flex items-center gap-2 flex-shrink-0 -mb-5"
+        >
+          <!-- File Type Filter -->
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-44">
+            <mat-icon
+              svgIcon="mat_outline:filter_alt"
+              class="icon-size-5 text-gray-400"
+              matPrefix
+            ></mat-icon>
+            <mat-select
+              formControlName="is_catalog_file"
+              placeholder="File Type"
+            >
+              <mat-option [value]="">All Files</mat-option>
+              <mat-option [value]="'true'">Catalog File Imported</mat-option>
+              <mat-option [value]="'false'">Inventory File Imported</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Status Filter -->
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-40">
+            <mat-icon
+              svgIcon="mat_outline:filter_alt"
+              class="icon-size-5 text-gray-400"
+              matPrefix
+            ></mat-icon>
+            <mat-select
+              formControlName="process_status"
+              placeholder="Process Status"
+            >
+              <mat-option [value]="">All Status</mat-option>
+              <mat-option [value]="'PENDING'">Pending</mat-option>
+              <mat-option [value]="'PROCESSING'">Processing</mat-option>
+              <mat-option [value]="'COMPLETED'">Completed</mat-option>
+              <mat-option [value]="'FAILED'">Failed</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </form>
+
+        <!-- Date Range Filter -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-52 -mb-5"
+        >
+          <mat-icon
+            svgIcon="heroicons_outline:calendar"
+            class="icon-size-5 text-gray-400"
+            matPrefix
+          ></mat-icon>
+          <mat-date-range-input [rangePicker]="datePicker" [max]="maxDate">
+            <input
+              matStartDate
+              [formControl]="startDate"
+              [autocomplete]="'off'"
+              placeholder="Start"
+            />
+            <input
+              matEndDate
+              [formControl]="endDate"
+              [autocomplete]="'off'"
+              placeholder="End"
+              (dateChange)="onDateClickFilter()"
+            />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="datePicker"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #datePicker></mat-date-range-picker>
+          @if (isResetDate) {
+            <button mat-icon-button type="button" (click)="clearDate()">
+              <mat-icon class="icon-size-4">clear</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+
+        <!-- Import File Dropdown Button -->
+        @if (isSuperAdmin || canImportCatalog || canImportInventory) {
+          <button
+            type="button"
+            class="btn-primary flex items-center gap-1 px-3 py-2"
+            [matMenuTriggerFor]="importMenu"
+          >
+            <mat-icon
+              class="icon-size-4 text-white"
+              svgIcon="heroicons_outline:upload"
+            ></mat-icon>
+            <span>Import File</span>
+            <mat-icon class="icon-size-4 text-white">expand_more</mat-icon>
+          </button>
+          <mat-menu #importMenu="matMenu">
+            @if (isSuperAdmin || canImportCatalog) {
+              <button
+                type="button"
+                mat-menu-item
+                (click)="openCatalogImportPopup(CatalogImportTemplate)"
+              >
+                <mat-icon class="text-slate-600">bookmark_border</mat-icon>
+                <span>Import Catalog File</span>
+              </button>
+            }
+            @if (isSuperAdmin || canImportInventory) {
+              <button
+                type="button"
+                mat-menu-item
+                (click)="openInventoryImportPopup(InventoryImportTemplate)"
+              >
+                <mat-icon class="text-slate-600">inventory_2</mat-icon>
+                <span>Import Inventory File</span>
+              </button>
+            }
+          </mat-menu>
+        }
+
+        <!-- Refresh Button -->
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refresh()"
+          matTooltip="Refresh"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div
+      class="flex flex-col flex-auto min-h-0 overflow-hidden"
+      matSort
+      matSortDisableClear
+    >
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+        @if (isLoading) {
+          <div class="min-w-[1390px] grid">
+            <div class="uploaded-files-grid table-header-row">
+              <div>Date</div>
+              <div>File Name</div>
+              <div>File Size</div>
+              <div>Margin</div>
+              <div>Margin Mode</div>
+              <div>Fulfillment</div>
+              <div>Total</div>
+              <div>Success</div>
+              <div>Fail</div>
+
+              <div>File Imported</div>
+              <div>Processed For Listing</div>
+              <div>Process Status</div>
+            </div>
+
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+              <div class="uploaded-files-grid table-data-row animate-pulse">
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-36"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-12"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                ></div>
+                <div
+                  class="h-5 bg-gray-200 dark:bg-gray-700 rounded-md w-10"
+                ></div>
+                <div
+                  class="h-5 bg-gray-200 dark:bg-gray-700 rounded-md w-10"
+                ></div>
+                <div
+                  class="h-5 bg-gray-200 dark:bg-gray-700 rounded-md w-10"
+                ></div>
+
+                <div
+                  class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16"
+                ></div>
+                <div
+                  class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"
+                ></div>
+                <div
+                  class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-24"
+                ></div>
+              </div>
+            }
+          </div>
+        } @else {
+          @if (uploadedFilesInput$ | async; as files) {
+            <div class="min-w-[1390px] grid w-full">
+              <div class="uploaded-files-grid table-header-row">
+                <div class="flex items-center" [mat-sort-header]="'createdAt'">
+                  Date
+                </div>
+                <div
+                  class="flex items-center"
+                  [mat-sort-header]="'file_name_original'"
+                >
+                  File Name
+                </div>
+                <div class="flex items-center" [mat-sort-header]="'file_size'">
+                  File Size
+                </div>
+                <div class="flex items-center" [mat-sort-header]="'amz_margin'">
+                  Margin
+                </div>
+                <div
+                  class="flex items-center"
+                  [mat-sort-header]="'amz_margin_mode'"
+                >
+                  Margin Mode
+                </div>
+                <div class="flex items-center">Fulfillment</div>
+                <div
+                  class="flex items-center"
+                  [mat-sort-header]="'total_record'"
+                >
+                  Total
+                </div>
+                <div
+                  class="flex items-center"
+                  [mat-sort-header]="'total_success'"
+                >
+                  Success
+                </div>
+                <div class="flex items-center" [mat-sort-header]="'total_fail'">
+                  Fail
+                </div>
+
+                <div
+                  class="flex items-center"
+                  [mat-sort-header]="'file_imported'"
+                >
+                  File Imported
+                </div>
+                <div
+                  class="flex items-center"
+                  [mat-sort-header]="'file_processed_for_listing'"
+                >
+                  Processed For Listing
+                </div>
+                <div
+                  class="flex items-center"
+                  [mat-sort-header]="'process_status'"
+                >
+                  Process Status
+                </div>
+              </div>
+
+              @if (files.length > 0) {
+                @for (file of files; track file._id || $index) {
+                  <div class="uploaded-files-grid table-data-row">
+                    <!-- Creation Date -->
+                    <div
+                      class="font-semibold text-sm text-slate-600 truncate"
+                      [matTooltip]="
+                        (file.createdAt | date: 'dd-MM-yyyy HH:mm') || '-'
+                      "
+                    >
+                      {{ file.createdAt | date: "dd-MM-yyyy HH:mm" || "-" }}
+                    </div>
+
+                    <!-- File Name & Mime Type subtext -->
+                    <div class="flex flex-col min-w-0 pr-2 overflow-hidden">
+                      <div class="flex items-center gap-1.5 min-w-0">
+                        <span
+                          class="truncate font-semibold text-slate-800"
+                          [matTooltip]="
+                            file.file_name_original || file.file_name
+                          "
+                        >
+                          {{ file.file_name_original || file.file_name }}
+                        </span>
+                      </div>
+                      <div
+                        class="text-xs text-slate-400 truncate"
+                        *ngIf="file.file_mime_type"
+                        [matTooltip]="file.file_mime_type"
+                      >
+                        {{ file.file_mime_type }}
+                      </div>
+                    </div>
+
+                    <!-- File Size -->
+                    <div
+                      class="font-medium text-sm text-slate-700 truncate"
+                      [matTooltip]="file.file_size || '-'"
+                    >
+                      {{ file.file_size || "-" }}
+                    </div>
+
+                    <!-- Margin (amz_margin) -->
+                    <div
+                      class="font-medium text-sm text-slate-700 truncate"
+                      [matTooltip]="(file.amz_margin ?? 0).toString()"
+                    >
+                      {{ file.amz_margin ?? 0 }}
+                    </div>
+
+                    <!-- Margin Mode (amz_margin_mode) -->
+                    <div
+                      class="font-medium text-sm text-slate-700 uppercase truncate"
+                      [matTooltip]="file.amz_margin_mode || '-'"
+                    >
+                      {{ file.amz_margin_mode || "-" }}
+                    </div>
+
+                    <!-- Fulfillment -->
+                    <div
+                      class="font-medium text-sm text-slate-700 uppercase truncate"
+                      [matTooltip]="file.amz_fullfillment_by || 'DEFAULT'"
+                    >
+                      {{ file.amz_fullfillment_by || "DEFAULT" }}
+                    </div>
+
+                    <!-- Total Records (Modern Pill Badge) -->
+                    <div class="flex items-center">
+                      <span
+                        class="inline-flex items-center justify-center min-w-[38px] px-2.5 py-1 rounded-md text-xs font-extrabold bg-slate-100/90 text-slate-800 border border-slate-200 shadow-2xs"
+                        [matTooltip]="
+                          'Total Records: ' + (file.total_record || 0)
+                        "
+                      >
+                        {{ file.total_record || 0 }}
+                      </span>
+                    </div>
+
+                    <!-- Success Records (Vibrant Soft Emerald Pill Badge) -->
+                    <div class="flex items-center">
+                      <span
+                        class="inline-flex items-center justify-center min-w-[38px] px-2.5 py-1 rounded-md text-xs font-extrabold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 shadow-2xs ring-1 ring-emerald-500/10"
+                        [matTooltip]="
+                          'Success Records: ' + (file.total_success || 0)
+                        "
+                      >
+                        {{ file.total_success || 0 }}
+                      </span>
+                    </div>
+
+                    <!-- Fail Records (Soft Crimson Pill Badge + History & Download Buttons) -->
+                    <div class="flex items-center gap-1.5">
+                      <span
+                        class="inline-flex items-center justify-center min-w-[34px] px-2 py-1 rounded-md text-xs font-extrabold bg-rose-500/10 text-rose-700 border border-rose-500/20 shadow-2xs ring-1 ring-rose-500/10"
+                        [matTooltip]="'Fail Records: ' + (file.total_fail || 0)"
+                      >
+                        {{ file.total_fail || 0 }}
+                      </span>
+
+                      @if (
+                        (file.total_fail || 0) > 0 ||
+                        (file.history && file.history.length > 0) ||
+                        file.process_status === "FAILED" ||
+                        file.error_message
+                      ) {
+                        <button
+                          type="button"
+                          (click)="
+                            openHistoryDialog(file, historyDialogTemplate)
+                          "
+                          class="w-6 h-6 inline-flex items-center justify-center rounded-full text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors focus:outline-none shrink-0"
+                          matTooltip="View Fail History"
+                        >
+                          <mat-icon
+                            class="icon-size-4 text-indigo-600"
+                            [svgIcon]="'heroicons_outline:clock'"
+                          ></mat-icon>
+                        </button>
+
+                        <button
+                          type="button"
+                          (click)="downloadFailHistoryExcel(file)"
+                          class="w-6 h-6 inline-flex items-center justify-center rounded-full text-slate-500 hover:text-emerald-600 hover:bg-slate-100 transition-colors focus:outline-none shrink-0"
+                          matTooltip="Download Fail Records Excel"
+                        >
+                          <mat-icon
+                            class="icon-size-4 text-emerald-600"
+                            [svgIcon]="'mat_solid:download'"
+                          ></mat-icon>
+                        </button>
+                      }
+                    </div>
+
+                    <!-- File Imported (Modern Micro Badge with Icon) -->
+                    <div class="flex items-center">
+                      @if (file.file_imported) {
+                        <span
+                          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs"
+                          matTooltip="File Imported: Yes"
+                        >
+                          <mat-icon
+                            class="icon-size-4 text-emerald-600 mb-0"
+                            [svgIcon]="'mat_solid:thumb_up'"
+                          ></mat-icon>
+                          Yes
+                        </span>
+                      } @else {
+                        <span
+                          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200 shadow-2xs"
+                          matTooltip="File Imported: No"
+                        >
+                          <mat-icon
+                            class="icon-size-4 text-slate-400 mb-0"
+                            [svgIcon]="'mat_solid:thumb_down'"
+                          ></mat-icon>
+                          No
+                        </span>
+                      }
+                    </div>
+
+                    <!-- Processed For Listing (Modern Micro Badge with Icon) -->
+                    <div class="flex items-center">
+                      @if (file.file_processed_for_listing) {
+                        <span
+                          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs"
+                          matTooltip="Processed For Listing: Done"
+                        >
+                          <mat-icon
+                            class="icon-size-4 text-emerald-600 mb-0"
+                            [svgIcon]="'mat_solid:check_circle'"
+                          ></mat-icon>
+                          Done
+                        </span>
+                      } @else {
+                        <span
+                          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs"
+                          matTooltip="Processed For Listing: Pending"
+                        >
+                          <mat-icon
+                            class="icon-size-4 text-rose-500 mb-0"
+                            [svgIcon]="'mat_solid:cancel'"
+                          ></mat-icon>
+                          Pending
+                        </span>
+                      }
+                    </div>
+
+                    <!-- Process Status (Modern Pulsing Status Badge) -->
+                    <div class="flex items-center">
+                      @if (file.process_status === "COMPLETED") {
+                        <span
+                          class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-extrabold rounded-full bg-emerald-100/90 text-emerald-800 border border-emerald-300/80 shadow-2xs"
+                        >
+                          <span
+                            class="w-1.5 h-1.5 rounded-full bg-emerald-500"
+                          ></span>
+                          COMPLETED
+                        </span>
+                      } @else if (file.process_status === "PROCESSING") {
+                        <span
+                          class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-extrabold rounded-full bg-amber-100/90 text-amber-800 border border-amber-300/80 shadow-2xs"
+                        >
+                          <span
+                            class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"
+                          ></span>
+                          PROCESSING
+                        </span>
+                      } @else if (file.process_status === "FAILED") {
+                        <span
+                          class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-extrabold rounded-full bg-rose-100/90 text-rose-800 border border-rose-300/80 shadow-2xs cursor-pointer"
+                          [matTooltip]="
+                            file.error_message || 'Processing Failed'
+                          "
+                          (click)="
+                            openHistoryDialog(file, historyDialogTemplate)
+                          "
+                        >
+                          <span
+                            class="w-1.5 h-1.5 rounded-full bg-rose-500"
+                          ></span>
+                          FAILED
+                        </span>
+                      } @else {
+                        <span
+                          class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-extrabold rounded-full bg-slate-100 text-slate-700 border border-slate-300/80 shadow-2xs"
+                        >
+                          <span
+                            class="w-1.5 h-1.5 rounded-full bg-slate-400"
+                          ></span>
+                          PENDING
+                        </span>
+                      }
+                    </div>
+                  </div>
+                }
+              } @else {
+                <div class="col-span-full">
+                  <ng-container [ngTemplateOutlet]="noRecord"></ng-container>
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (uploadedFilesInput$ | async; as files) {
+        @if (files.length) {
+          <div class="pagination-bar">
+            <mat-paginator
+              [ngClass]="{ 'pointer-events-none': isLoading }"
+              [length]="pagination?.length || 0"
+              [pageSize]="pagination?.size || 10"
+              [pageSizeOptions]="pageOptions"
+              [pageIndex]="pagination?.page || 0"
+              [showFirstLastButtons]="false"
+            ></mat-paginator>
+          </div>
+        }
+      }
+
+      <ng-template #noRecord>
+        <div class="page-empty-state">
+          <div class="icon-wrapper">
+            <mat-icon
+              class="icon-size-10"
+              [svgIcon]="'heroicons_outline:document-report'"
+            ></mat-icon>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">
+            No uploaded files found
+          </h3>
+          <p class="text-slate-500 max-w-sm">
+            Uploaded file reports will appear here once bulk file operations are
+            executed.
+          </p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+
+<!-- History Dialog Box -->
+<ng-template #historyDialogTemplate>
+  <div
+    class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-[550px] max-w-[750px] shadow-2xl"
+  >
+    <!-- Dialog Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-5 py-3.5 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2.5">
+        <mat-icon
+          class="text-rose-400 icon-size-5"
+          [svgIcon]="'heroicons_outline:clock'"
+        ></mat-icon>
+        <div class="flex flex-col">
+          <span class="text-base font-bold leading-tight text-white"
+            >Failed Records History</span
+          >
+          <span class="text-xs text-slate-300 font-medium truncate max-w-md">
+            {{
+              selectedFileHistory?.file_name_original ||
+                selectedFileHistory?.file_name
+            }}
+          </span>
+        </div>
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeHistoryDialog()"
+        class="text-slate-300 hover:text-white"
+      >
+        <mat-icon
+          [svgIcon]="'heroicons_outline:x'"
+          class="icon-size-5 text-white"
+        ></mat-icon>
+      </button>
+    </div>
+
+    <!-- Dialog Sub-Header / Action Toolbar -->
+    <div
+      class="flex items-center justify-between px-5 py-2.5 bg-slate-50 border-b border-slate-200 text-xs"
+    >
+      <div class="flex items-center gap-2">
+        <span
+          class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 font-bold flex items-center gap-1"
+        >
+          <mat-icon
+            [svgIcon]="'heroicons_outline:x-circle'"
+            class="icon-size-3.5 text-rose-600"
+          ></mat-icon>
+          Total Failed:
+          {{
+            selectedFileHistory?.history?.length ||
+              selectedFileHistory?.total_fail ||
+              0
+          }}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        (click)="downloadFailHistoryExcel(selectedFileHistory)"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs transition-colors shadow-xs"
+      >
+        <mat-icon
+          [svgIcon]="'mat_solid:download'"
+          class="icon-size-4 text-white"
+        ></mat-icon>
+        Download Excel
+      </button>
+    </div>
+
+    <!-- Dialog Content / History Table -->
+    <div class="p-5 max-h-[420px] overflow-y-auto">
+      @if (selectedFileHistory?.error_message) {
+        <div
+          class="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-800 text-xs"
+        >
+          <div class="font-bold flex items-center gap-1.5 mb-1 text-rose-900">
+            <mat-icon
+              [svgIcon]="'heroicons_outline:exclamation-circle'"
+              class="icon-size-4 text-rose-600"
+            ></mat-icon>
+            File Processing Failure Error:
+          </div>
+          <p class="m-0 font-mono text-[11px] text-rose-700 leading-relaxed">
+            {{ selectedFileHistory.error_message }}
+          </p>
+        </div>
+      }
+
+      @if (
+        selectedFileHistory?.history && selectedFileHistory.history.length > 0
+      ) {
+        <div
+          class="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-2xs"
+        >
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr
+                class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200"
+              >
+                <th class="p-2.5 w-10 text-center">#</th>
+                <th class="p-2.5 w-36">SKU</th>
+                <th class="p-2.5">Error Message</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              @for (item of selectedFileHistory.history; track $index) {
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                  <td class="p-2.5 text-center text-slate-400 font-medium">
+                    {{ $index + 1 }}
+                  </td>
+                  <td class="p-2.5">
+                    <span
+                      class="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200"
+                    >
+                      {{ item.sku || "-" }}
+                    </span>
+                  </td>
+                  <td class="p-2.5">
+                    <span
+                      class="text-rose-700 font-medium bg-rose-50 border border-rose-200/60 px-2 py-1 rounded inline-block w-full leading-relaxed"
+                    >
+                      {{ item.error || "Failed" }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div
+          class="flex flex-col items-center justify-center py-10 text-center text-slate-400 gap-2"
+        >
+          <mat-icon
+            [svgIcon]="'heroicons_outline:document-search'"
+            class="icon-size-8 text-slate-300"
+          ></mat-icon>
+          <span class="text-sm font-medium"
+            >No fail history details available.</span
+          >
+        </div>
+      }
+    </div>
+
+    <!-- Dialog Footer -->
+    <div class="flex justify-end p-3.5 bg-slate-50 border-t border-slate-200">
+      <button
+        type="button"
+        class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold text-xs rounded-lg transition-colors"
+        (click)="closeHistoryDialog()"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Catalog Import Dialog Template -->
+<ng-template #CatalogImportTemplate>
+  <div
+    class="flex flex-col -m-6 rounded-xl shadow-2xl min-w-160 max-w-300 md:max-w-280 bg-white overflow-hidden"
+  >
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon
+          class="icon-size-5 text-white"
+          svgIcon="heroicons_outline:arrow-up"
+        ></mat-icon>
+        <span class="text-lg font-semibold text-white"
+          >Import Product Catalog</span
+        >
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeImportPopup()"
+        [tabIndex]="-1"
+        class="text-white"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-5 flex flex-col space-y-4">
+      @if (isDisableFlow) {
+        <div class="space-y-4 animate-pulse">
+          <div class="h-24 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+          <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+          <div
+            class="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg w-48 mx-auto"
+          ></div>
+        </div>
+      } @else {
+        <div
+          class="border-2 border-dashed border-slate-200 p-4 rounded-xl text-center bg-slate-50"
+        >
+          <a
+            [href]="'../../../assets/sample-file/sample_product_catalog_data.xlsx'"
+            download
+            class="text-blue-600 font-semibold hover:underline inline-flex items-center"
+          >
+            <mat-icon
+              svgIcon="heroicons_outline:download"
+              class="mr-1 icon-size-5 text-blue-600"
+            ></mat-icon>
+            Download Sample Catalog File
+          </a>
+          <p class="text-xs text-slate-500 mt-1">
+            Please download the sample file, fill in details, and upload it.
+          </p>
+        </div>
+        <div class="space-y-2 text-xs font-semibold text-slate-600">
+          <p class="flex items-start gap-2">
+            <mat-icon
+              svgIcon="heroicons_outline:exclamation-circle"
+              class="icon-size-5 text-amber-500"
+            ></mat-icon>
+            <span
+              >Please add a valid image URL (e.g.
+              https://example.com/image.jpg).</span
+            >
+          </p>
+          <p class="flex items-start gap-2">
+            <mat-icon
+              svgIcon="heroicons_outline:exclamation-circle"
+              class="icon-size-5 text-amber-500"
+            ></mat-icon>
+            <span>To add multiple bullet points, separate each using |||</span>
+          </p>
+        </div>
+
+        <!-- Upload File -->
+        <div class="text-center flex flex-col items-center justify-center pt-2">
+          <div
+            class="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-xl"
+          >
+            <div class="flex flex-col items-center">
+              <button
+                type="button"
+                mat-flat-button
+                class="bg-slate-800 text-white font-semibold rounded-lg px-6 py-2 hover:bg-slate-900 transition-colors shadow-sm"
+                (click)="selectCatalogFile.click()"
+              >
+                <mat-icon
+                  svgIcon="heroicons_outline:arrow-up"
+                  class="mr-2 text-white"
+                ></mat-icon>
+                Upload File
+              </button>
+              <input
+                type="file"
+                hidden
+                #selectCatalogFile
+                (change)="onFileUpload($event)"
+              />
+            </div>
+
+            @if (fileNM) {
+              <div
+                class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 max-w-full truncate text-sm font-semibold"
+              >
+                <mat-icon
+                  class="icon-size-4 shrink-0 text-emerald-600"
+                  svgIcon="heroicons_outline:check-circle"
+                ></mat-icon>
+                <span class="truncate" [matTooltip]="fileNM">{{ fileNM }}</span>
+              </div>
+            }
+          </div>
+
+          @if (!fileNM) {
+            <mat-error
+              class="text-red-500 mt-3 text-xs flex items-center justify-center gap-1.5 font-bold"
+            >
+              <mat-icon
+                class="icon-size-4 text-red-500"
+                svgIcon="heroicons_outline:exclamation-circle"
+              ></mat-icon>
+              Please upload a valid file to proceed.
+            </mat-error>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div
+      class="flex justify-end gap-2 p-4 border-t border-slate-100 bg-slate-50"
+    >
+      <button type="button" class="btn-cancel" (click)="closeImportPopup()">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="!fileNM || isDisableFlow"
+        (click)="importCatalogFileSubmit()"
+      >
+        <mat-icon
+          class="icon-size-4 mr-1 text-white"
+          svgIcon="heroicons_outline:check"
+        ></mat-icon>
+        Confirm & Process Catalog
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Inventory Import Dialog Template -->
+<ng-template #InventoryImportTemplate>
+  <div class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-160">
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-white text-xl">insert_drive_file</mat-icon>
+        <span class="text-lg font-semibold text-white"
+          >Import Inventory File</span
+        >
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeImportPopup()"
+        class="text-white"
+      >
+        <mat-icon class="text-white">close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Body Section -->
+    <div class="p-6 max-h-[400px] overflow-auto space-y-4">
+      <!-- Settings Grid -->
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Marketplace -->
+        <div
+          class="flex flex-col bg-slate-50 border border-slate-100 p-3 rounded-lg col-span-2"
+        >
+          <span class="text-xs font-semibold text-slate-700 mb-2"
+            >Select Marketplace</span
+          >
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript w-full scale-95 -ml-1"
+          >
+            <mat-select
+              [formControl]="marketplaceControl"
+              placeholder="Select Marketplace"
+            >
+              @for (m of sellerMarketplaces; track m.id) {
+                <mat-option [value]="m.id">
+                  {{ m.countryName }} ({{ m.countryCode }})
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <!-- Fulfillment -->
+        <div
+          class="flex flex-col bg-slate-50 border border-slate-100 p-3 rounded-lg"
+        >
+          <span class="text-xs font-semibold text-slate-700 mb-2"
+            >Fulfillment By</span
+          >
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript w-full scale-95 -ml-1"
+          >
+            <mat-select [formControl]="fulfillmentControl">
+              <mat-option [value]="'FBM'">FBM</mat-option>
+              <mat-option [value]="'FBA'">FBA</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <!-- Product Type -->
+        <div
+          class="flex flex-col bg-slate-50 border border-slate-100 p-3 rounded-lg"
+        >
+          <span class="text-xs font-semibold text-slate-700 mb-2"
+            >Product Type</span
+          >
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript w-full scale-95 -ml-1"
+          >
+            <mat-select [formControl]="productTypeControl">
+              <mat-option [value]="'retail'">Retail</mat-option>
+              <mat-option [value]="'white_label'">White Label</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        @if (productTypeControl.value === "white_label") {
+          <!-- Amazon Product Type Selection -->
+          <div
+            class="flex flex-col bg-slate-50 border border-slate-100 p-3 rounded-lg col-span-2 space-y-2"
+          >
+            <div
+              class="flex items-start bg-blue-50 border border-blue-100 text-blue-900 p-2 rounded text-xs font-semibold"
+            >
+              <mat-icon class="mr-2 text-blue-600 icon-size-5">info</mat-icon>
+              <span
+                >Bullet points: use ||| to separate (e.g.,
+                bullet1|||bullet2)</span
+              >
+            </div>
+            <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-full">
+              <mat-label>Select Amazon Product Type</mat-label>
+              <mat-select
+                [(ngModel)]="isProductType"
+                [ngModelOptions]="{ standalone: true }"
+                placeholder="Select Product Type"
+              >
+                <mat-option>
+                  <ngx-mat-select-search
+                    placeholderLabel="Search product type..."
+                    (keyup)="filterProductTypeData($event)"
+                    noEntriesFoundLabel="No product type found"
+                  >
+                  </ngx-mat-select-search>
+                </mat-option>
+                @for (
+                  pt of singleProductsVars.filteredProductTypeList;
+                  track pt.productType
+                ) {
+                  <mat-option [value]="pt.productType">
+                    {{ pt.productType }} ({{ pt.displayName }})
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        }
+        <!-- Margin Mode -->
+        <div
+          class="flex flex-col bg-slate-50 border border-slate-100 p-3 rounded-lg"
+        >
+          <span class="text-xs font-semibold text-slate-700 mb-2"
+            >Margin Mode</span
+          >
+          <mat-radio-group
+            [formControl]="amzMarginModeControl"
+            class="flex gap-4 mt-2 scale-90"
+          >
+            <mat-radio-button value="FIX">Fixed</mat-radio-button>
+            <mat-radio-button value="PERCENTAGE">Percentage</mat-radio-button>
+          </mat-radio-group>
+        </div>
+        <!-- Margin -->
+        <div
+          class="flex flex-col bg-slate-50 border border-slate-100 p-3 rounded-lg"
+        >
+          <span class="text-xs font-semibold text-slate-700 mb-2">Margin</span>
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript w-full scale-95 -ml-1"
+          >
+            <input
+              matInput
+              [formControl]="amzMarginControl"
+              type="number"
+              placeholder="Enter margin"
+              min="0"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Sample File Download -->
+      <div
+        class="border-2 border-dashed border-slate-200 p-3.5 rounded-xl bg-slate-50 flex items-center justify-between gap-3"
+      >
+        <div class="flex-1 min-w-0 text-left">
+          <p class="text-xs font-semibold text-slate-700">Sample File</p>
+          <p
+            class="text-xs text-slate-500 truncate"
+            [matTooltip]="
+              productTypeControl.value === 'white_label'
+                ? 'White Label (' +
+                  (isProductType || 'Select Product Type') +
+                  ')'
+                : 'Retail'
+            "
+          >
+            Download sample template for
+            <span class="font-medium text-slate-700">
+              {{
+                productTypeControl.value === "white_label"
+                  ? "White Label (" +
+                    (isProductType || "Select Product Type") +
+                    ")"
+                  : "Retail"
+              }}
+            </span>
+          </p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            [disabled]="disableDownload"
+            (click)="downloadSampleInventoryFile()"
+            class="text-blue-600 hover:text-blue-700 font-semibold text-xs inline-flex items-center px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors shrink-0 whitespace-nowrap"
+          >
+            <mat-icon
+              svgIcon="heroicons_outline:download"
+              class="mr-1 icon-size-4 text-blue-600"
+            ></mat-icon>
+            Download Sample File
+          </button>
+          <button
+            type="button"
+            (click)="OpenSampleFilePopup(SampleFileTemplate)"
+            class="text-slate-600 hover:text-slate-800 font-medium text-xs inline-flex items-center px-2 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
+            matTooltip="More Sample File Options"
+          >
+            <mat-icon class="icon-size-4 text-slate-600">tune</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Upload File -->
+      <div class="text-center flex flex-col items-center justify-center pt-2">
+        <div class="flex items-center justify-center gap-4 w-full max-w-xl">
+          <button
+            type="button"
+            mat-flat-button
+            class="bg-slate-800 text-white font-semibold rounded-lg px-6 py-2 hover:bg-slate-900 transition-colors shadow-sm"
+            (click)="selectInventoryFile.click()"
+          >
+            <mat-icon
+              svgIcon="heroicons_outline:arrow-up"
+              class="mr-2 text-white"
+            ></mat-icon>
+            Upload File
+          </button>
+          <input
+            type="file"
+            hidden
+            #selectInventoryFile
+            (change)="onFileUpload($event)"
+          />
+          @if (fileNM) {
+            <div
+              class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 max-w-full truncate text-sm font-semibold"
+            >
+              <mat-icon
+                class="icon-size-4 shrink-0 text-emerald-600"
+                svgIcon="heroicons_outline:check-circle"
+              ></mat-icon>
+              <span class="truncate" [matTooltip]="fileNM">{{ fileNM }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div
+      class="flex justify-end gap-2 p-4 border-t border-slate-100 bg-slate-50"
+    >
+      <button type="button" class="btn-cancel" (click)="closeImportPopup()">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="!fileNM || isDisableFlow"
+        (click)="importInventoryFileSubmit()"
+      >
+        <mat-icon
+          class="icon-size-4 mr-1 text-white"
+          svgIcon="heroicons_outline:check"
+        ></mat-icon>
+        Confirm & Process Inventory
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #SampleFileTemplate>
+  <div class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-160">
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-white">insert_drive_file</mat-icon>
+        <span class="text-lg font-semibold text-white"
+          >Download Sample File</span
+        >
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeSampleFileDialog()"
+        class="text-white"
+      >
+        <mat-icon class="text-white">close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="p-6 space-y-4 max-h-[350px] overflow-auto">
+      <!-- Product Type Selection -->
+      <div>
+        <p class="text-sm font-semibold text-slate-800 mb-2">
+          Select Product Type:
+        </p>
+        <mat-radio-group
+          [(ngModel)]="selectedCategory"
+          class="flex flex-wrap gap-3"
+          [ngModelOptions]="{ standalone: true }"
+        >
+          <mat-radio-button value="retail" class="text-sm text-gray-700"
+            >Retail</mat-radio-button
+          >
+          <mat-radio-button value="whitelabel" class="text-sm text-gray-700"
+            >Whitelabel</mat-radio-button
+          >
+        </mat-radio-group>
+      </div>
+
+      <!-- File Type Selection (Only for Retail) -->
+      @if (selectedCategory === "retail") {
+        <div class="space-y-2">
+          <p class="text-sm font-semibold text-slate-800">Select File Type:</p>
+          <mat-radio-group
+            [(ngModel)]="selectedFileType"
+            class="flex flex-wrap gap-3"
+          >
+            <mat-radio-button value="csv" class="text-sm text-gray-700"
+              >CSV</mat-radio-button
+            >
+            <mat-radio-button value="excel" class="text-sm text-gray-700"
+              >Excel</mat-radio-button
+            >
+          </mat-radio-group>
+          <p class="text-xs text-slate-500">
+            Choose CSV for lightweight files or Excel for structured data.
+          </p>
+        </div>
+      }
+
+      <!-- Amazon Product Type Selection (Only for Whitelabel) -->
+      @if (selectedCategory === "whitelabel") {
+        <div class="space-y-4">
+          <div
+            class="p-3 border text-slate-700 bg-blue-50 border-blue-100 rounded-lg"
+          >
+            <p class="text-xs font-semibold">
+              <mat-icon
+                class="icon-size-4 inline text-blue-600 mr-1"
+                svgIcon="heroicons_outline:information-circle"
+              ></mat-icon>
+              Bullet points: separate multiple points using |||. Example:
+              <code
+                class="bg-slate-100 px-1 rounded text-slate-800 font-mono font-bold"
+                >High-quality material ||| Durable and long-lasting</code
+              >
+            </p>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-slate-800 mb-2">
+              Select Amazon Product Type:
+            </p>
+            <mat-form-field class="w-full fuse-mat-dense">
+              <mat-label>Select Amazon Product Type</mat-label>
+              <mat-select
+                [(ngModel)]="selectProductType"
+                [ngModelOptions]="{ standalone: true }"
+              >
+                <mat-option>
+                  <ngx-mat-select-search
+                    placeholderLabel="Search..."
+                    (keyup)="filterProductTypeData($event.target.value)"
+                    noEntriesFoundLabel="'No product type found'"
+                  >
+                  </ngx-mat-select-search>
+                </mat-option>
+                @for (
+                  productType of singleProductsVars.filteredProductTypeList;
+                  track productType
+                ) {
+                  <mat-option [value]="productType.productType">
+                    {{ productType.displayName }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div
+      class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50"
+    >
+      <button
+        type="button"
+        mat-stroked-button
+        (click)="closeSampleFileDialog()"
+        class="font-medium rounded-lg px-4 py-2 border-slate-200 text-slate-700"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        mat-flat-button
+        [disabled]="disableDownload"
+        (click)="downloadFile()"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-2 shadow-sm"
+      >
+        Download
+      </button>
+    </div>
+  </div>
+</ng-template>

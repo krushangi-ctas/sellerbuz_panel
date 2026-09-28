@@ -1,0 +1,477 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white dark:bg-gray-800"
+>
+  <!-- Header -->
+  <div
+    class="page-header relative flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between px-4 py-4 border-b shadow-sm"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+      >
+        <a (click)="$event.preventDefault()" mat-icon-button>
+          <mat-icon
+            class="icon-size-7 mb-0 mr-1 text-white"
+            [svgIcon]="'heroicons_solid:ticket'"
+          ></mat-icon>
+        </a>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white">
+          {{ title }}
+        </h1>
+      </div>
+    </div>
+    <button
+      type="button"
+      mat-flat-button
+      class="btn-back mt-4 inline-flex items-center rounded-xl px-4 py-2 font-semibold shadow-sm transition-all duration-200 sm:mt-0"
+      (click)="goBack()"
+    >
+      <mat-icon
+        class="icon-size-5 mr-2"
+        svgIcon="heroicons_outline:arrow-left"
+      ></mat-icon>
+      <span class="ml-2">Back to Coupons</span>
+    </button>
+  </div>
+
+  <!-- Form -->
+  <div class="flex-auto overflow-auto px-4 py-6 sm:px-6 lg:px-10">
+    <div class="max-w-7xl mx-auto">
+      @if (isLoading) {
+        <!-- SKELETON LOADER FOR COUPON FORM -->
+        <div class="animate-pulse space-y-6">
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl border p-6 space-y-4"
+          >
+            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+          </div>
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl border p-6 space-y-4"
+          >
+            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <form
+          [formGroup]="couponForm"
+          (keydown)="onKeydown($event)"
+          class="flex flex-col gap-6"
+        >
+          <!-- Basic Information Card -->
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+          >
+            <div
+              class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700"
+            >
+              <h2
+                class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"
+              >
+                <mat-icon
+                  class="icon-size-5 text-primary"
+                  svgIcon="heroicons_outline:information-circle"
+                ></mat-icon>
+                Basic Information
+              </h2>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Coupon Code -->
+              <mat-form-field
+                class="w-full fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Coupon Code*</mat-label>
+                <input
+                  matInput
+                  formControlName="code"
+                  placeholder="e.g., SUMMER2024"
+                  maxlength="20"
+                  style="text-transform: uppercase"
+                />
+                <mat-icon
+                  matPrefix
+                  class="icon-size-5 text-gray-400"
+                  svgIcon="heroicons_outline:ticket"
+                ></mat-icon>
+                @if (couponForm.get("code").hasError("required")) {
+                  <mat-error> Coupon code is required </mat-error>
+                }
+                @if (couponForm.get("code").hasError("minlength")) {
+                  <mat-error>
+                    Coupon code must be at least 3 characters
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Description -->
+              <mat-form-field
+                class="w-full md:col-span-2 fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Description</mat-label>
+                <textarea
+                  matInput
+                  formControlName="description"
+                  rows="2"
+                  placeholder="Enter coupon description..."
+                ></textarea>
+                <mat-icon
+                  matPrefix
+                  class="icon-size-5 text-gray-400"
+                  svgIcon="heroicons_outline:document-text"
+                ></mat-icon>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Discount Configuration Card -->
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+          >
+            <div
+              class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700"
+            >
+              <h2
+                class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"
+              >
+                <mat-icon
+                  class="icon-size-5 text-primary"
+                  svgIcon="heroicons_outline:tag"
+                ></mat-icon>
+                Discount Configuration
+              </h2>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Discount Type -->
+              <mat-form-field
+                class="w-full fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Discount Type*</mat-label>
+                <mat-select formControlName="discount_type">
+                  @for (type of discountTypes; track type.value) {
+                    <mat-option [value]="type.value">
+                      {{ type.label }}
+                    </mat-option>
+                  }
+                </mat-select>
+                <mat-icon
+                  matPrefix
+                  class="icon-size-5 text-gray-400"
+                  svgIcon="heroicons_outline:calculator"
+                ></mat-icon>
+              </mat-form-field>
+
+              <!-- Discount Value -->
+              <mat-form-field
+                class="w-full fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Discount Value*</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="discount_value"
+                  [placeholder]="isPercentage ? 'e.g., 20' : 'e.g., 50'"
+                  min="0"
+                />
+                <mat-icon matPrefix>
+                  {{ isPercentage ? "percent" : "attach_money" }}
+                </mat-icon>
+                <span matSuffix class="text-gray-500">{{
+                  isPercentage ? "%" : ""
+                }}</span>
+                @if (couponForm.get("discount_value").hasError("required")) {
+                  <mat-error> Discount value is required </mat-error>
+                }
+                @if (
+                  couponForm.get("discount_value").hasError("max") &&
+                  isPercentage
+                ) {
+                  <mat-error> Percentage cannot exceed 100% </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Currency (only for fixed amount) -->
+              @if (!isPercentage) {
+                <mat-form-field
+                  class="w-full fuse-mat-dense"
+                  appearance="outline"
+                >
+                  <mat-label>Currency</mat-label>
+                  <mat-select formControlName="currency">
+                    @for (currency of currencies; track currency) {
+                      <mat-option [value]="currency">
+                        {{ currency }}
+                      </mat-option>
+                    }
+                  </mat-select>
+                  <mat-icon
+                    matPrefix
+                    class="icon-size-5 text-gray-400"
+                    svgIcon="heroicons_outline:credit-card"
+                  ></mat-icon>
+                </mat-form-field>
+              }
+            </div>
+          </div>
+
+          <!-- Validity Period Card -->
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+          >
+            <div
+              class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700"
+            >
+              <h2
+                class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"
+              >
+                <mat-icon
+                  class="icon-size-5 text-primary"
+                  svgIcon="heroicons_outline:calendar"
+                ></mat-icon>
+                Validity Period
+              </h2>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Valid From -->
+              <mat-form-field
+                class="w-full fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Valid From*</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="validFromPicker"
+                  formControlName="valid_from"
+                  placeholder="Choose a date"
+                />
+                <mat-datepicker-toggle
+                  matSuffix
+                  [for]="validFromPicker"
+                ></mat-datepicker-toggle>
+                <mat-datepicker #validFromPicker></mat-datepicker>
+                @if (couponForm.get("valid_from").hasError("required")) {
+                  <mat-error> Valid from date is required </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Valid Until -->
+              <mat-form-field
+                class="w-full fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Valid Until*</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="validUntilPicker"
+                  formControlName="valid_until"
+                  placeholder="Choose a date"
+                />
+                <mat-datepicker-toggle
+                  matSuffix
+                  [for]="validUntilPicker"
+                ></mat-datepicker-toggle>
+                <mat-datepicker #validUntilPicker></mat-datepicker>
+                @if (couponForm.get("valid_until").hasError("required")) {
+                  <mat-error> Valid until date is required </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Duration Months -->
+              <mat-form-field
+                class="w-full fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Duration (Months)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="duration_months"
+                  placeholder="e.g., 12"
+                  min="1"
+                />
+                <mat-icon
+                  matPrefix
+                  class="icon-size-5 text-gray-400"
+                  svgIcon="heroicons_outline:clock"
+                ></mat-icon>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Usage Limits Card -->
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+          >
+            <div
+              class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700"
+            >
+              <h2
+                class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"
+              >
+                <mat-icon
+                  class="icon-size-5 text-primary"
+                  svgIcon="heroicons_outline:adjustments"
+                ></mat-icon>
+                Usage Limits
+              </h2>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Max Redemptions -->
+              <mat-form-field
+                class="w-full fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label
+                  >Max Redemptions (Leave empty for unlimited)</mat-label
+                >
+                <input
+                  matInput
+                  type="number"
+                  formControlName="max_redemptions"
+                  placeholder="e.g., 100"
+                  min="1"
+                />
+                <mat-icon
+                  matPrefix
+                  class="icon-size-5 text-gray-400"
+                  svgIcon="heroicons_outline:users"
+                ></mat-icon>
+                <mat-hint
+                  >Total number of times this coupon can be used</mat-hint
+                >
+              </mat-form-field>
+
+              <!-- Max Redemptions Per User -->
+              <mat-form-field
+                class="w-full fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Max Redemptions Per User</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="max_redemptions_per_user"
+                  placeholder="e.g., 1"
+                  min="1"
+                />
+                <mat-icon
+                  matPrefix
+                  class="icon-size-5 text-gray-400"
+                  svgIcon="heroicons_outline:user"
+                ></mat-icon>
+                <mat-hint
+                  >Number of times each user can use this coupon</mat-hint
+                >
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Applicable Plans Card -->
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+          >
+            <div
+              class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700"
+            >
+              <h2
+                class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"
+              >
+                <mat-icon
+                  class="icon-size-5 text-primary"
+                  svgIcon="heroicons_outline:shopping-cart"
+                ></mat-icon>
+                Applicable Plans
+              </h2>
+            </div>
+            <div class="p-6">
+              <mat-form-field
+                class="w-full fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Select Plans (Leave empty for all plans)</mat-label>
+                <mat-select
+                  formControlName="applicable_plans"
+                  multiple
+                  (openedChange)="triggerPlanEvent()"
+                >
+                  <mat-option>
+                    <ngx-mat-select-search
+                      [formControl]="planFilterCtrl"
+                      placeholderLabel="Search plans..."
+                      (keyup)="filterPlans($event.target.value)"
+                      noEntriesFoundLabel="'No plan found'"
+                    >
+                    </ngx-mat-select-search>
+                  </mat-option>
+                  @for (plan of filteredPlans; track plan._id) {
+                    <mat-option [value]="plan._id">
+                      {{ plan.name }}
+                    </mat-option>
+                  }
+                </mat-select>
+                <mat-icon
+                  matPrefix
+                  class="icon-size-5 text-gray-400"
+                  svgIcon="heroicons_outline:document-text"
+                ></mat-icon>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Actions -->
+
+          <div
+            class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 border-t border-gray-200 bg-gray-50/80 px-4 py-4 rounded-b-2xl"
+          >
+            <!-- Cancel Button -->
+            <button
+              type="button"
+              (click)="goBack()"
+              class="btn-cancel w-full sm:w-auto rounded-xl px-6 py-2.5 font-medium shadow-sm transition-all duration-200"
+            >
+              <div class="flex items-center gap-2">
+                <mat-icon
+                  class="icon-size-4"
+                  svgIcon="heroicons_outline:x-circle"
+                ></mat-icon>
+                <span>Cancel</span>
+              </div>
+            </button>
+            <button
+              type="submit"
+              class="btn-primary inline-flex items-center justify-center rounded-xl px-5 py-2 font-semibold text-white shadow-sm transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60"
+              [disabled]="couponForm.invalid || isLoading || isSubmitting"
+              (click)="onSubmit()"
+            >
+              <mat-icon
+                class="icon-size-5 mr-2"
+                svgIcon="heroicons_outline:check"
+              ></mat-icon>
+              {{
+                isSubmitting
+                  ? isEditMode
+                    ? "Updating..."
+                    : "Creating..."
+                  : isEditMode
+                    ? "Update Coupon"
+                    : "Create Coupon"
+              }}
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>

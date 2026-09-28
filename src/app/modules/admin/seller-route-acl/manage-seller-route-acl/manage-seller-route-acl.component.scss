@@ -1,0 +1,16 @@
+:host ::ng-deep {
+  .page-header {
+    background-color: #0e3666;
+    padding: 10px 24px !important;
+  }
+
+  .fuse-mat-dense {
+    .mat-mdc-form-field-subscript-wrapper {
+      font-size: 11px;
+    }
+  }
+
+  .mat-mdc-form-field-outline {
+    background-color: #ffffff;
+  }
+}

@@ -1,0 +1,398 @@
+@if (canView) {
+  <div
+    class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white"
+  >
+    <div class="flex flex-col flex-auto overflow-hidden">
+      <!-- ══ Header (Full-width Dark Navy Bar matching Coupon List / Master Pages) ══════ -->
+      <div class="page-header">
+        <div class="flex items-center gap-3">
+          <div
+            class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+          >
+            <a
+              (click)="$event.preventDefault()"
+              mat-icon-button
+              [matTooltip]="tooltipText"
+            >
+              <mat-icon
+                class="icon-size-7 mb-0 mr-1 text-white"
+                [svgIcon]="'heroicons_outline:question-mark-circle'"
+              ></mat-icon>
+            </a>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white">
+              Support FAQs
+            </h1>
+          </div>
+        </div>
+
+        <!-- Header Actions (Search Box before Add Button + Refresh + Add FAQ) -->
+        <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+          <!-- Search Input Field (Dense Material Input in Header) -->
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript min-w-56 sm:min-w-64 -mb-5"
+            matTooltip="Search FAQs by question or keyword"
+          >
+            <mat-icon
+              class="icon-size-5 text-gray-400"
+              matPrefix
+              [svgIcon]="'heroicons_solid:search'"
+            ></mat-icon>
+            <input
+              matInput
+              [formControl]="searchCtrl"
+              maxlength="50"
+              [autocomplete]="'off'"
+              [placeholder]="'Search FAQs...'"
+              id="faq-search-input"
+            />
+            @if (searchCtrl.value) {
+              <button
+                type="button"
+                mat-icon-button
+                matSuffix
+                (click)="searchCtrl.setValue('')"
+                class="text-gray-400 hover:text-gray-600"
+              >
+                <mat-icon
+                  class="icon-size-4"
+                  svgIcon="heroicons_solid:x-circle"
+                ></mat-icon>
+              </button>
+            }
+          </mat-form-field>
+
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            class="btn-secondary-action"
+            (click)="refresh()"
+            matTooltip="Refresh list"
+          >
+            <mat-icon
+              class="icon-size-5"
+              svgIcon="mat_outline:refresh"
+            ></mat-icon>
+          </button>
+
+          <!-- Expand / Collapse All Toggle Button -->
+          @if (faqs.length > 0) {
+            <button
+              type="button"
+              class="btn-secondary-action"
+              (click)="toggleExpandAll()"
+              [matTooltip]="
+                expandedFaqIds.size === faqs.length
+                  ? 'Collapse All Answers'
+                  : 'Expand All Answers'
+              "
+            >
+              <mat-icon
+                class="icon-size-5"
+                [svgIcon]="
+                  expandedFaqIds.size === faqs.length
+                    ? 'heroicons_outline:chevron-up'
+                    : 'heroicons_outline:chevron-down'
+                "
+              ></mat-icon>
+            </button>
+          }
+
+          <!-- Add New FAQ Button -->
+          @if (canAdd) {
+            <button
+              type="button"
+              class="btn-primary-action"
+              mat-flat-button
+              (click)="openAddFaqDialog()"
+              id="create-faq-btn"
+              matTooltip="Add new FAQ"
+            >
+              <mat-icon
+                class="icon-size-5 text-white"
+                svgIcon="heroicons_solid:plus-circle"
+              ></mat-icon>
+              <span>Add FAQ</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- ══ Scrollable Content Body ═══════════════════════════════════════════════ -->
+      <div class="flex-auto overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50">
+        <!-- Category Filter Chips -->
+        <div
+          class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6"
+        >
+          <div
+            class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin"
+          >
+            <button
+              type="button"
+              (click)="selectCategory('')"
+              [class]="
+                selectedCategory === ''
+                  ? 'bg-primary text-white font-semibold shadow-sm border-primary'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-transparent'
+              "
+              class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium border transition-all shrink-0 cursor-pointer"
+            >
+              All Categories
+            </button>
+
+            @for (cat of categories; track cat) {
+              <button
+                type="button"
+                (click)="selectCategory(cat)"
+                [class]="
+                  selectedCategory === cat
+                    ? 'bg-primary text-white font-semibold shadow-sm border-primary'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-transparent'
+                "
+                class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium border transition-all shrink-0 cursor-pointer"
+              >
+                {{ cat }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        @if (isLoading) {
+          <div
+            class="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 shadow-sm"
+          >
+            <mat-spinner diameter="44" color="primary"></mat-spinner>
+            <span class="mt-4 text-sm font-medium text-slate-600"
+              >Loading FAQs...</span
+            >
+          </div>
+        }
+
+        <!-- FAQ Cards List (Expandable Answers for Less Space & More Data) -->
+        @if (!isLoading) {
+          @if (faqs.length === 0) {
+            <div
+              class="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 text-center shadow-sm"
+            >
+              <div
+                class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-4"
+              >
+                <mat-icon
+                  class="icon-size-8"
+                  svgIcon="heroicons_outline:question-mark-circle"
+                ></mat-icon>
+              </div>
+              <h3 class="text-lg font-bold text-slate-800">No FAQs Found</h3>
+              <p class="text-sm text-slate-500 max-w-sm mt-1 mb-4">
+                No frequently asked questions match your current search or
+                category filter.
+              </p>
+              @if (canAdd) {
+                <button
+                  type="button"
+                  mat-flat-button
+                  color="primary"
+                  (click)="openAddFaqDialog()"
+                  class="bg-primary text-white hover:bg-primary-600 font-semibold px-5 py-2 rounded-xl cursor-pointer"
+                >
+                  Create First FAQ
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="flex flex-col gap-3">
+              @for (faq of faqs; track faq._id) {
+                <div
+                  class="bg-white rounded-xl border transition-all duration-200 overflow-hidden shadow-sm hover:shadow-md"
+                  [class.border-primary]="isExpanded(faq._id)"
+                  [class.border-slate-200]="!isExpanded(faq._id)"
+                >
+                  <!-- Card Header / Question Row (Clickable to Expand / Collapse) -->
+                  <div
+                    (click)="toggleExpand(faq._id, $event)"
+                    class="px-5 py-4 flex items-center justify-between gap-4 cursor-pointer select-none transition-colors"
+                    [class.bg-primary-50]="isExpanded(faq._id)"
+                    [class.hover:bg-slate-50]="!isExpanded(faq._id)"
+                  >
+                    <!-- Left: Category Badge & Question Title -->
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <span
+                        class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 shrink-0"
+                      >
+                        {{ faq.category }}
+                      </span>
+
+                      <h3
+                        class="text-base sm:text-lg font-bold text-slate-900 truncate hover:text-primary transition-colors"
+                      >
+                        {{ faq.question }}
+                      </h3>
+                    </div>
+
+                    <!-- Right: Status Toggle/Badge, Actions & Expand Chevron -->
+                    <div class="flex items-center gap-2 shrink-0">
+                      @if (canUpdate) {
+                        <!-- Clickable Compact Status Badge -->
+                        <button
+                          type="button"
+                          (click)="toggleFaqStatus(faq, $event)"
+                          [class]="
+                            faq.status === 1
+                              ? 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200'
+                              : 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200'
+                          "
+                          class="px-2.5 py-0.5 rounded-full text-xs font-bold border transition-colors hidden sm:inline-flex items-center gap-1.5 cursor-pointer"
+                          matTooltip="Toggle Status"
+                        >
+                          <span
+                            [class]="
+                              faq.status === 1 ? 'bg-emerald-500' : 'bg-red-500'
+                            "
+                            class="w-2 h-2 rounded-full"
+                          ></span>
+                          <span>{{
+                            faq.status === 1 ? "Active" : "Inactive"
+                          }}</span>
+                        </button>
+
+                        <!-- Edit Button -->
+                        <button
+                          type="button"
+                          mat-icon-button
+                          (click)="openEditFaqDialog(faq, $event)"
+                          matTooltip="Edit FAQ"
+                          class="text-primary hover:bg-primary-50 rounded-lg"
+                        >
+                          <mat-icon
+                            class="icon-size-5"
+                            svgIcon="heroicons_outline:pencil-alt"
+                          ></mat-icon>
+                        </button>
+                      } @else {
+                        <!-- Static Read-Only Status Badge -->
+                        <span
+                          [class]="
+                            faq.status === 1
+                              ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                              : 'bg-red-100 text-red-800 border-red-200'
+                          "
+                          class="px-2.5 py-0.5 rounded-full text-xs font-bold border hidden sm:inline-flex items-center gap-1.5"
+                        >
+                          <span
+                            [class]="
+                              faq.status === 1 ? 'bg-emerald-500' : 'bg-red-500'
+                            "
+                            class="w-2 h-2 rounded-full"
+                          ></span>
+                          <span>{{
+                            faq.status === 1 ? "Active" : "Inactive"
+                          }}</span>
+                        </span>
+                      }
+
+                      <!-- Delete Button -->
+                      @if (canDelete) {
+                        <button
+                          type="button"
+                          mat-icon-button
+                          (click)="deleteFaq(faq, $event)"
+                          matTooltip="Delete FAQ"
+                          class="text-red-600 hover:bg-red-50 rounded-lg"
+                        >
+                          <mat-icon
+                            class="icon-size-5"
+                            svgIcon="heroicons_outline:trash"
+                          ></mat-icon>
+                        </button>
+                      }
+
+                      <!-- Expand / Collapse Button -->
+                      <button
+                        type="button"
+                        (click)="toggleExpand(faq._id, $event)"
+                        [matTooltip]="
+                          isExpanded(faq._id)
+                            ? 'Collapse Answer'
+                            : 'Expand Answer'
+                        "
+                        class="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200"
+                        [class.bg-primary]="isExpanded(faq._id)"
+                        [class.text-white]="isExpanded(faq._id)"
+                        [class.bg-slate-100]="!isExpanded(faq._id)"
+                        [class.text-slate-500]="!isExpanded(faq._id)"
+                      >
+                        <mat-icon
+                          class="icon-size-5 transition-transform duration-200"
+                          [class.rotate-180]="isExpanded(faq._id)"
+                          svgIcon="heroicons_outline:chevron-down"
+                        ></mat-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Collapsible Answer Content Area -->
+                  @if (isExpanded(faq._id)) {
+                    <div
+                      class="px-6 py-5 border-t border-slate-200 bg-white text-slate-800 text-sm sm:text-base leading-relaxed animate-fade-in"
+                    >
+                      <div
+                        class="text-xs font-bold text-primary uppercase tracking-wider mb-1"
+                      >
+                        Answer
+                      </div>
+                      <div
+                        class="whitespace-pre-line font-normal text-slate-800 mb-4"
+                      >
+                        {{ faq.answer }}
+                      </div>
+
+                      <!-- Footer Quick Actions -->
+                      <div
+                        class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500"
+                      >
+                        <span
+                          >Created:
+                          {{ faq.createdAt | date: "mediumDate" }}</span
+                        >
+                        <button
+                          type="button"
+                          (click)="copyAnswer(faq.answer, $event)"
+                          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-primary-50 hover:text-primary text-slate-700 font-semibold transition-colors cursor-pointer"
+                        >
+                          <mat-icon
+                            class="icon-size-4"
+                            svgIcon="heroicons_outline:clipboard-copy"
+                          ></mat-icon>
+                          <span>Copy Answer</span>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+} @else {
+  <div
+    class="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 text-center shadow-sm m-8"
+  >
+    <div
+      class="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mb-4"
+    >
+      <mat-icon
+        class="icon-size-8"
+        svgIcon="heroicons_outline:shield-exclamation"
+      ></mat-icon>
+    </div>
+    <h3 class="text-lg font-bold text-slate-800">Access Denied</h3>
+    <p class="text-sm text-slate-500 max-w-sm mt-1">
+      You do not have permission to view the FAQ module.
+    </p>
+  </div>
+}

@@ -1,0 +1,368 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white"
+>
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- ══ Header (Full-width Dark Navy Bar matching FAQ / Coupon / Master Pages) ══════ -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltipText"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_solid:chat-alt'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">
+            Quick Replies
+          </h1>
+        </div>
+      </div>
+
+      <!-- Header Actions (Search Box + Refresh + Add Quick Reply) -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <!-- Search Input Field -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-56 sm:min-w-64 -mb-5"
+          matTooltip="Search Quick Replies by tag or keyword"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="searchCtrl"
+            maxlength="50"
+            [autocomplete]="'off'"
+            [placeholder]="'Search Quick Replies...'"
+            id="quick-reply-search-input"
+          />
+          @if (searchCtrl.value) {
+            <button
+              type="button"
+              mat-icon-button
+              matSuffix
+              (click)="searchCtrl.setValue('')"
+              class="text-gray-400 hover:text-gray-600"
+            >
+              <mat-icon
+                class="icon-size-4"
+                svgIcon="heroicons_solid:x-circle"
+              ></mat-icon>
+            </button>
+          }
+        </mat-form-field>
+
+        <!-- Refresh Button -->
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refresh()"
+          matTooltip="Refresh list"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+
+        <!-- Expand / Collapse All Toggle Button -->
+        @if (quickReplies.length > 0) {
+          <button
+            type="button"
+            class="btn-secondary-action"
+            (click)="toggleExpandAll()"
+            [matTooltip]="
+              expandedIds.size === quickReplies.length
+                ? 'Collapse All Details'
+                : 'Expand All Details'
+            "
+          >
+            <mat-icon
+              class="icon-size-5"
+              [svgIcon]="
+                expandedIds.size === quickReplies.length
+                  ? 'heroicons_outline:chevron-up'
+                  : 'heroicons_outline:chevron-down'
+              "
+            ></mat-icon>
+          </button>
+        }
+
+        <!-- Add New Quick Reply Button -->
+        @if (isSuperAdmin || canAdd) {
+          <button
+            type="button"
+            class="btn-primary-action"
+            mat-flat-button
+            (click)="openAddQuickReplyDialog()"
+            id="create-quick-reply-btn"
+            matTooltip="Add new Quick Reply"
+          >
+            <mat-icon
+              class="icon-size-5 text-white"
+              svgIcon="heroicons_solid:plus-circle"
+            ></mat-icon>
+            <span>Add Quick Reply</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- ══ Scrollable Content Body ═══════════════════════════════════════════════ -->
+    <div class="flex-auto overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50">
+      <!-- Tag Filter Chips -->
+      @if (tags.length > 0) {
+        <div
+          class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6"
+        >
+          <div
+            class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin"
+          >
+            <button
+              type="button"
+              (click)="selectTag('')"
+              [class]="
+                selectedTag === ''
+                  ? 'bg-primary text-white font-semibold shadow-sm border-primary'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-transparent'
+              "
+              class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium border transition-all shrink-0 cursor-pointer"
+            >
+              All Tags
+            </button>
+
+            @for (t of tags; track t) {
+              <button
+                type="button"
+                (click)="selectTag(t)"
+                [class]="
+                  selectedTag === t
+                    ? 'bg-primary text-white font-semibold shadow-sm border-primary'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-transparent'
+                "
+                class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium border transition-all shrink-0 cursor-pointer"
+              >
+                #{{ t }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Loading State Spinner -->
+      @if (isLoading) {
+        <div class="flex flex-col items-center justify-center p-12 space-y-3">
+          <mat-spinner diameter="40" color="primary"></mat-spinner>
+          <span class="text-sm font-medium text-slate-500"
+            >Loading Quick Replies...</span
+          >
+        </div>
+      }
+
+      <!-- Quick Reply Cards List -->
+      @if (!isLoading) {
+        @if (quickReplies.length === 0) {
+          <!-- Empty State -->
+          <div
+            class="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-dashed border-slate-300 text-center shadow-xs"
+          >
+            <div
+              class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4 text-slate-400"
+            >
+              <mat-icon
+                class="icon-size-8"
+                svgIcon="heroicons_solid:chat-alt"
+              ></mat-icon>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800">
+              No Quick Replies Found
+            </h3>
+            <p class="text-sm text-slate-500 max-w-sm mt-1 mb-4">
+              There are no quick reply suggestions found matching your filter
+              criteria.
+            </p>
+            @if (isAdmin) {
+              <button
+                type="button"
+                mat-flat-button
+                color="primary"
+                (click)="openAddQuickReplyDialog()"
+                class="bg-primary text-white rounded-xl px-5 py-2"
+              >
+                Create First Quick Reply
+              </button>
+            }
+          </div>
+        } @else {
+          <!-- Cards Grid -->
+          <div class="space-y-4">
+            @for (item of quickReplies; track item._id) {
+              <div
+                class="bg-white rounded-2xl border transition-all duration-200 shadow-sm hover:shadow-md overflow-hidden"
+                [class.border-primary]="isExpanded(item._id)"
+                [class.border-slate-200]="!isExpanded(item._id)"
+              >
+                <!-- Card Header -->
+                <div
+                  class="flex items-center justify-between p-4 sm:p-5 cursor-pointer select-none transition-colors"
+                  (click)="toggleExpand(item._id, $event)"
+                  [class.bg-primary-50]="isExpanded(item._id)"
+                  [class.hover:bg-slate-50]="!isExpanded(item._id)"
+                >
+                  <div class="flex items-center gap-3 min-w-0 flex-1 mr-4">
+                    <!-- Tag Pill -->
+                    <span
+                      class="px-3 py-1 rounded-xl text-xs font-bold bg-indigo-100 text-indigo-700 border border-indigo-200 shrink-0 uppercase tracking-wider"
+                    >
+                      #{{ item.tag }}
+                    </span>
+
+                    <!-- Preview of Suggestion -->
+                    <p class="text-sm font-medium text-slate-800 truncate">
+                      {{ item.suggestion }}
+                    </p>
+                  </div>
+
+                  <div class="flex items-center gap-2 shrink-0">
+                    <!-- Status Toggle (Admin Only) -->
+                    @if (isAdmin) {
+                      <button
+                        type="button"
+                        (click)="toggleQuickReplyStatus(item, $event)"
+                        class="px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        [class]="
+                          item.status === 1
+                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                            : 'bg-red-100 text-red-700 hover:bg-red-200'
+                        "
+                        [matTooltip]="
+                          item.status === 1
+                            ? 'Click to set Inactive'
+                            : 'Click to set Active'
+                        "
+                      >
+                        <span
+                          class="w-2 h-2 rounded-full"
+                          [class]="
+                            item.status === 1 ? 'bg-emerald-500' : 'bg-red-500'
+                          "
+                        ></span>
+                        <span>{{
+                          item.status === 1 ? "Active" : "Inactive"
+                        }}</span>
+                      </button>
+
+                      <!-- Edit Button -->
+                      <button
+                        type="button"
+                        mat-icon-button
+                        (click)="openEditQuickReplyDialog(item, $event)"
+                        matTooltip="Edit Quick Reply"
+                        class="text-slate-500 hover:text-primary hover:bg-primary-50 rounded-xl"
+                      >
+                        <mat-icon
+                          class="icon-size-4.5"
+                          svgIcon="heroicons_outline:pencil"
+                        ></mat-icon>
+                      </button>
+
+                      <!-- Delete Button -->
+                      <button
+                        type="button"
+                        mat-icon-button
+                        (click)="deleteQuickReply(item, $event)"
+                        matTooltip="Delete Quick Reply"
+                        class="text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                      >
+                        <mat-icon
+                          class="icon-size-4.5"
+                          svgIcon="heroicons_outline:trash"
+                        ></mat-icon>
+                      </button>
+                    }
+
+                    <!-- Expand / Collapse Icon -->
+                    <button
+                      type="button"
+                      mat-icon-button
+                      (click)="toggleExpand(item._id, $event)"
+                      class="text-slate-400 rounded-full"
+                    >
+                      <mat-icon
+                        class="icon-size-5 transition-transform duration-200"
+                        [class.rotate-180]="isExpanded(item._id)"
+                        svgIcon="heroicons_outline:chevron-down"
+                      ></mat-icon>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Card Expanded Body -->
+                @if (isExpanded(item._id)) {
+                  <div
+                    class="p-5 border-t border-slate-100 bg-slate-50/50 space-y-4"
+                  >
+                    <div>
+                      <h4
+                        class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-1"
+                      >
+                        Full Suggestion Content
+                      </h4>
+                      <div
+                        class="p-4 rounded-xl bg-white border border-slate-200/80 text-sm font-mono text-slate-800 leading-relaxed whitespace-pre-wrap"
+                      >
+                        {{ item.suggestion }}
+                      </div>
+                    </div>
+
+                    <div
+                      class="flex items-center justify-between pt-2 text-xs text-slate-500 border-t border-slate-200/60"
+                    >
+                      <div class="flex items-center gap-4">
+                        <span
+                          >Created:
+                          {{ item.createdAt | date: "dd-MM-yyyy HH:mm" }}</span
+                        >
+                        @if (item.updatedAt) {
+                          <span
+                            >Updated:
+                            {{
+                              item.updatedAt | date: "dd-MM-yyyy HH:mm"
+                            }}</span
+                          >
+                        }
+                      </div>
+
+                      <button
+                        type="button"
+                        (click)="copySuggestion(item.suggestion, $event)"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold transition-colors cursor-pointer"
+                        matTooltip="Copy suggestion content"
+                      >
+                        <mat-icon
+                          class="icon-size-4"
+                          svgIcon="heroicons_outline:clipboard-document-check"
+                        ></mat-icon>
+                        <span>Copy Text</span>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>

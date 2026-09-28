@@ -1,0 +1,401 @@
+<mat-drawer-container
+  class="flex-auto sm:h-full"
+  (backdropClick)="onBackdropClicked()"
+>
+  <mat-drawer
+    class="w-full sm:w-100 lg:w-120 lg:max-w-120 overflow-hidden bg-white dark:bg-gray-800"
+    [mode]="drawerMode"
+    [opened]="false"
+    [position]="'end'"
+    [disableClose]="true"
+    #matDrawer
+  >
+    <router-outlet></router-outlet>
+  </mat-drawer>
+  <mat-drawer-content class="flex flex-col">
+    <div class="flex flex-col flex-auto overflow-hidden bg-white">
+      <!-- Header -->
+      <div class="page-header">
+        <div class="flex items-center gap-3">
+          <div
+            class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+          >
+            <a
+              (click)="$event.preventDefault()"
+              mat-icon-button
+              [matTooltip]="tooltip"
+            >
+              <mat-icon
+                class="icon-size-7 mb-0 mr-1 text-white"
+                [svgIcon]="'heroicons_solid:users'"
+              ></mat-icon>
+            </a>
+            <span class="text-2xl font-bold tracking-tight text-white"
+              >Seller Users</span
+            >
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+          <!-- Search -->
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+          >
+            <mat-icon
+              class="icon-size-5 text-gray-400"
+              matPrefix
+              [svgIcon]="'heroicons_solid:search'"
+            ></mat-icon>
+            <input
+              matInput
+              [formControl]="searchInputControl"
+              [autocomplete]="'off'"
+              [placeholder]="'Search users...'"
+            />
+          </mat-form-field>
+          <button
+            type="button"
+            class="btn-secondary-action"
+            (click)="refresh()"
+            matTooltip="Refresh"
+          >
+            <mat-icon
+              class="icon-size-5"
+              svgIcon="mat_outline:refresh"
+            ></mat-icon>
+          </button>
+          @if (isSuperAdmin || rolePermission?.add) {
+            <button
+              type="button"
+              [routerLink]="['./add']"
+              class="btn-primary-action"
+              mat-flat-button
+            >
+              <mat-icon
+                class="icon-size-5"
+                [svgIcon]="'heroicons_outline:plus'"
+              ></mat-icon>
+              <span>Add User</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Sellers list -->
+      <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+        <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+          <div class="grid">
+            <!-- Table Header -->
+            <div
+              class="table-header-row seller-list-header"
+              [ngClass]="{
+                'seller-no-update-control': !(
+                  isSuperAdmin || rolePermission?.update
+                ),
+                'seller-grid': isSuperAdmin || rolePermission?.update,
+              }"
+              matSort
+              matSortDisableClear
+            >
+              @for (header of headers; track header; let i = $index) {
+                @if (header?.sortBy) {
+                  <div [mat-sort-header]="header.sortBy">
+                    {{ header.key }}
+                  </div>
+                } @else {
+                  <div>
+                    {{ header.key }}
+                  </div>
+                }
+              }
+            </div>
+
+            <!-- SKELETON LOADER STATE (10 Rows) -->
+            @if ((isSuperAdmin || rolePermission?.view) && isLoading) {
+              @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                <div
+                  class="table-data-row seller-list-row animate-pulse"
+                  [ngClass]="{
+                    'seller-no-update-control': !(
+                      isSuperAdmin || rolePermission?.update
+                    ),
+                    'seller-grid': isSuperAdmin || rolePermission?.update,
+                  }"
+                >
+                  <div class="z-20 flex items-center">
+                    <div
+                      class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28 ml-4"
+                    ></div>
+                  </div>
+                  <div class="flex justify-start items-center">
+                    <div
+                      class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-44"
+                    ></div>
+                  </div>
+                  <div class="flex justify-start items-center">
+                    <div
+                      class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"
+                    ></div>
+                  </div>
+                  <div class="flex justify-start items-center">
+                    <div
+                      class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"
+                    ></div>
+                  </div>
+                  <div>
+                    @if (isSuperAdmin || rolePermission?.update) {
+                      <div class="flex justify-start items-center">
+                        <div
+                          class="w-9 h-5 bg-gray-200 dark:bg-gray-700 rounded-full"
+                        ></div>
+                      </div>
+                    }
+                  </div>
+                  @if (isSuperAdmin || rolePermission?.update) {
+                    <div class="flex justify-start items-center gap-1.5">
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                      @if (isSuperAdmin || rolePermission?.delete) {
+                        <div
+                          class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                        ></div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            } @else {
+              <!-- ACTUAL DATA STATE -->
+              @if (
+                (isSuperAdmin || rolePermission?.view) &&
+                  (sellerFormInput | async);
+                as sellers
+              ) {
+                @if (sellers.length) {
+                  @for (
+                    contact of sellers;
+                    track trackByFn(i, contact);
+                    let i = $index
+                  ) {
+                    <div
+                      class="table-data-row seller-list-row"
+                      [ngClass]="{
+                        '!bg-blue-50/50 border-blue-200':
+                          selectedSeller && selectedSeller._id === contact._id,
+                        'seller-no-update-control': !(
+                          isSuperAdmin || rolePermission?.update
+                        ),
+                        'seller-grid': isSuperAdmin || rolePermission?.update,
+                      }"
+                    >
+                      <div class="z-20 flex items-center">
+                        <!-- <div
+                          class="flex flex-0 items-center justify-center w-8 h-8 rounded-full overflow-hidden"
+                        >
+                          @if (contact.avatar) {
+                            <img
+                              class="object-cover w-full h-full"
+                              [src]="contact.avatar | mediaUrl:''"
+                              alt="User avatar"
+                            />
+                          } @else {
+                            @if (contact.profileImgUrl) {
+                              <img
+                                class="object-cover w-full h-full"
+                                [src]="contact.profileImgUrl"
+                                alt="User avatar"
+                              />
+                            } @else {
+                              <div
+                                class="seller-avatar-placeholder w-full h-full flex items-center justify-center rounded-full bg-primary text-white text-xs font-bold uppercase"
+                              >
+                                {{
+                                  getInitials(
+                                    contact.first_name,
+                                    contact.last_name
+                                  )
+                                }}
+                              </div>
+                            }
+                          }
+                        </div> -->
+                        <div
+                          class="min-w-0 ml-4 cursor-pointer truncate"
+                          [routerLink]="['./', contact._id]"
+                          [matTooltip]="
+                            contact.first_name + ' ' + contact.last_name
+                          "
+                        >
+                          {{ contact.first_name + " " + contact.last_name }}
+                        </div>
+                      </div>
+                      <div
+                        class="truncate text-slate-600 font-semibold text-sm flex justify-start items-center"
+                      >
+                        <span
+                          class="!max-w-[80%] truncate"
+                          [matTooltip]="contact?.email"
+                        >
+                          {{ contact?.email || "" }}
+                        </span>
+                        @if (contact?.email) {
+                          <button
+                            type="button"
+                            class="table-action-btn scale-75"
+                            [cdkCopyToClipboard]="contact?.email || ''"
+                            matTooltip="Copy Email"
+                          >
+                            <mat-icon
+                              svgIcon="mat_outline:content_copy"
+                              class="icon-size-4"
+                            >
+                            </mat-icon>
+                          </button>
+                        }
+                      </div>
+                      <div
+                        class="truncate text-slate-600 font-medium text-sm flex justify-start items-center"
+                      >
+                        <span
+                          class="!max-w-[80%] truncate"
+                          [matTooltip]="contact?.contact_no"
+                        >
+                          {{ contact?.contact_no || "" }}
+                        </span>
+                        @if (contact?.contact_no) {
+                          <button
+                            type="button"
+                            class="table-action-btn scale-75"
+                            [cdkCopyToClipboard]="contact?.contact_no || ''"
+                            matTooltip="Copy Contact"
+                          >
+                            <mat-icon
+                              svgIcon="mat_outline:content_copy"
+                              class="icon-size-4"
+                            >
+                            </mat-icon>
+                          </button>
+                        }
+                      </div>
+                      <div class="flex justify-start items-center">
+                        @if (contact?.roleName || contact?.role) {
+                          <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100"
+                            [matTooltip]="contact.roleName || contact.role"
+                          >
+                            {{ contact.roleName || contact.role }}
+                          </span>
+                        } @else {
+                          <span class="text-xs text-slate-400">-</span>
+                        }
+                      </div>
+
+                      <div>
+                        @if (isSuperAdmin || rolePermission?.update) {
+                          <div class="flex justify-start items-center gap-1.5">
+                            <mat-slide-toggle
+                              [color]="'primary'"
+                              [checked]="getStatus(contact.status)"
+                              (change)="toggleSellerStatus(contact, $event)"
+                              class="scale-75 -mr-1"
+                            >
+                            </mat-slide-toggle>
+                          </div>
+                        }
+                      </div>
+                      @if (isSuperAdmin || rolePermission?.update) {
+                        <div class="flex justify-start items-center gap-1.5">
+                          <button
+                            type="button"
+                            class="table-action-btn"
+                            (click)="openEditSellerUser(contact._id)"
+                            matTooltip="Edit user"
+                          >
+                            <mat-icon
+                              class="icon-size-5"
+                              [svgIcon]="'heroicons_outline:pencil'"
+                            ></mat-icon>
+                          </button>
+                          @if (isSuperAdmin || rolePermission?.delete) {
+                            <button
+                              type="button"
+                              class="table-action-btn danger"
+                              (click)="deleteSellerUser(contact._id)"
+                              matTooltip="Delete user"
+                            >
+                              <mat-icon
+                                class="icon-size-5 text-red-600 hover:text-red-700"
+                                [svgIcon]="'heroicons_outline:trash'"
+                              ></mat-icon>
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                } @else {
+                  <div class="page-empty-state">
+                    <div class="icon-wrapper">
+                      <mat-icon
+                        class="icon-size-10"
+                        [svgIcon]="'heroicons_outline:users'"
+                      ></mat-icon>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">
+                      No seller users found
+                    </h3>
+                    <p class="text-slate-500 max-w-sm font-medium">
+                      Get started by adding your first seller user to the
+                      system.
+                    </p>
+                  </div>
+                }
+              }
+            }
+
+            <!-- Restricted Permissions Screen UI -->
+            @if (!(isSuperAdmin || rolePermission?.view)) {
+              <div class="page-empty-state">
+                <div class="icon-wrapper bg-amber-50 border-amber-200">
+                  <mat-icon
+                    class="icon-size-10 text-amber-600"
+                    [svgIcon]="'heroicons_outline:lock-closed'"
+                  ></mat-icon>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">
+                  No permission to view seller users
+                </h3>
+                <p class="text-slate-500 max-w-sm font-medium">
+                  This seller role does not have view access for the seller user
+                  section.
+                </p>
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (
+          (isSuperAdmin || rolePermission?.view) && (sellerFormInput | async);
+          as sellers
+        ) {
+          @if (sellers.length) {
+            <div class="pagination-bar">
+              <mat-paginator
+                [ngClass]="{ 'pointer-events-none': isLoading }"
+                [length]="
+                  ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                  (sellers?.length || 0) +
+                  (pagination?.hasNextPage ? 1 : 0)
+                "
+                [pageSize]="pagination?.size || 100"
+                [pageSizeOptions]="[5, 25, 50, 100]"
+                [pageIndex]="(pagination?.page || 1) - 1"
+                [showFirstLastButtons]="false"
+              ></mat-paginator>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>

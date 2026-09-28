@@ -1,0 +1,366 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white dark:bg-gray-900"
+>
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a (click)="$event.preventDefault()" mat-icon-button>
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_outline:credit-card'"
+            ></mat-icon>
+          </a>
+          <span class="text-2xl font-bold tracking-tight text-white"
+            >Subscription & Payment History</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+      <!-- ── LOADING SKELETON ──────────────────────────────────────────────── -->
+      @if (isLoading) {
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto mb-4">
+        <div class="grid w-full">
+          <!-- Skeleton Header -->
+          <div
+            class="table-header-row merged-grid bg-slate-50 dark:bg-slate-800/50"
+          >
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Plan Name
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Billing
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Amount
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Gateway
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Period
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Sub Status
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Pay Status
+            </div>
+            <div
+              class="flex justify-end pr-4 text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Invoice
+            </div>
+          </div>
+
+          @for (item of [1, 2, 3, 4]; track $index) {
+          <div class="table-data-row merged-grid animate-pulse">
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+            <div
+              class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"
+            ></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-36"></div>
+            <div
+              class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16"
+            ></div>
+            <div
+              class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16"
+            ></div>
+            <div class="flex justify-end pr-4">
+              <div
+                class="w-16 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg"
+              ></div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+
+      } @else {
+      <!-- ═══ MERGED SUBSCRIPTION & PAYMENT HISTORY ══════════════════════════ -->
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+        <div class="grid w-full">
+          <!-- Grid Header -->
+          <div
+            class="table-header-row merged-grid bg-slate-50 dark:bg-slate-800/50"
+          >
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Plan Name
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Billing
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Amount
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Gateway
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Period
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Sub Status
+            </div>
+            <div
+              class="text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Pay Status
+            </div>
+            <div
+              class="flex justify-end pr-4 text-xs font-bold uppercase tracking-wider text-slate-400"
+            >
+              Invoice
+            </div>
+          </div>
+
+          <!-- Grid Data Rows -->
+          @for (sub of paginatedSubscriptions; track trackByFn($index, sub)) {
+          @let payment = sub?.payment;
+          <div
+            class="table-data-row merged-grid hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors"
+          >
+            <!-- Plan Name -->
+            <div class="plan-cell truncate flex items-center gap-2">
+              <span class="sm:hidden label-tag">Plan:</span>
+              <div
+                class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0"
+              >
+                <mat-icon
+                  class="icon-size-4 text-indigo-400"
+                  [svgIcon]="'heroicons_outline:shield-check'"
+                ></mat-icon>
+              </div>
+              <span
+                class="font-semibold text-sm text-slate-800 dark:text-gray-150 truncate"
+              >
+                {{ sub.plan_name || payment?.plan_name || 'No Plan' }}
+              </span>
+            </div>
+
+            <!-- Billing Cycle -->
+            <div
+              class="billing-cell font-semibold text-sm text-slate-600 dark:text-gray-300 capitalize"
+            >
+              <span class="sm:hidden label-tag">Billing:</span>
+              {{ getBillingCycleLabel(sub.billing_cycle ||
+              payment?.billing_cycle) }}
+            </div>
+
+            <!-- Amount -->
+            <div
+              class="amount-cell font-bold text-sm text-slate-900 dark:text-gray-100 flex items-center sm:block"
+            >
+              <span class="sm:hidden label-tag">Amount:</span>
+              {{ (sub.plan_price !== null && sub.currency_code) ?
+              formatAmount(sub.plan_price, sub.currency_code) : (payment ?
+              formatAmount(payment.amount, payment.currency_code) : '—') }}
+            </div>
+
+            <!-- Gateway -->
+            <div class="gateway-cell flex items-center sm:block">
+              <span class="sm:hidden label-tag">Gateway:</span>
+              @if (sub.gateway || payment?.gateway) {
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-950/20 dark:text-blue-300 dark:border-blue-900/30"
+              >
+                {{ getGatewayLabel(sub.gateway || payment?.gateway) }}
+              </span>
+              } @else {
+              <span class="text-sm text-slate-400">—</span>
+              }
+            </div>
+
+            <!-- Period -->
+            <div class="period-cell text-sm text-slate-600 dark:text-gray-300">
+              <span class="sm:hidden label-tag">Period:</span>
+              @if (sub.status === 'future') {
+              <span class="font-medium text-blue-600 dark:text-blue-400"
+                >Upcoming</span
+              >
+              } @else {
+              <span class="font-medium">
+                {{ formatDate(sub.started_at || sub.startedAt) }}
+              </span>
+              <span class="text-slate-400 mx-1">–</span>
+              <span class="font-medium">
+                {{ formatDate(sub.expired_at || sub.expiredAt) }}
+              </span>
+              }
+            </div>
+
+            <!-- Subscription Status -->
+            <div class="sub-status-cell flex items-center sm:block">
+              <span class="sm:hidden label-tag">Sub:</span>
+              @if (sub.status === 'active') {
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-300 dark:border-emerald-900/30 uppercase"
+              >
+                Active
+              </span>
+              } @else if (sub.status === 'expired') {
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800 uppercase"
+              >
+                Expired
+              </span>
+              } @else if (sub.status === 'future') {
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-950/20 dark:text-blue-300 dark:border-blue-900/30 uppercase"
+              >
+                Future
+              </span>
+              } @else if (sub.status === 'cancelled') {
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-100 dark:bg-red-950/20 dark:text-red-300 dark:border-red-900/30 uppercase"
+              >
+                Cancelled
+              </span>
+              } @else {
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800 uppercase"
+              >
+                {{ sub.status || '—' }}
+              </span>
+              }
+            </div>
+
+            <!-- Payment Status -->
+            <div class="pay-status-cell flex items-center sm:block">
+              <span class="sm:hidden label-tag">Pay:</span>
+              @if (!(sub.payment_status || payment?.status)) {
+              <span class="text-sm text-slate-400">—</span>
+              } @else if (isPaymentSuccess(sub.payment_status ||
+              payment?.status)) {
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-300 dark:border-emerald-900/30 uppercase"
+              >
+                Paid
+              </span>
+              } @else if ((sub.payment_status || payment?.status) === 'pending')
+              {
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-950/20 dark:text-amber-300 dark:border-amber-900/30 uppercase"
+              >
+                Pending
+              </span>
+              } @else if ((sub.payment_status || payment?.status) === 'failed')
+              {
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-100 dark:bg-red-950/20 dark:text-red-300 dark:border-red-900/30 uppercase"
+              >
+                Failed
+              </span>
+              } @else if ((sub.payment_status || payment?.status) ===
+              'refunded') {
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-950/20 dark:text-blue-300 dark:border-blue-900/30 uppercase"
+              >
+                Refunded
+              </span>
+              } @else {
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800 uppercase"
+              >
+                {{ getPaymentStatusLabel(sub.payment_status || payment?.status)
+                }}
+              </span>
+              }
+            </div>
+
+            <!-- Invoice -->
+            <div
+              class="invoice-cell flex items-center justify-between sm:justify-end pr-4"
+            >
+              <span class="sm:hidden label-tag">Invoice:</span>
+              @if (payment && isPaymentSuccess(sub.payment_status ||
+              payment?.status)) {
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-xs font-semibold text-indigo-600 dark:text-indigo-300 transition-colors pointer-events-auto shadow-sm"
+                (click)="downloadInvoice.emit(payment)"
+              >
+                <mat-icon class="icon-size-4">download</mat-icon>
+                Invoice
+              </button>
+              } @else {
+              <span
+                class="inline-block px-2 py-1 text-xs font-semibold text-slate-400 dark:text-gray-600 uppercase tracking-wide"
+              >
+                N/A
+              </span>
+              }
+            </div>
+          </div>
+          } @empty {
+          <div class="page-empty-state">
+            <div class="icon-wrapper">
+              <mat-icon
+                class="icon-size-10"
+                [svgIcon]="'heroicons_outline:credit-card'"
+              ></mat-icon>
+            </div>
+            <h3
+              class="text-xl font-bold text-slate-800 dark:text-gray-250 mb-2"
+            >
+              No subscription history found
+            </h3>
+            <p class="text-slate-500 max-w-sm font-medium">
+              There are currently no subscription records for this seller.
+            </p>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Bottom Pagination -->
+      @if (allSubscriptions.length > 0) {
+      <div class="pagination-bar">
+        <mat-paginator
+          [ngClass]="{ 'pointer-events-none': isLoading }"
+          [length]="totalLength"
+          [pageSize]="subscriptionLimit"
+          [pageSizeOptions]="[5, 25, 50, 100]"
+          [pageIndex]="subscriptionPage - 1"
+          [showFirstLastButtons]="false"
+          (page)="onPageChange($event)"
+        ></mat-paginator>
+      </div>
+      } }
+    </div>
+  </div>
+</div>

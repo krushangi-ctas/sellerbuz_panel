@@ -1,0 +1,572 @@
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden bg-slate-50">
+  <!-- Header Bar -->
+  <div class="page-header shrink-0 border-b border-slate-700/30">
+    <div class="flex items-center gap-3">
+      <button
+        type="button"
+        mat-icon-button
+        (click)="goBack()"
+        matTooltip="Back to Feature Meters"
+        class="text-white hover:bg-white/10 rounded-full transition-colors"
+      >
+        <mat-icon
+          class="icon-size-5 text-white"
+          svgIcon="heroicons_outline:arrow-left"
+        ></mat-icon>
+      </button>
+      <div>
+        <h1
+          class="text-base font-semibold tracking-tight text-white leading-tight"
+        >
+          {{ mappingId ? "Edit" : "Add" }} Feature Meter
+        </h1>
+        <p class="text-xs text-blue-200">
+          Bind an API path to a plan feature and configure usage count rules
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Content Area -->
+  <div class="flex-auto overflow-hidden p-3 sm:p-4 flex flex-col">
+    <div class="w-full h-full flex flex-col">
+      @if (isLoading) {
+        <div
+          class="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-sm animate-pulse flex-auto"
+        >
+          <div class="h-6 bg-slate-200 rounded w-1/4 mb-2"></div>
+          <div class="h-9 bg-slate-200 rounded w-full"></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="h-9 bg-slate-200 rounded"></div>
+            <div class="h-9 bg-slate-200 rounded"></div>
+          </div>
+          <div class="h-9 bg-slate-200 rounded w-full"></div>
+        </div>
+      } @else {
+        <form
+          class="bg-white rounded-xl border border-slate-200/80 shadow-sm flex flex-col flex-auto overflow-hidden"
+          [formGroup]="form"
+          (ngSubmit)="save()"
+        >
+          <!-- Form Header Banner -->
+          <div
+            class="px-5 py-2.5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between shrink-0"
+          >
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"
+              >
+                <mat-icon
+                  class="icon-size-4"
+                  svgIcon="heroicons_outline:adjustments"
+                ></mat-icon>
+              </div>
+              <div>
+                <h2
+                  class="text-xs font-bold text-slate-800 uppercase tracking-wider"
+                >
+                  {{
+                    mappingId
+                      ? "Update Meter Configuration"
+                      : "Configure New Feature Meter"
+                  }}
+                </h2>
+                <p class="text-[11px] text-slate-500">
+                  Fill in the API details and link them to plan feature rules
+                </p>
+              </div>
+            </div>
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+              [ngClass]="
+                form.get('status')?.value === 1
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-slate-100 text-slate-600 border border-slate-200'
+              "
+            >
+              {{ form.get("status")?.value === 1 ? "Active Mode" : "Inactive" }}
+            </span>
+          </div>
+
+          <!-- Main Grid (Full Width, Compact Vertical Space) -->
+          <div class="p-4 md:p-5 flex-auto overflow-y-auto space-y-4">
+            <!-- SECTION 1: API Route Details -->
+            <div>
+              <div
+                class="flex items-center gap-2 mb-2 pb-1 border-b border-slate-100"
+              >
+                <mat-icon
+                  class="icon-size-4 text-blue-500"
+                  svgIcon="heroicons_outline:globe-alt"
+                ></mat-icon>
+                <h3
+                  class="text-[11px] font-bold uppercase tracking-wider text-slate-600"
+                >
+                  1. API Route Settings
+                </h3>
+              </div>
+
+              <div class="grid grid-cols-12 gap-3">
+                <!-- Pick Discovered Route -->
+                <mat-form-field
+                  class="col-span-12 md:col-span-6 fuse-mat-dense"
+                  appearance="outline"
+                >
+                  <mat-label>Pick Discovered API Route (Optional)</mat-label>
+                  <mat-select
+                    formControlName="route_picker"
+                    (openedChange)="onRouteSelectOpened($event)"
+                  >
+                    <mat-option>
+                      <ngx-mat-select-search
+                        [formControl]="routeSearchControl"
+                        placeholderLabel="Search..."
+                        noEntriesFoundLabel="'No route found'"
+                      >
+                      </ngx-mat-select-search>
+                    </mat-option>
+
+                    <mat-option value="">Manual Entry</mat-option>
+
+                    @for (
+                      route of filteredRoutes;
+                      track route.method + route.path
+                    ) {
+                      <mat-option [value]="route.method + ' ' + route.path">
+                        <span
+                          class="font-semibold text-slate-700 [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white me-2"
+                          >{{ route.method }}</span
+                        >
+                        <span
+                          class="font-mono text-xs text-slate-600 [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white me-2"
+                          >{{ route.path }}</span
+                        >
+                        <span
+                          class="text-xs text-slate-400 [.mat-mdc-option-selected_&]:!text-white/80 [.mat-mdc-option-active_&]:!text-white/80"
+                        >
+                          ({{ route.controller }}.{{ route.handler }})
+                        </span>
+                      </mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- HTTP Method -->
+                <mat-form-field
+                  class="col-span-6 md:col-span-3 fuse-mat-dense"
+                  appearance="outline"
+                >
+                  <mat-label>HTTP Method</mat-label>
+                  <mat-select
+                    formControlName="method"
+                    (openedChange)="onMethodSelectOpened($event)"
+                  >
+                    <mat-option>
+                      <ngx-mat-select-search
+                        [formControl]="methodSearchControl"
+                        placeholderLabel="Search method..."
+                        (keyup)="filterMethods($event.target.value)"
+                        noEntriesFoundLabel="'No method found'"
+                      >
+                      </ngx-mat-select-search>
+                    </mat-option>
+                    @for (method of filteredMethods; track method) {
+                      <mat-option [value]="method">
+                        <span
+                          class="font-semibold [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white"
+                          [ngClass]="{
+                            'text-blue-600': method === 'GET',
+                            'text-emerald-600': method === 'POST',
+                            'text-amber-600': method === 'PUT',
+                            'text-purple-600': method === 'PATCH',
+                            'text-rose-600': method === 'DELETE',
+                          }"
+                          >{{ method }}</span
+                        >
+                      </mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- Count Mode -->
+                <mat-form-field
+                  class="col-span-6 md:col-span-3 fuse-mat-dense"
+                  appearance="outline"
+                >
+                  <mat-label>Count Mode </mat-label>
+                  <mat-select formControlName="count_mode">
+                    @for (mode of countModes; track mode) {
+                      <mat-option [value]="mode">
+                        <span
+                          class="font-mono text-xs [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white"
+                          >{{ mode }}</span
+                        >
+                      </mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- Path Pattern -->
+                <mat-form-field
+                  class="col-span-12 fuse-mat-dense"
+                  appearance="outline"
+                >
+                  <mat-label>Path Pattern </mat-label>
+                  <input
+                    matInput
+                    formControlName="path_pattern"
+                    placeholder="/seller-role/update-role/:sellerId/:roleID"
+                    autocomplete="off"
+                    class="font-mono text-xs"
+                  />
+                  <mat-hint class="text-[11px] text-slate-400"
+                    >No /v1 prefix. Use :param for path variables.</mat-hint
+                  >
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- SECTION 2: Feature Mapping & Target -->
+            <div>
+              <div
+                class="flex items-center gap-2 mb-2 pb-1 border-b border-slate-100"
+              >
+                <mat-icon
+                  class="icon-size-4 text-purple-500"
+                  svgIcon="heroicons_outline:cube"
+                ></mat-icon>
+                <h3
+                  class="text-[11px] font-bold uppercase tracking-wider text-slate-600"
+                >
+                  2. Feature & Limit Rule Association
+                </h3>
+              </div>
+
+              <div class="grid grid-cols-12 gap-3">
+                <!-- Feature Dropdown -->
+                <mat-form-field
+                  class="col-span-12 md:col-span-6 fuse-mat-dense"
+                  appearance="outline"
+                >
+                  <mat-label>Target Feature </mat-label>
+                  <mat-select
+                    formControlName="feature_id"
+                    (openedChange)="onFeatureSelectOpened($event)"
+                  >
+                    <mat-option>
+                      <ngx-mat-select-search
+                        [formControl]="featureSearchControl"
+                        placeholderLabel="Search feature..."
+                        (keyup)="filterFeatures($event.target.value)"
+                        noEntriesFoundLabel="'No feature found'"
+                      >
+                      </ngx-mat-select-search>
+                    </mat-option>
+                    @for (
+                      feature of filteredFeatures;
+                      track featureId(feature)
+                    ) {
+                      <mat-option [value]="featureId(feature)">
+                        <span
+                          class="font-medium text-slate-800 [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white"
+                          >{{ feature.name }}</span
+                        >
+                        @if (feature.sectionName) {
+                          <span
+                            class="text-xs text-slate-400 [.mat-mdc-option-selected_&]:!text-white/80 [.mat-mdc-option-active_&]:!text-white/80 ms-2"
+                            >({{ feature.sectionName }})</span
+                          >
+                        }
+                      </mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- Conditional Config Path -->
+                @if (showConfigPath) {
+                  <mat-form-field
+                    class="col-span-12 md:col-span-6 fuse-mat-dense"
+                    appearance="outline"
+                  >
+                    <mat-label>
+                      {{
+                        form.get("count_mode")?.value === "body_array"
+                          ? "Body Array Field Path"
+                          : "Response Field Path"
+                      }}
+                      *
+                    </mat-label>
+                    <input
+                      matInput
+                      formControlName="config_path"
+                      [placeholder]="
+                        form.get('count_mode')?.value === 'body_array'
+                          ? 'masterIds'
+                          : 'importedCount'
+                      "
+                      autocomplete="off"
+                      class="font-mono text-xs"
+                    />
+                  </mat-form-field>
+                }
+
+                <!-- Conditional File Field -->
+                @if (showFileField) {
+                  <mat-form-field
+                    class="col-span-12 md:col-span-6 fuse-mat-dense"
+                    appearance="outline"
+                  >
+                    <mat-label>Upload File Field Name </mat-label>
+                    <input
+                      matInput
+                      formControlName="file_field"
+                      placeholder="file"
+                      autocomplete="off"
+                      class="font-mono text-xs"
+                    />
+                  </mat-form-field>
+                }
+              </div>
+
+              <!-- Conditional Resource Count Configuration -->
+              @if (showResourceConfig) {
+                <div
+                  class="mt-3 rounded-xl border border-cyan-200/80 bg-cyan-50/50 dark:border-cyan-900/50 dark:bg-cyan-950/20 p-3.5 space-y-3"
+                >
+                  <div
+                    class="flex items-center gap-2 pb-1 border-b border-cyan-200/60"
+                  >
+                    <mat-icon
+                      class="icon-size-4 text-cyan-600"
+                      svgIcon="heroicons_outline:collection"
+                    ></mat-icon>
+                    <h4
+                      class="text-[11px] font-bold uppercase tracking-wider text-slate-600"
+                    >
+                      Resource Count Configuration
+                    </h4>
+                  </div>
+
+                  <div class="grid grid-cols-12 gap-3">
+                    <!-- Target Module -->
+                    <mat-form-field
+                      class="col-span-12 md:col-span-6 fuse-mat-dense"
+                      appearance="outline"
+                    >
+                      <mat-label>Target Module (Mongoose Model) *</mat-label>
+                      <mat-select
+                        formControlName="target_module"
+                        (openedChange)="
+                          filteredResourceModules = resourceModules
+                        "
+                      >
+                        <mat-option>
+                          <ngx-mat-select-search
+                            [formControl]="moduleSearchControl"
+                            placeholderLabel="Search module..."
+                            (keyup)="filterResourceModules($event.target.value)"
+                            noEntriesFoundLabel="'No module found'"
+                          >
+                          </ngx-mat-select-search>
+                        </mat-option>
+                        @for (
+                          module of filteredResourceModules;
+                          track module.name
+                        ) {
+                          <mat-option [value]="module.name">
+                            <span
+                              class="font-mono text-xs [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white"
+                              >{{ module.name }}</span
+                            >
+                          </mat-option>
+                        }
+                      </mat-select>
+                      @if (resourceModulesLoading) {
+                        <mat-hint>Loading models...</mat-hint>
+                      }
+                    </mat-form-field>
+
+                    <!-- Target Field (tenant isolation) -->
+                    <mat-form-field
+                      class="col-span-12 md:col-span-6 fuse-mat-dense"
+                      appearance="outline"
+                    >
+                      <mat-label>Target Field (Tenant Seller ID) *</mat-label>
+                      <mat-select formControlName="target_field">
+                        <mat-option [value]="">-- Select field --</mat-option>
+                        @for (field of resourceFields; track field.path) {
+                          <mat-option [value]="field.path">
+                            <span
+                              class="font-mono text-xs [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white"
+                              >{{ field.path }}</span
+                            >
+                            <span class="text-[11px] text-slate-400 ms-2">{{
+                              field.type
+                            }}</span>
+                          </mat-option>
+                        }
+                      </mat-select>
+                      @if (resourceFieldsLoading) {
+                        <mat-hint>Loading fields...</mat-hint>
+                      }
+                    </mat-form-field>
+
+                    <!-- Status (standard) -->
+                    <mat-form-field
+                      class="col-span-6 md:col-span-3 fuse-mat-dense"
+                      appearance="outline"
+                    >
+                      <mat-label>Status</mat-label>
+                      <mat-select formControlName="resource_status" required>
+                        <mat-option [value]="1">Active (1)</mat-option>
+                        <mat-option [value]="0">Inactive (0)</mat-option>
+                      </mat-select>
+                      <mat-hint>Only resources with this status count</mat-hint>
+                    </mat-form-field>
+
+                    <!-- Bulk Count Field -->
+                    <mat-form-field
+                      class="col-span-6 md:col-span-3 fuse-mat-dense"
+                      appearance="outline"
+                    >
+                      <mat-label>Bulk Count Field (optional)</mat-label>
+                      <input
+                        matInput
+                        formControlName="count_field"
+                        placeholder="items, masterIds..."
+                        autocomplete="off"
+                        class="font-mono text-xs"
+                      />
+                      <mat-hint
+                        >Body array path for bulk-create endpoints</mat-hint
+                      >
+                    </mat-form-field>
+                  </div>
+
+                  <p class="text-[11px] text-slate-500 leading-relaxed mb-0">
+                    <mat-icon
+                      class="icon-size-3.5 align-text-bottom me-1"
+                      svgIcon="heroicons_outline:information-circle"
+                    ></mat-icon>
+                    Usage is counted live via countDocuments() on the target
+                    collection using
+                    <code class="font-semibold">target_field + status</code>.
+                    Add a compound index on
+                    <code class="font-semibold">target_field + status</code>
+                    in MongoDB for performance. Time-window enforcement does not
+                    apply to this mode.
+                  </p>
+                </div>
+              }
+            </div>
+
+            <!-- SECTION 3: Enforcement & Status Box -->
+            <div
+              class="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5"
+            >
+              <div
+                class="flex items-center gap-2 border-b border-slate-200/60 pb-2"
+              >
+                <mat-icon
+                  class="icon-size-4 text-amber-500"
+                  svgIcon="heroicons_outline:shield-check"
+                ></mat-icon>
+                <h3
+                  class="text-[11px] font-bold uppercase tracking-wider text-slate-600"
+                >
+                  3. Enforcement & Status
+                </h3>
+              </div>
+
+              <div class="grid grid-cols-12 gap-4 items-center">
+                <!-- Status Dropdown -->
+                <mat-form-field
+                  class="col-span-12 md:col-span-5 fuse-mat-dense"
+                  appearance="outline"
+                >
+                  <mat-label>Meter Status </mat-label>
+                  <mat-select formControlName="status">
+                    <mat-option [value]="1">
+                      <span
+                        class="inline-flex items-center gap-1.5 text-emerald-600 [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white font-medium"
+                      >
+                        <span
+                          class="w-2 h-2 rounded-full bg-emerald-500 [.mat-mdc-option-selected_&]:!bg-white [.mat-mdc-option-active_&]:!bg-white"
+                        ></span>
+                        Active
+                      </span>
+                    </mat-option>
+                    <mat-option [value]="0">
+                      <span
+                        class="inline-flex items-center gap-1.5 text-slate-500 [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white font-medium"
+                      >
+                        <span
+                          class="w-2 h-2 rounded-full bg-slate-400 [.mat-mdc-option-selected_&]:!bg-white [.mat-mdc-option-active_&]:!bg-white"
+                        ></span>
+                        Inactive
+                      </span>
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- Time Window Enforce Toggle Box -->
+                <div
+                  class="col-span-12 md:col-span-7 -mt-2 flex flex-col justify-center bg-white border border-slate-200 rounded-lg p-2.5"
+                >
+                  <mat-slide-toggle
+                    formControlName="enforce_window"
+                    color="primary"
+                    [disabled]="
+                      form.get('count_mode')?.value === 'resource_count'
+                    "
+                  >
+                    <span class="text-xs font-semibold text-slate-800 me-1"
+                      >Enforce Time Window</span
+                    >
+                  </mat-slide-toggle>
+                  <mat-hint class="md:col-span-2 text-sm">
+                    @if (form.get("count_mode")?.value === "resource_count") {
+                      Not applicable — live resource counts are always
+                      window-independent.
+                    } @else {
+                      When on, this meter is restricted to the window limit
+                      configured in "Usage Window Settings" and auto-unblocks
+                      when the window resets.
+                    }
+                  </mat-hint>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions Footer (Pinned at Bottom) -->
+          <div
+            class="px-5 py-3 bg-slate-50/80 border-t border-slate-200/80 flex items-center justify-end gap-3 shrink-0"
+          >
+            <button
+              type="button"
+              mat-stroked-button
+              (click)="goBack()"
+              class="px-5 text-slate-600 border-slate-300 hover:bg-slate-100"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              mat-flat-button
+              color="primary"
+              [disabled]="btnDisable || form.invalid"
+            >
+              <mat-icon
+                class="icon-size-4 text-white me-1.5"
+                svgIcon="heroicons_outline:check"
+              ></mat-icon>
+              <span>{{ mappingId ? "Update Meter" : "Create Meter" }}</span>
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>

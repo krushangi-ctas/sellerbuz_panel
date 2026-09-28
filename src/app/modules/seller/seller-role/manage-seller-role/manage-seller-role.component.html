@@ -1,0 +1,273 @@
+<div
+  class="bg-gray-50 sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden overflow-auto"
+>
+  <div
+    class="page-header border-b border-gray-200 relative flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between px-2 py-2"
+  >
+    <div class="text-3xl font-extrabold tracking-tight">Role Details</div>
+
+    <button
+      type="button"
+      mat-flat-button
+      class="btn-back mt-4 sm:mt-0"
+      (click)="goBack()"
+    >
+      <mat-icon [svgIcon]="'heroicons_outline:arrow-sm-left'"></mat-icon>
+      <span class="ml-2">Go To Role List</span>
+    </button>
+  </div>
+
+  <div class="flex-auto overflow-auto px-4 py-5 sm:px-6 lg:px-10">
+    <div class="max-w-[100%]">
+      <button type="button" id="gotoTop" style="border: none"></button>
+
+      <form
+        class="bg-white border border-gray-200 rounded-lg shadow flex flex-col overflow-hidden"
+        [formGroup]="roleFormGroup"
+        (keydown)="onKeydown($event)"
+      >
+        <div
+          class="px-5 py-4 text-lg font-semibold text-gray-800 bg-gray-50 border-b border-gray-200"
+        >
+          {{ roleId ? "Update Role Details" : "Add Role Details" }}
+        </div>
+
+        <div class="p-6 sm:p-8 flex flex-col gap-6">
+          @if (isLoading) {
+            <!-- SKELETON LOADER FOR SELLER ROLE -->
+            <div class="animate-pulse space-y-6">
+              <div
+                class="h-14 bg-gray-200 dark:bg-gray-700 rounded-2xl w-full"
+              ></div>
+              <div class="space-y-4">
+                <div
+                  class="h-24 bg-gray-200 dark:bg-gray-700 rounded-xl w-full"
+                ></div>
+                <div
+                  class="h-24 bg-gray-200 dark:bg-gray-700 rounded-xl w-full"
+                ></div>
+                <div
+                  class="h-24 bg-gray-200 dark:bg-gray-700 rounded-xl w-full"
+                ></div>
+              </div>
+            </div>
+          } @else {
+            <div
+              class="bg-gray-50/50 dark:bg-gray-800/30 p-5 rounded-2xl border border-gray-200 dark:border-gray-700"
+            >
+              <mat-form-field
+                class="w-full fuse-mat-dense"
+                [floatLabel]="'always'"
+                appearance="outline"
+              >
+                <mat-label
+                  class="text-sm font-bold text-gray-800 dark:text-gray-200"
+                  >Role Name</mat-label
+                >
+                <input
+                  id="role_name"
+                  matInput
+                  [formControlName]="'role_name'"
+                  placeholder="Enter role name"
+                  maxlength="50"
+                />
+                @if (roleFormGroup.get("role_name").hasError("required")) {
+                  <mat-error> Role name is required! </mat-error>
+                }
+                @if (roleFormGroup.get("role_name").hasError("maxlength")) {
+                  <mat-error>
+                    Role name cannot exceed 20 characters!
+                  </mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-4">
+              @for (
+                section of displaySections;
+                track trackByFn($index, section)
+              ) {
+                <div
+                  class="p-3 sm:p-4 rounded-xl border transition-all duration-300 bg-card mb-3"
+                  [ngClass]="{
+                    'border-primary/40 shadow-sm bg-gradient-to-tr from-white to-primary/[0.01] dark:from-gray-800 dark:to-primary/[0.01]':
+                      isSectionSelected(section),
+                    'border-gray-200 shadow-sm hover:border-gray-300 dark:border-gray-700':
+                      !isSectionSelected(section),
+                  }"
+                >
+                  <div class="flex flex-col gap-2.5">
+                    <!-- Section Header -->
+                    <div
+                      class="flex items-center justify-between pb-1.5 border-b border-gray-100 dark:border-gray-700/50"
+                    >
+                      <div class="flex items-center">
+                        <mat-checkbox
+                          [id]="'section_' + section._id"
+                          [checked]="isSectionSelected(section)"
+                          (change)="toggleSection($event, section)"
+                          class="section-checkbox mr-2 scale-95 origin-left"
+                        >
+                          <span
+                            class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-gray-100 tracking-tight"
+                          >
+                            {{ section.name | titlecase }}
+                          </span>
+                        </mat-checkbox>
+                      </div>
+
+                      @if (
+                        isSectionSelected(section) && section.features?.length
+                      ) {
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary"
+                        >
+                          {{ section.features.length }} Features Active
+                        </span>
+                      }
+                    </div>
+
+                    <!-- Features Included -->
+                    @if (section.features?.length) {
+                      <div
+                        class="flex flex-wrap items-center gap-x-2 gap-y-1.5"
+                      >
+                        <span
+                          class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider"
+                          >Features:</span
+                        >
+                        <div class="flex flex-wrap gap-1.5">
+                          @for (feature of section.features; track feature) {
+                            @if (feature?.name && feature._id) {
+                              <div
+                                [id]="feature._id"
+                                class="inline-flex items-center px-2.5 py-1 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 text-sm text-gray-700 dark:text-gray-300 font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+                              >
+                                <mat-icon
+                                  class="text-primary text-sm w-4 h-4 mr-1.5 flex items-center justify-center"
+                                  >check_circle</mat-icon
+                                >
+                                <span>{{ feature?.name || "" }}</span>
+                                @if (feature.description) {
+                                  <mat-icon
+                                    class="text-gray-400 dark:text-gray-500 text-sm w-4 h-4 ml-1.5 cursor-help hover:text-gray-600 dark:hover:text-gray-400"
+                                    [matTooltip]="feature.description"
+                                    matTooltipPosition="right"
+                                  >
+                                    info
+                                  </mat-icon>
+                                }
+                              </div>
+                            }
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Permissions Settings -->
+                    @if (isSectionHavePermision(section)) {
+                      <div
+                        class="pt-1.5 border-t border-dashed border-gray-200 dark:border-gray-700/50"
+                      >
+                        <div class="flex flex-col gap-1.5">
+                          <div class="flex items-center gap-2">
+                            <span
+                              class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider"
+                              >Permissions:</span
+                            >
+                          </div>
+
+                          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            @for (
+                              permission of permissionKeys;
+                              track permission
+                            ) {
+                              <div
+                                class="flex items-center px-3.5 py-2 rounded-xl border transition-all"
+                                [ngClass]="{
+                                  'bg-primary/[0.03] border-primary/20 text-primary font-semibold':
+                                    isPermissionMatrixSelected(
+                                      section,
+                                      permission
+                                    ),
+                                  'bg-transparent border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400':
+                                    !isPermissionMatrixSelected(
+                                      section,
+                                      permission
+                                    ),
+                                }"
+                              >
+                                <mat-checkbox
+                                  [checked]="
+                                    isPermissionMatrixSelected(
+                                      section,
+                                      permission
+                                    )
+                                  "
+                                  (click)="
+                                    togglePermissionMatrix(
+                                      sectionPermissions?.[section._id]?.[
+                                        permission
+                                      ],
+                                      section,
+                                      permission
+                                    )
+                                  "
+                                  class="w-full scale-95 origin-left"
+                                >
+                                  <span
+                                    class="text-sm font-semibold tracking-tight"
+                                    >{{ permission | titlecase }}</span
+                                  >
+                                </mat-checkbox>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div
+          class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 border-t border-gray-200 bg-gray-50/80 px-4 py-4 rounded-b-2xl"
+        >
+          <!-- Cancel Button -->
+          <button
+            type="button"
+            (click)="goBack()"
+            class="btn-cancel w-full sm:w-auto rounded-xl px-6 py-2.5 font-medium shadow-sm transition-all duration-200"
+          >
+            <div class="flex items-center gap-2">
+              <mat-icon
+                class="icon-size-4"
+                svgIcon="heroicons_outline:x-circle"
+              ></mat-icon>
+              <span>Cancel</span>
+            </div>
+          </button>
+
+          <!-- Save Button -->
+          <button
+            type="submit"
+            [disabled]="roleFormGroup.invalid || !isFormValid() || btnDisable"
+            (click)="addRole()"
+            class="btn-primary w-full sm:w-auto rounded-xl px-6 py-2.5 font-semibold text-white shadow-md transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <div class="flex items-center gap-2">
+              <mat-icon
+                class="icon-size-4"
+                svgIcon="heroicons_outline:check-circle"
+              ></mat-icon>
+              <span>Save</span>
+            </div>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

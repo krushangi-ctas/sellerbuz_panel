@@ -1,0 +1,2588 @@
+<div class="db-page flex flex-col flex-auto min-w-0">
+  <!-- HERO -->
+  <header class="db-hero">
+    <div class="db-hero__content">
+      <div class="db-hero__user">
+        <div>
+          <p class="db-hero__eyebrow">
+            @if (isDeveloper && !isSuperAdmin && !isPremisesUser) {
+              Developer Dashboard
+            } @else if (isSuperAdmin || isPremisesUser) {
+              Admin Dashboard
+            } @else {
+              Seller Dashboard
+            }
+          </p>
+          <h1>
+            Welcome back,
+            {{ sellerInfo.first_name + " " + sellerInfo.last_name }}!
+          </h1>
+          <p class="db-hero__sub">
+            @if (isDeveloper && !isSuperAdmin && !isPremisesUser) {
+              Developer Control Panel &amp; API Management
+            } @else {
+              Overview of sellers, inventory &amp; performance metrics.
+            }
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Refresh Button -->
+        <!-- <button mat-stroked-button type="button"
+          class="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-lg px-3 py-1.5 flex items-center gap-1.5 transition-all shadow-sm"
+          [disabled]="isLoading" (click)="loadDashboard()">
+          <mat-icon [svgIcon]="'heroicons_outline:refresh'" class="icon-size-4 text-slate-500"></mat-icon>
+          Refresh
+        </button> -->
+        <!-- Subtle Avatar Badge -->
+        <div class="db-hero__avatar-wrap">
+          @if (!imageError && sellerInfo.profileImgUrl?.length > 0) {
+            @if (!imageLoaded) {
+              <div class="db-hero__avatar-fallback">{{ getInitials() }}</div>
+            }
+            <img
+              [class]="imageLoaded ? 'db-hero__avatar' : 'hidden'"
+              [src]="
+                sellerInfo.profileImgUrl.startsWith('http')
+                  ? sellerInfo.profileImgUrl
+                  : imagePath + sellerInfo.profileImgUrl
+              "
+              (load)="onAvatarLoad()"
+              (error)="imageError = true"
+              loading="eager"
+              fetchpriority="high"
+              alt="profile"
+            />
+          } @else {
+            <div class="db-hero__avatar-fallback">{{ getInitials() }}</div>
+          }
+          <span class="db-hero__status"></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- NEEDS ATTENTION -->
+  @if (getNeedsAttention().length > 0) {
+    <section class="mx-2 mb-3">
+      <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-amber-50 border border-amber-100 rounded-xl p-3 shadow-sm"
+      >
+        <div class="flex items-center gap-2 text-amber-800">
+          <mat-icon class="text-amber-600">warning</mat-icon>
+          <span class="text-sm font-semibold">Needs attention:</span>
+          <div class="flex flex-wrap gap-2 text-sm">
+            @for (
+              item of getNeedsAttention();
+              track item.label;
+              let last = $last
+            ) {
+              <span class="font-medium text-slate-700"
+                >{{ item.count }} {{ item.label }}</span
+              >
+              @if (!last) {
+                <span class="text-amber-400 font-bold">•</span>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- ══════ SUPER ADMIN ══════ -->
+  @if ((isSuperAdmin || isPremisesUser) && !isDeveloper) {
+    <div class="flex-auto px-2 pt-1 pb-4">
+      @if (activeTab === "overview") {
+        @if (isLoading) {
+          <!-- Skeleton: KPI Grid -->
+          <section
+            class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-6 mb-3"
+            aria-hidden="true"
+          >
+            @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
+              <ng-container
+                [ngTemplateOutlet]="metricSkeletonLoader"
+              ></ng-container>
+            }
+          </section>
+          <!-- Skeleton: panels -->
+          <section
+            class="grid grid-cols-1 xl:grid-cols-3 gap-2 mb-3"
+            aria-hidden="true"
+          >
+            @for (_ of [1, 2, 3]; track $index) {
+              <article class="skel-card">
+                <div class="skel-heading">
+                  <div>
+                    <span
+                      class="skeleton-shimmer skel-line skel-line--xs"
+                    ></span>
+                    <span
+                      class="skeleton-shimmer skel-line skel-line--title"
+                    ></span>
+                  </div>
+                  <span class="skeleton-shimmer skel-pill"></span>
+                </div>
+                <div class="skel-list">
+                  @for (r of [1, 2, 3]; track r) {
+                    <div class="skel-row">
+                      <span
+                        class="skeleton-shimmer skel-line skel-line--md"
+                      ></span>
+                      <span
+                        class="skeleton-shimmer skel-line skel-line--value"
+                      ></span>
+                    </div>
+                  }
+                </div>
+              </article>
+            }
+          </section>
+        } @else {
+          <!-- KPI Cards Grid -->
+          <section
+            class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-6 mb-3"
+          >
+            <!-- Card 1: Total Sellers -->
+            <article
+              class="rounded-xl border border-primary-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 text-primary-600"
+                >
+                  <mat-icon>people</mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">
+                    Total Sellers
+                  </p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{ formatNumber(numberOfSellers) }}
+                  </h3>
+                  <span class="text-xs text-slate-400"
+                    >Registered accounts</span
+                  >
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 2: Authorized Sellers -->
+            <article
+              class="rounded-xl border border-emerald-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"
+                >
+                  <mat-icon>check_circle</mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">
+                    Authorized
+                  </p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{ formatNumber(authorizedSeller) }}
+                  </h3>
+                  <span class="text-xs text-emerald-500"
+                    >Connected to SP-API</span
+                  >
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 3: Active Sellers -->
+            <article
+              class="rounded-xl border border-violet-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 text-violet-600"
+                >
+                  <mat-icon>play_circle</mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">
+                    Active Sellers
+                  </p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{ formatNumber(activeSellers) }}
+                  </h3>
+                  <span class="text-xs text-violet-500"
+                    >Current active session</span
+                  >
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 4: Auth Rate -->
+            <article
+              class="rounded-xl border border-sky-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-600"
+                >
+                  <mat-icon>trending_up</mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">
+                    Auth Rate
+                  </p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{ amazonAuthorizedPercentage | number: "1.1-1" }}%
+                  </h3>
+                  <span class="text-xs text-sky-500">Integration rate</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 5: Total Stores -->
+            <article
+              class="rounded-xl border border-rose-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-rose-600"
+                >
+                  <mat-icon>storefront</mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">
+                    Total Stores
+                  </p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{ formatNumber(totalStoreCount) }}
+                  </h3>
+                  <span class="text-xs text-rose-500">Connected stores</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 6: Subscriptions -->
+            <article
+              class="rounded-xl border border-amber-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-600"
+                >
+                  <mat-icon>credit_card</mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">
+                    Subscriptions
+                  </p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{ formatNumber(activeSubscriptionsCount) }}
+                  </h3>
+                  <span class="text-xs text-amber-500"
+                    >Active premium plans</span
+                  >
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <!-- New Concept: SaaS Platform Command & Executive Telemetry Suite -->
+          <section
+            class="mb-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm"
+          >
+            <!-- Suite Header -->
+            <div
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-3 border-b border-slate-100 pb-2.5"
+            >
+              <div class="flex items-start sm:items-center gap-2.5 min-w-0">
+                <span
+                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-primary-900 to-indigo-600 text-white shadow-xs mt-0.5 sm:mt-0"
+                >
+                  <mat-icon
+                    class="icon-size-4 text-white"
+                    [svgIcon]="'heroicons_outline:view-grid'"
+                  ></mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <h2
+                      class="m-0 text-sm font-extrabold text-slate-900 tracking-tight"
+                    >
+                      Platform Telemetry &amp; Operations Command
+                    </h2>
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0"
+                    >
+                      <span
+                        class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
+                      ></span>
+                      Live Admin Telemetry
+                    </span>
+                  </div>
+                  <p class="m-0 text-[11px] font-medium text-slate-400">
+                    Real-time SaaS platform health, integration velocity &amp;
+                    executive controls
+                  </p>
+                </div>
+              </div>
+
+              <!-- Quick Switcher to Cron Logs -->
+              <button
+                type="button"
+                (click)="setActiveTab('cron_logs')"
+                class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition-all cursor-pointer border border-slate-200 shrink-0 whitespace-nowrap self-start sm:self-auto"
+              >
+                <mat-icon
+                  class="icon-size-3.5 text-slate-600"
+                  [svgIcon]="'heroicons_outline:clock'"
+                ></mat-icon>
+                <span>View Cron Logs &rarr;</span>
+              </button>
+            </div>
+
+            <!-- 3 Pillar Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <!-- Pillar 1: Platform Health & Integration Velocity -->
+              <div
+                class="rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50/30 via-white to-white p-3 shadow-2xs flex flex-col justify-between"
+              >
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span
+                      class="text-[11px] font-extrabold uppercase tracking-wider text-indigo-600"
+                      >Integration Velocity</span
+                    >
+                    <span
+                      class="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-50 text-indigo-600"
+                    >
+                      <mat-icon
+                        class="icon-size-3.5"
+                        [svgIcon]="'heroicons_outline:trending-up'"
+                      ></mat-icon>
+                    </span>
+                  </div>
+
+                  <!-- SP-API Auth Rate Progress -->
+                  <div class="mb-3">
+                    <div
+                      class="flex justify-between items-center text-xs font-semibold text-slate-700 mb-1"
+                    >
+                      <span class="text-[11px] text-slate-500"
+                        >SP-API Integration Rate</span
+                      >
+                      <span class="text-xs font-bold text-indigo-700"
+                        >{{
+                          amazonAuthorizedPercentage | number: "1.1-1"
+                        }}%</span
+                      >
+                    </div>
+                    <div
+                      class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/50"
+                    >
+                      <div
+                        class="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full rounded-full transition-all duration-700"
+                        [style.width.%]="amazonAuthorizedPercentage"
+                      ></div>
+                    </div>
+                    <span class="text-[10px] text-slate-400 mt-1 block"
+                      >{{ authorizedSeller || 0 }} of
+                      {{ numberOfSellers || 0 }} sellers authorized</span
+                    >
+                  </div>
+
+                  <!-- Subscription Rate Progress -->
+                  <div>
+                    <div
+                      class="flex justify-between items-center text-xs font-semibold text-slate-700 mb-1"
+                    >
+                      <span class="text-[11px] text-slate-500"
+                        >Premium Subscription Rate</span
+                      >
+                      <span class="text-xs font-bold text-emerald-600"
+                        >{{ getSubscriptionConversionRate() }}%</span
+                      >
+                    </div>
+                    <div
+                      class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/50"
+                    >
+                      <div
+                        class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-700"
+                        [style.width.%]="getSubscriptionConversionRate()"
+                      ></div>
+                    </div>
+                    <span class="text-[10px] text-slate-400 mt-1 block"
+                      >{{ activeSubscriptionsCount || 0 }} active premium
+                      plans</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pillar 2: Live Activity & Security Alert -->
+              <div
+                class="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50/30 via-white to-white p-3 shadow-2xs flex flex-col justify-between"
+              >
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span
+                      class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-600"
+                      >Active Activity</span
+                    >
+                    <span
+                      class="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-50 text-emerald-600"
+                    >
+                      <mat-icon
+                        class="icon-size-3.5"
+                        [svgIcon]="'heroicons_outline:user-group'"
+                      ></mat-icon>
+                    </span>
+                  </div>
+
+                  <div class="flex items-baseline gap-2 mb-2">
+                    <span
+                      class="text-2xl font-black text-slate-900 tracking-tight"
+                      >{{ activeSellers || 0 }}</span
+                    >
+                    <span class="text-[11px] font-semibold text-emerald-600"
+                      >Active Online Sellers</span
+                    >
+                  </div>
+
+                  @if (numberOfSellers - authorizedSeller > 0) {
+                    <div
+                      class="rounded-lg bg-amber-50/80 border border-amber-200/80 p-2"
+                    >
+                      <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-amber-900"
+                          >{{ numberOfSellers - authorizedSeller }} Unauthorized
+                          Sellers</span
+                        >
+                        <a
+                          [routerLink]="['/seller-user']"
+                          class="text-[10px] font-bold text-amber-700 underline hover:text-amber-900 cursor-pointer"
+                          >View &rarr;</a
+                        >
+                      </div>
+                      <p class="m-0 text-[10px] text-amber-700 mt-0.5">
+                        Sellers require SP-API authorization setup.
+                      </p>
+                    </div>
+                  } @else {
+                    <div
+                      class="rounded-lg bg-emerald-50/80 border border-emerald-200/80 p-2"
+                    >
+                      <div class="flex items-center gap-1.5">
+                        <mat-icon
+                          class="icon-size-3.5 text-emerald-600"
+                          [svgIcon]="'heroicons_solid:check-circle'"
+                        ></mat-icon>
+                        <span class="text-[11px] font-bold text-emerald-900"
+                          >All Sellers Authorized</span
+                        >
+                      </div>
+                      <p class="m-0 text-[10px] text-emerald-700 mt-0.5">
+                        100% SP-API integration coverage achieved.
+                      </p>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Pillar 3: Executive Quick Action Hub Cards -->
+              <div
+                class="rounded-xl border border-slate-200/80 bg-slate-50/40 p-3 shadow-2xs flex flex-col justify-between"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <span
+                    class="text-[11px] font-extrabold uppercase tracking-wider text-slate-600"
+                    >Admin Actions</span
+                  >
+                  <span
+                    class="flex h-6 w-6 items-center justify-center rounded-md bg-slate-200/70 text-slate-700"
+                  >
+                    <mat-icon
+                      class="icon-size-3.5"
+                      [svgIcon]="'heroicons_outline:cog'"
+                    ></mat-icon>
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <!-- Action 1: Sellers -->
+                  <a
+                    [routerLink]="['/seller-user']"
+                    class="p-2 rounded-lg bg-white border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/40 transition-all cursor-pointer block"
+                  >
+                    <div class="flex items-center gap-1.5">
+                      <mat-icon
+                        class="icon-size-3.5 text-indigo-600"
+                        [svgIcon]="'heroicons_outline:users'"
+                      ></mat-icon>
+                      <span class="text-xs font-bold text-slate-800"
+                        >Sellers</span
+                      >
+                    </div>
+                    <span class="text-[10px] text-slate-400 block mt-0.5"
+                      >{{ numberOfSellers || 0 }} Accounts</span
+                    >
+                  </a>
+
+                  <!-- Action 2: Subscriptions -->
+                  <a
+                    [routerLink]="['/subscription']"
+                    class="p-2 rounded-lg bg-white border border-slate-200/80 hover:border-amber-300 hover:bg-amber-50/40 transition-all cursor-pointer block"
+                  >
+                    <div class="flex items-center gap-1.5">
+                      <mat-icon
+                        class="icon-size-3.5 text-amber-600"
+                        [svgIcon]="'heroicons_outline:credit-card'"
+                      ></mat-icon>
+                      <span class="text-xs font-bold text-slate-800"
+                        >Plans</span
+                      >
+                    </div>
+                    <span class="text-[10px] text-slate-400 block mt-0.5"
+                      >{{ activeSubscriptionsCount || 0 }} Active</span
+                    >
+                  </a>
+
+                  <!-- Action 3: System Users -->
+                  <a
+                    [routerLink]="['/users']"
+                    class="p-2 rounded-lg bg-white border border-slate-200/80 hover:border-violet-300 hover:bg-violet-50/40 transition-all cursor-pointer block"
+                  >
+                    <div class="flex items-center gap-1.5">
+                      <mat-icon
+                        class="icon-size-3.5 text-violet-600"
+                        [svgIcon]="'heroicons_outline:user'"
+                      ></mat-icon>
+                      <span class="text-xs font-bold text-slate-800"
+                        >Users</span
+                      >
+                    </div>
+                    <span class="text-[10px] text-slate-400 block mt-0.5"
+                      >Premises Users</span
+                    >
+                  </a>
+
+                  <!-- Action 4: System Logs / Crons -->
+                  <a
+                    [routerLink]="['/master/cron-logs']"
+                    class="p-2 rounded-lg bg-white border border-slate-200/80 hover:border-teal-300 hover:bg-teal-50/40 transition-all cursor-pointer text-left block w-full"
+                  >
+                    <div class="flex items-center gap-1.5">
+                      <mat-icon
+                        class="icon-size-3.5 text-teal-600"
+                        [svgIcon]="'heroicons_outline:document-text'"
+                      ></mat-icon>
+                      <span class="text-xs font-bold text-slate-800"
+                        >Cron Logs</span
+                      >
+                    </div>
+                    <span
+                      class="text-[10px] text-emerald-600 font-semibold block mt-0.5"
+                      >Active</span
+                    >
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section: Sellers Overview Chart (60%) + Top Volumetric Sellers Leaderboard (40%) -->
+          <section class="grid grid-cols-1 lg:grid-cols-5 gap-3 mb-4">
+            <!-- Sellers Overview Chart (3 Cols in lg:grid-cols-5 -> 60%) -->
+            <article
+              class="db-chart-wrap lg:col-span-3 flex flex-col justify-between"
+            >
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h2
+                    class="m-0 text-sm font-extrabold text-slate-900 tracking-tight"
+                  >
+                    Sellers Overview
+                  </h2>
+                  <p class="m-0 text-[11px] font-medium text-slate-400">
+                    Inventory distribution across seller accounts
+                  </p>
+                </div>
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100"
+                >
+                  {{ numberOfSellers || 0 }} Registered Sellers
+                </span>
+              </div>
+
+              <div class="flex flex-col flex-auto h-60">
+                @if (sellerInventoryCount && sellerInventoryCount.length > 0) {
+                  <apx-chart
+                    class="flex-auto w-full h-full"
+                    [chart]="chartVisitors.chart"
+                    [series]="chartVisitors.series"
+                    [xaxis]="chartVisitors.xaxis"
+                    [tooltip]="chartVisitors.tooltip"
+                    [colors]="chartVisitors.colors"
+                    [dataLabels]="chartVisitors.dataLabels"
+                    [plotOptions]="chartVisitors.plotOptions"
+                    [stroke]="chartVisitors.stroke"
+                    [fill]="chartVisitors.fill"
+                    [grid]="chartVisitors.grid"
+                    [yaxis]="chartVisitors.yaxis"
+                  >
+                  </apx-chart>
+                } @else {
+                  <div class="db-empty">
+                    <mat-icon class="text-3xl !w-8 !h-8 text-slate-300"
+                      >analytics</mat-icon
+                    >
+                    <h4>No Inventory Performance Metrics</h4>
+                    <p>No product metrics found for this session.</p>
+                  </div>
+                }
+              </div>
+            </article>
+
+            <!-- New Concept: Top Volumetric Sellers Leaderboard (2 Cols in lg:grid-cols-5 -> 40%) -->
+            <article
+              class="db-chart-wrap lg:col-span-2 flex flex-col justify-between"
+            >
+              <div
+                class="flex items-center justify-between mb-2 border-b border-slate-100 pb-2"
+              >
+                <div>
+                  <h2
+                    class="m-0 text-sm font-extrabold text-slate-900 tracking-tight"
+                  >
+                    Top Inventory Sellers
+                  </h2>
+                  <p class="m-0 text-[11px] font-medium text-slate-400">
+                    Top volume seller catalog breakdown
+                  </p>
+                </div>
+                <a
+                  [routerLink]="['/seller-user']"
+                  class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                >
+                  Manage &rarr;
+                </a>
+              </div>
+              <div
+                class="flex-1 flex flex-col justify-center min-h-[290px] px-4 sm:px-6 py-2"
+              >
+                @if (getTopSellersFromCount().length > 0 && chartTopSellers) {
+                  <apx-chart
+                    [series]="chartTopSellers.series"
+                    [chart]="chartTopSellers.chart"
+                    [colors]="chartTopSellers.colors"
+                    [stroke]="chartTopSellers.stroke"
+                    [markers]="chartTopSellers.markers"
+                    [fill]="chartTopSellers.fill"
+                    [dataLabels]="chartTopSellers.dataLabels"
+                    [plotOptions]="chartTopSellers.plotOptions"
+                    [xaxis]="chartTopSellers.xaxis"
+                    class="w-full flex items-center justify-center min-h-[290px]"
+                  ></apx-chart>
+                } @else {
+                  <div
+                    class="flex flex-col items-center justify-center py-6 text-slate-400"
+                  >
+                    <mat-icon
+                      class="icon-size-6 text-slate-300 mb-1"
+                      [svgIcon]="'heroicons_outline:users'"
+                    ></mat-icon>
+                    <span class="text-xs font-semibold text-slate-500"
+                      >No Seller Activity Recorded</span
+                    >
+                  </div>
+                }
+              </div>
+            </article>
+          </section>
+
+          <!-- New Concept: SaaS Infrastructure Diagnostics Strip (3 White Cards) -->
+          <section class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+            <!-- Card 1: SP-API Gateway Status -->
+            <div
+              class="rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs flex items-center justify-between"
+            >
+              <div class="flex items-center gap-2.5">
+                <span
+                  class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"
+                >
+                  <mat-icon
+                    class="icon-size-4"
+                    [svgIcon]="'heroicons_outline:status-online'"
+                  ></mat-icon>
+                </span>
+                <div>
+                  <h4 class="m-0 text-xs font-bold text-slate-800">
+                    SP-API Gateway
+                  </h4>
+                  <p class="m-0 text-[10px] text-slate-400">
+                    Latency &lt; 18ms • Active
+                  </p>
+                </div>
+              </div>
+              <span
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
+                ></span>
+                100% Online
+              </span>
+            </div>
+
+            <!-- Card 2: Cron Pipeline -->
+            <div
+              class="rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs flex items-center justify-between"
+            >
+              <div class="flex items-center gap-2.5">
+                <span
+                  class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"
+                >
+                  <mat-icon
+                    class="icon-size-4"
+                    [svgIcon]="'heroicons_outline:clock'"
+                  ></mat-icon>
+                </span>
+                <div>
+                  <h4 class="m-0 text-xs font-bold text-slate-800">
+                    Cron Dispatcher
+                  </h4>
+                  <p class="m-0 text-[10px] text-slate-400">
+                    Scheduled Jobs Active
+                  </p>
+                </div>
+              </div>
+              <a
+                [routerLink]="['/master/cron-logs']"
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 hover:bg-indigo-100 transition-all cursor-pointer inline-block"
+              >
+                Logs &rarr;
+              </a>
+            </div>
+
+            <!-- Card 3: Storage & Database -->
+            <div
+              class="rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs flex items-center justify-between"
+            >
+              <div class="flex items-center gap-2.5">
+                <span
+                  class="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600"
+                >
+                  <mat-icon
+                    class="icon-size-4"
+                    [svgIcon]="'heroicons_outline:database'"
+                  ></mat-icon>
+                </span>
+                <div>
+                  <h4 class="m-0 text-xs font-bold text-slate-800">
+                    Database &amp; Feeds
+                  </h4>
+                  <p class="m-0 text-[10px] text-slate-400">
+                    Health Operational
+                  </p>
+                </div>
+              </div>
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-100"
+              >
+                {{ numberOfSellers || 0 }} Accounts
+              </span>
+            </div>
+          </section>
+        }
+      }
+    </div>
+  }
+
+  <!-- ══════ AUTH PROMPT ══════ -->
+  @if (
+    !isSuperAdmin && !isPremisesUser && !isDeveloper && !isCustomerAuthorized
+  ) {
+    <div class="db-auth-prompt mx-3 mt-3">
+      <div class="flex flex-col lg:flex-row items-center">
+        <div class="w-full lg:w-3/5 p-8 lg:p-10">
+          <div class="flex items-center gap-4 mb-6">
+            <div
+              class="p-3 bg-gradient-to-br from-primary-900 to-primary-800 rounded-xl shadow-lg"
+            >
+              <mat-icon class="text-white text-3xl">login</mat-icon>
+            </div>
+            <div class="h-px flex-1"></div>
+          </div>
+          <h2
+            class="font-bold text-3xl lg:text-4xl text-gray-800 mb-4 leading-tight"
+          >
+            Have you Logged in to Your Amazon Seller Central Account?
+          </h2>
+          <p class="text-lg text-gray-600 leading-relaxed mb-8">
+            Before proceeding, ensure you're logged in to your Amazon Seller
+            Central account. This will grant you access to manage your Amazon
+            seller activities, including inventory management, order processing,
+            and account settings. Once logged in, you can proceed with the
+            necessary actions to connect external services, set up fulfillment
+            options, or manage your product listings efficiently.
+          </p>
+          <button
+            type="button"
+            mat-flat-button
+            [routerLink]="'/authorization-workflow'"
+            class="bg-gradient-to-r from-primary-900 via-primary-800 to-primary-900 hover:from-primary-800 hover:to-primary-900 text-white font-semibold px-10 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          >
+            <span class="flex items-center gap-2"
+              >Authorization
+              <mat-icon class="text-xl">arrow_forward</mat-icon></span
+            >
+          </button>
+        </div>
+        <div
+          class="w-full lg:w-2/5 flex justify-center items-center p-8 lg:p-10"
+        >
+          <div class="relative">
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-indigo-400/20 to-violet-400/20 rounded-full blur-3xl"
+            ></div>
+            <img
+              src="assets/images/dashboard.svg"
+              class="relative w-80 h-80 object-contain"
+              alt="dashboard"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ══════ SELLER SECTION ══════ -->
+  @if (!isSuperAdmin && !isPremisesUser && !isDeveloper) {
+    <div class="flex-auto px-2 pt-1 pb-4">
+      <!-- Custom Tab Navigation -->
+      <div
+        class="flex items-center gap-2 mb-4 bg-white p-1 rounded-xl border border-slate-200 w-fit"
+      >
+        <button
+          type="button"
+          class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+          [class.bg-primary-900]="activeTab === 'overview'"
+          [class.text-white]="activeTab === 'overview'"
+          [class.text-slate-600]="activeTab !== 'overview'"
+          [class.hover:bg-slate-50]="activeTab !== 'overview'"
+          (click)="setActiveTab('overview')"
+        >
+          Overview
+        </button>
+        <button
+          type="button"
+          class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+          [class.bg-primary-900]="activeTab === 'file_upload'"
+          [class.text-white]="activeTab === 'file_upload'"
+          [class.text-slate-600]="activeTab !== 'file_upload'"
+          [class.hover:bg-slate-50]="activeTab !== 'file_upload'"
+          (click)="setActiveTab('file_upload')"
+        >
+          File Upload Progress
+        </button>
+      </div>
+
+      @if (activeTab === "overview") {
+        <!-- KPI Cards -->
+        <section
+          class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 mb-3"
+        >
+          @if (!isLoadingSellerWiseInventoryCount) {
+            <!-- Total Products -->
+            <article
+              class="rounded-xl border border-primary-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 text-primary-600"
+                >
+                  <mat-icon [svgIcon]="'heroicons_outline:archive'"></mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">
+                    Total Products
+                  </p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{
+                      formatNumber(
+                        totalSellerWiseInventoryCounts?.sellerWiseInventoryCount
+                      )
+                    }}
+                  </h3>
+                  <span class="text-xs text-slate-400">Total inventory</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- In Stock -->
+            <article
+              class="rounded-xl border border-emerald-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"
+                >
+                  <mat-icon
+                    [svgIcon]="'heroicons_outline:check-circle'"
+                  ></mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">
+                    In Stock
+                  </p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{
+                      formatNumber(
+                        totalSellerWiseInventoryCounts?.inStockInventory
+                      )
+                    }}
+                  </h3>
+                  <span class="text-xs text-emerald-500">Available count</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Out of Stock -->
+            <article
+              class="rounded-xl border border-rose-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-rose-600"
+                >
+                  <mat-icon
+                    [svgIcon]="'heroicons_outline:exclamation-circle'"
+                  ></mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">
+                    Out of Stock
+                  </p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{
+                      formatNumber(
+                        totalSellerWiseInventoryCounts?.outOFStockInventory
+                      )
+                    }}
+                  </h3>
+                  <span class="text-xs text-rose-500">Replenish stock</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Active -->
+            <article
+              class="rounded-xl border border-violet-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 text-violet-600"
+                >
+                  <mat-icon [svgIcon]="'heroicons_outline:play'"></mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">Active</p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{
+                      formatNumber(
+                        totalSellerWiseInventoryCounts?.activeProductsCount
+                      )
+                    }}
+                  </h3>
+                  <span class="text-xs text-violet-500">Active listings</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Inactive -->
+            <article
+              class="rounded-xl border border-sky-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-600"
+                >
+                  <mat-icon [svgIcon]="'heroicons_outline:pause'"></mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">
+                    Inactive
+                  </p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{
+                      formatNumber(
+                        totalSellerWiseInventoryCounts?.stoppedProductsCount
+                      )
+                    }}
+                  </h3>
+                  <span class="text-xs text-slate-400">Paused catalog</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Banned Products -->
+            <article
+              class="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50/60 to-orange-50/40 p-3 shadow-sm transition-all hover:shadow-md cursor-pointer"
+              [routerLink]="['/master/amazon/compliance/banned-items']"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-200 text-white shadow-sm"
+                >
+                  <mat-icon [svgIcon]="'heroicons_outline:ban'"></mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-amber-950">
+                    Banned Products
+                  </p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{
+                      formatNumber(
+                        totalSellerWiseInventoryCounts?.bannedProductsCount || 0
+                      )
+                    }}
+                  </h3>
+                  <span class="text-xs font-medium text-amber-600"
+                    >Compliance section</span
+                  >
+                </div>
+              </div>
+            </article>
+
+            <!-- Amazon Stores -->
+            <article
+              class="rounded-xl border border-amber-100 bg-white p-3 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-600"
+                >
+                  <mat-icon
+                    [svgIcon]="'heroicons_outline:office-building'"
+                  ></mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 text-xs font-semibold text-slate-500">Stores</p>
+                  <h3 class="m-0 text-xl font-extrabold text-slate-900">
+                    {{
+                      formatNumber(
+                        storeDetailsList?.length || sellerStores?.length
+                      )
+                    }}
+                  </h3>
+                  <span class="text-xs text-slate-400">Marketplaces</span>
+                </div>
+              </div>
+            </article>
+          } @else {
+            @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
+              <ng-container
+                [ngTemplateOutlet]="metricSkeletonLoader"
+              ></ng-container>
+            }
+          }
+        </section>
+
+        <!-- New Concept: Operational Command & System Health Suite -->
+        <section class="mb-4 grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <!-- Innovative Smart Catalog & Inventory Telemetry Hub (2 Cols) -->
+          <article
+            class="xl:col-span-2 rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/50 to-indigo-50/20 p-4 shadow-sm flex flex-col justify-between"
+          >
+            <!-- Header -->
+            <div
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-3 border-b border-slate-100 pb-2.5"
+            >
+              <div class="flex items-start sm:items-center gap-2.5 min-w-0">
+                <span
+                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-xs mt-0.5 sm:mt-0"
+                >
+                  <mat-icon
+                    class="icon-size-4 text-white"
+                    [svgIcon]="'heroicons_outline:sparkles'"
+                  ></mat-icon>
+                </span>
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <h2
+                      class="m-0 text-sm font-extrabold text-slate-900 tracking-tight"
+                    >
+                      Smart Catalog &amp; Operations Telemetry
+                    </h2>
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0"
+                    >
+                      <span
+                        class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"
+                      ></span>
+                      Live AI Telemetry
+                    </span>
+                  </div>
+                  <p class="m-0 text-[11px] font-medium text-slate-400">
+                    Real-time stock velocity, catalog compliance index &amp;
+                    instant operations
+                  </p>
+                </div>
+              </div>
+
+              <!-- Quick Action: Trigger Live Sync -->
+              <button
+                type="button"
+                (click)="triggerLiveSync()"
+                [disabled]="isSyncingInventory"
+                class="group relative inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-all shadow-xs hover:shadow-indigo-200 cursor-pointer disabled:opacity-75 shrink-0 whitespace-nowrap self-start sm:self-auto"
+              >
+                <mat-icon
+                  class="icon-size-3.5 text-white transition-transform"
+                  [class.animate-spin]="isSyncingInventory"
+                  [svgIcon]="'heroicons_outline:refresh'"
+                ></mat-icon>
+                <span>{{
+                  isSyncingInventory ? "Syncing..." : "Sync Telemetry"
+                }}</span>
+              </button>
+            </div>
+
+            <!-- Inner Content Grid (3 Pillars) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <!-- Pillar 1: Catalog Health Rating -->
+              <div
+                class="rounded-xl border border-indigo-100/80 bg-white/90 p-3 shadow-xs flex flex-col justify-between hover:border-indigo-200 transition-all"
+              >
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span
+                      class="text-[11px] font-bold uppercase tracking-wider text-indigo-600"
+                      >Health Rating</span
+                    >
+                    <span
+                      class="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-50 text-indigo-600"
+                    >
+                      <mat-icon
+                        class="icon-size-3.5"
+                        [svgIcon]="'heroicons_outline:shield-check'"
+                      ></mat-icon>
+                    </span>
+                  </div>
+
+                  <div class="flex items-baseline gap-1.5 mb-1.5">
+                    <span
+                      class="text-2xl font-black text-slate-900 tracking-tight"
+                      >{{ getCatalogHealthScore() }}%</span
+                    >
+                    <span class="text-[11px] font-semibold text-emerald-600"
+                      >Optimal</span
+                    >
+                  </div>
+
+                  <!-- Progress Bar -->
+                  <div
+                    class="w-full bg-slate-100 rounded-full h-2 mb-2 overflow-hidden"
+                  >
+                    <div
+                      class="bg-gradient-to-r from-indigo-500 to-emerald-500 h-full rounded-full transition-all duration-700"
+                      [style.width.%]="getCatalogHealthScore()"
+                    ></div>
+                  </div>
+                </div>
+
+                <div
+                  class="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]"
+                >
+                  <span class="text-slate-400 font-medium"
+                    >Compliance Index</span
+                  >
+                  <span class="font-bold text-slate-700"
+                    >{{ getComplianceScorePercentage() }}% Score</span
+                  >
+                </div>
+              </div>
+
+              <!-- Pillar 2: Stock Velocity & Availability -->
+              <div
+                class="rounded-xl border border-emerald-100/80 bg-white/90 p-3 shadow-xs flex flex-col justify-between hover:border-emerald-200 transition-all"
+              >
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span
+                      class="text-[11px] font-bold uppercase tracking-wider text-emerald-600"
+                      >Stock Availability</span
+                    >
+                    <span
+                      class="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-50 text-emerald-600"
+                    >
+                      <mat-icon
+                        class="icon-size-3.5"
+                        [svgIcon]="'heroicons_outline:chart-bar'"
+                      ></mat-icon>
+                    </span>
+                  </div>
+
+                  <div class="flex items-baseline gap-1.5 mb-1.5">
+                    <span
+                      class="text-2xl font-black text-slate-900 tracking-tight"
+                      >{{ getHealthyStockPercentage() }}%</span
+                    >
+                    <span class="text-[11px] font-semibold text-slate-500"
+                      >In Stock</span
+                    >
+                  </div>
+
+                  <!-- Mini Split Pills -->
+                  <div class="flex items-center gap-1.5">
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100"
+                    >
+                      {{
+                        totalSellerWiseInventoryCounts?.inStockInventory || 0
+                      }}
+                      Available
+                    </span>
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold"
+                      [ngClass]="
+                        (totalSellerWiseInventoryCounts?.outOFStockInventory ||
+                          0) > 0
+                          ? 'bg-rose-50 text-rose-700 border border-rose-100'
+                          : 'bg-slate-50 text-slate-600 border border-slate-200'
+                      "
+                    >
+                      {{
+                        totalSellerWiseInventoryCounts?.outOFStockInventory || 0
+                      }}
+                      Out
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  class="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]"
+                >
+                  <span class="text-slate-400 font-medium">Channel Mode</span>
+                  <span class="font-bold text-slate-700"
+                    >{{ getFulfillmentPercentage("FBA") }}% FBA</span
+                  >
+                </div>
+              </div>
+
+              <!-- Pillar 3: Active Alerts & Operations -->
+              <div
+                class="rounded-xl border border-amber-100/80 bg-white/90 p-3 shadow-xs flex flex-col justify-between hover:border-amber-200 transition-all"
+              >
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span
+                      class="text-[11px] font-bold uppercase tracking-wider text-amber-600"
+                      >Action Telemetry</span
+                    >
+                    <span
+                      class="flex h-6 w-6 items-center justify-center rounded-md bg-amber-50 text-amber-600"
+                    >
+                      <mat-icon
+                        class="icon-size-3.5"
+                        [svgIcon]="'heroicons_outline:bell'"
+                      ></mat-icon>
+                    </span>
+                  </div>
+
+                  @if (
+                    (totalSellerWiseInventoryCounts?.bannedProductsCount || 0) >
+                    0
+                  ) {
+                    <div
+                      class="rounded-lg bg-amber-50/80 border border-amber-200/80 p-2 mb-2"
+                    >
+                      <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-amber-900"
+                          >{{
+                            totalSellerWiseInventoryCounts?.bannedProductsCount
+                          }}
+                          Compliance Alert</span
+                        >
+                        <a
+                          [routerLink]="[
+                            '/master/amazon/compliance/banned-items',
+                          ]"
+                          class="text-[10px] font-bold text-amber-700 underline hover:text-amber-900 cursor-pointer"
+                          >Review &rarr;</a
+                        >
+                      </div>
+                      <p class="m-0 text-[10px] text-amber-700 mt-0.5">
+                        Banned product items require Amazon review.
+                      </p>
+                    </div>
+                  } @else {
+                    <div
+                      class="rounded-lg bg-emerald-50/80 border border-emerald-200/80 p-2 mb-2"
+                    >
+                      <div class="flex items-center gap-1.5">
+                        <mat-icon
+                          class="icon-size-3.5 text-emerald-600"
+                          [svgIcon]="'heroicons_solid:check-circle'"
+                        ></mat-icon>
+                        <span class="text-[11px] font-bold text-emerald-900"
+                          >100% Policy Compliant</span
+                        >
+                      </div>
+                      <p class="m-0 text-[10px] text-emerald-700 mt-0.5">
+                        No policy flags or restricted listings.
+                      </p>
+                    </div>
+                  }
+                </div>
+
+                <div
+                  class="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]"
+                >
+                  <span class="text-slate-400 font-medium"
+                    >Batch Feed Status</span
+                  >
+                  <span
+                    class="font-bold text-emerald-600 flex items-center gap-1"
+                  >
+                    <span
+                      class="w-1.5 h-1.5 rounded-full bg-emerald-500"
+                    ></span>
+                    Active Feeds OK
+                  </span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Store & System Connectivity Health Card (1 Col) -->
+          <article
+            class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm flex flex-col justify-between"
+          >
+            <div>
+              <div
+                class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5"
+              >
+                <div class="flex items-center gap-2">
+                  <span
+                    class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"
+                  >
+                    <mat-icon
+                      class="icon-size-4"
+                      [svgIcon]="'heroicons_outline:status-online'"
+                    ></mat-icon>
+                  </span>
+                  <div>
+                    <h2 class="m-0 text-sm font-bold text-slate-900">
+                      System Connectivity
+                    </h2>
+                    <p class="m-0 text-[11px] font-medium text-slate-400">
+                      Live Amazon API Status
+                    </p>
+                  </div>
+                </div>
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                  [ngClass]="
+                    isCustomerAuthorized
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  "
+                >
+                  <span
+                    class="w-1.5 h-1.5 rounded-full"
+                    [ngClass]="
+                      isCustomerAuthorized
+                        ? 'bg-emerald-500 animate-pulse'
+                        : 'bg-rose-500'
+                    "
+                  ></span>
+                  {{ isCustomerAuthorized ? "Connected" : "Action Required" }}
+                </span>
+              </div>
+
+              <div class="space-y-2.5">
+                <!-- Amazon SP-API Authorization Status -->
+                <div
+                  class="rounded-xl bg-slate-50/80 border border-slate-100 p-3 flex items-center justify-between"
+                >
+                  <div class="flex items-center gap-2.5">
+                    <span
+                      class="flex h-7 w-7 items-center justify-center rounded-md bg-amber-50 text-amber-600"
+                    >
+                      <mat-icon
+                        class="icon-size-3.5"
+                        [svgIcon]="'heroicons_outline:key'"
+                      ></mat-icon>
+                    </span>
+                    <div>
+                      <span class="text-xs font-semibold block text-slate-800"
+                        >Amazon SP-API Status</span
+                      >
+                      <span class="text-[10px] text-slate-400 block">{{
+                        isCustomerAuthorized
+                          ? "Token valid & active"
+                          : "Store pending authorization"
+                      }}</span>
+                    </div>
+                  </div>
+                  @if (!isCustomerAuthorized) {
+                    <a
+                      [routerLink]="['/authorization-workflow']"
+                      class="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-[11px] hover:bg-amber-400 transition-all cursor-pointer shadow-xs"
+                    >
+                      Authorize Now
+                    </a>
+                  } @else {
+                    <span
+                      class="text-[11px] text-emerald-600 font-bold flex items-center gap-1"
+                    >
+                      <mat-icon
+                        class="icon-size-3.5 text-emerald-600"
+                        [svgIcon]="'heroicons_solid:check-circle'"
+                      ></mat-icon>
+                      Active
+                    </span>
+                  }
+                </div>
+
+                <!-- Connected Marketplaces Count -->
+                <div
+                  class="rounded-xl bg-slate-50/80 border border-slate-100 p-3 flex items-center justify-between"
+                >
+                  <div class="flex items-center gap-2.5">
+                    <span
+                      class="flex h-7 w-7 items-center justify-center rounded-md bg-sky-50 text-sky-600"
+                    >
+                      <mat-icon
+                        class="icon-size-3.5"
+                        [svgIcon]="'heroicons_outline:office-building'"
+                      ></mat-icon>
+                    </span>
+                    <div>
+                      <span class="text-xs font-semibold block text-slate-800"
+                        >Connected Marketplaces</span
+                      >
+                      <span class="text-[10px] text-slate-400 block"
+                        >Amazon Region Stores</span
+                      >
+                    </div>
+                  </div>
+                  <span
+                    class="text-sm font-black text-slate-900 px-2.5 py-0.5 rounded-md bg-white border border-slate-200 shadow-xs"
+                  >
+                    {{ storeDetailsList?.length || sellerStores?.length || 0 }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400"
+            >
+              <span>Last Synced: Just Now</span>
+              <a
+                [routerLink]="['/master/general-setting']"
+                class="text-indigo-600 hover:text-indigo-700 font-semibold cursor-pointer"
+              >
+                Portal Settings &rarr;
+              </a>
+            </div>
+          </article>
+        </section>
+
+        <!-- Row 1: Weekly Inventory, Marketplace-Wise & Support Ticket Analytics (3 Columns) -->
+        <section
+          class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3"
+        >
+          <!-- 1. Weekly Inventory Count -->
+          <article class="db-chart-wrap flex flex-col justify-between">
+            <div
+              class="flex items-center justify-between mb-2 border-b border-slate-100 pb-2"
+            >
+              <div>
+                <h2 class="m-0 text-sm font-bold text-gray-900">
+                  Weekly Inventory Count
+                </h2>
+                <p class="m-0 mt-1 text-[12px] text-gray-500">
+                  Temporal velocity trends
+                </p>
+              </div>
+            </div>
+            <div class="p-1 flex-1 flex flex-col justify-center min-h-[220px]">
+              @if (isLoadBarChart) {
+                @if (chartOptions4?.series?.[0]?.data?.length) {
+                  <apx-chart
+                    [series]="chartOptions4.series"
+                    [chart]="chartOptions4.chart"
+                    [dataLabels]="chartOptions4.dataLabels"
+                    [plotOptions]="chartOptions4.plotOptions"
+                    [responsive]="chartOptions4.responsive"
+                    [xaxis]="chartOptions4.xaxis"
+                    [legend]="chartOptions4.legend"
+                    [fill]="chartOptions4.fill"
+                    [colors]="chartOptions4.colors"
+                    [stroke]="chartOptions4.stroke"
+                    [grid]="chartOptions4.grid"
+                    [yaxis]="chartOptions4.yaxis"
+                    [tooltip]="chartOptions4.tooltip"
+                  ></apx-chart>
+                } @else {
+                  <ng-container [ngTemplateOutlet]="noChart"></ng-container>
+                }
+              } @else {
+                <ng-container [ngTemplateOutlet]="chartLoader"></ng-container>
+              }
+            </div>
+          </article>
+
+          <!-- 2. Marketplace-Wise Inventory Count -->
+          <article class="db-chart-wrap flex flex-col justify-between">
+            <div
+              class="flex items-center justify-between mb-2 border-b border-slate-100 pb-2"
+            >
+              <div>
+                <h2 class="m-0 text-sm font-bold text-gray-900">
+                  Marketplace-Wise Inventory Count
+                </h2>
+                <p class="m-0 mt-1 text-[12px] text-gray-500">
+                  Regional channel distribution
+                </p>
+              </div>
+            </div>
+            <div class="p-1 flex-1 flex flex-col justify-center min-h-[220px]">
+              @if (!isLoadingMarketplaceChart) {
+                @if (hasMarketplaceData) {
+                  <apx-chart
+                    [series]="chartOptions3.series"
+                    [chart]="chartOptions3.chart"
+                    [dataLabels]="chartOptions3.dataLabels"
+                    [plotOptions]="chartOptions3.plotOptions"
+                    [responsive]="chartOptions3.responsive"
+                    [legend]="chartOptions3.legend"
+                    [colors]="chartOptions3.colors"
+                    [grid]="chartOptions3.grid"
+                    [xaxis]="chartOptions3.xaxis"
+                    [yaxis]="chartOptions3.yaxis"
+                  ></apx-chart>
+                } @else {
+                  <ng-container [ngTemplateOutlet]="noChart"></ng-container>
+                }
+              } @else {
+                <ng-container [ngTemplateOutlet]="chartLoader"></ng-container>
+              }
+            </div>
+          </article>
+
+          <!-- 3. Support Ticket Analytics (Seller Scoped) -->
+          <article class="db-chart-wrap flex flex-col justify-between">
+            <div
+              class="flex items-center justify-between mb-2 border-b border-slate-100 pb-2"
+            >
+              <div>
+                <h2
+                  class="m-0 text-sm font-bold text-gray-900 flex items-center gap-1.5"
+                >
+                  Support Ticket Analytics
+                  <span
+                    class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100"
+                  >
+                    Seller
+                  </span>
+                </h2>
+                <p class="m-0 mt-1 text-[12px] text-gray-500">
+                  Status breakdown & resolution gauge
+                </p>
+              </div>
+
+              <a
+                [routerLink]="['/master/support/tickets']"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-600 text-white font-bold text-[11px] hover:bg-indigo-700 transition-all shadow-2xs"
+              >
+                <span>Tickets</span>
+                <mat-icon
+                  class="icon-size-3 text-white"
+                  svgIcon="heroicons_outline:arrow-right"
+                ></mat-icon>
+              </a>
+            </div>
+
+            <div class="p-1 flex-1 flex flex-col justify-center min-h-[220px]">
+              @if (!isLoadingTicketChart) {
+                @if (ticketSummary && ticketSummary.all > 0) {
+                  <apx-chart
+                    [series]="ticketChartOptions.series"
+                    [chart]="ticketChartOptions.chart"
+                    [plotOptions]="ticketChartOptions.plotOptions"
+                    [colors]="ticketChartOptions.colors"
+                    [labels]="ticketChartOptions.labels"
+                    [legend]="ticketChartOptions.legend"
+                    class="w-full flex items-center justify-center"
+                  ></apx-chart>
+                } @else {
+                  <ng-container [ngTemplateOutlet]="noChart"></ng-container>
+                }
+              } @else {
+                <ng-container [ngTemplateOutlet]="chartLoader"></ng-container>
+              }
+            </div>
+          </article>
+        </section>
+
+        <!-- Row 2: 3 charts -->
+        <section
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mb-3"
+        >
+          <!-- Fulfillment -->
+          <article class="db-chart-wrap flex flex-col justify-between">
+            <div
+              class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2"
+            >
+              <div>
+                <h2
+                  class="m-0 text-sm font-extrabold text-slate-900 tracking-tight"
+                >
+                  Fulfillment Type
+                </h2>
+                <p class="m-0 text-[11px] font-medium text-slate-400">
+                  FBM vs FBA Distribution
+                </p>
+              </div>
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100"
+              >
+                {{ getFulfillmentPercentage("FBA") }}% FBA Dominant
+              </span>
+            </div>
+
+            <div class="flex flex-col justify-center min-h-[210px] px-1">
+              @if (!isFullfilmentLoading) {
+                @if (hasFullfillmentData) {
+                  <div class="space-y-3.5">
+                    <!-- Modern Segmented Multi-Bar -->
+                    <div>
+                      <div
+                        class="flex justify-between items-center text-xs font-semibold text-slate-600 mb-1.5"
+                      >
+                        <span class="text-[11px] text-slate-400"
+                          >Distribution Split</span
+                        >
+                        <span class="text-[11px] font-bold text-slate-700"
+                          >FBA {{ getFulfillmentPercentage("FBA") }}% • FBM
+                          {{ getFulfillmentPercentage("FBM") }}%</span
+                        >
+                      </div>
+                      <div
+                        class="w-full bg-slate-100 rounded-full h-2.5 flex overflow-hidden p-0.5 border border-slate-200/50"
+                      >
+                        <div
+                          class="bg-gradient-to-r from-indigo-600 to-indigo-500 h-full rounded-full transition-all duration-700"
+                          [style.width.%]="getFulfillmentPercentage('FBA')"
+                        ></div>
+                        <div
+                          class="bg-gradient-to-r from-teal-400 to-teal-500 h-full rounded-full transition-all duration-700 ml-0.5"
+                          [style.width.%]="getFulfillmentPercentage('FBM')"
+                        ></div>
+                      </div>
+                    </div>
+
+                    <!-- FBA & FBM Metric Cards Grid -->
+                    <div class="space-y-2 pt-1">
+                      <!-- FBA Box -->
+                      <div
+                        class="rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50/40 via-white to-white p-2.5 flex items-center justify-between shadow-2xs hover:border-indigo-200 transition-all"
+                      >
+                        <div class="flex items-center gap-2.5">
+                          <span
+                            class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-xs"
+                          >
+                            <mat-icon
+                              class="icon-size-4 text-white"
+                              [svgIcon]="'heroicons_outline:cube'"
+                            ></mat-icon>
+                          </span>
+                          <div>
+                            <h4 class="m-0 text-xs font-bold text-slate-800">
+                              FBA (Amazon)
+                            </h4>
+                            <p class="m-0 text-[10px] text-slate-400">
+                              Fulfillment by Amazon
+                            </p>
+                          </div>
+                        </div>
+                        <div class="text-right">
+                          <span
+                            class="text-base font-extrabold text-slate-900 block leading-none"
+                            >{{ formatNumber(fulfillmentCounts.FBA) }}</span
+                          >
+                          <span
+                            class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 mt-1"
+                          >
+                            {{ getFulfillmentPercentage("FBA") }}%
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- FBM Box -->
+                      <div
+                        class="rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/40 via-white to-white p-2.5 flex items-center justify-between shadow-2xs hover:border-teal-200 transition-all"
+                      >
+                        <div class="flex items-center gap-2.5">
+                          <span
+                            class="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500 text-white shadow-xs"
+                          >
+                            <mat-icon
+                              class="icon-size-4 text-white"
+                              [svgIcon]="'heroicons_outline:user'"
+                            ></mat-icon>
+                          </span>
+                          <div>
+                            <h4 class="m-0 text-xs font-bold text-slate-800">
+                              FBM (Merchant)
+                            </h4>
+                            <p class="m-0 text-[10px] text-slate-400">
+                              Fulfillment by Merchant
+                            </p>
+                          </div>
+                        </div>
+                        <div class="text-right">
+                          <span
+                            class="text-base font-extrabold text-slate-900 block leading-none"
+                            >{{ formatNumber(fulfillmentCounts.FBM) }}</span
+                          >
+                          <span
+                            class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-700 mt-1"
+                          >
+                            {{ getFulfillmentPercentage("FBM") }}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                } @else {
+                  <ng-container [ngTemplateOutlet]="noChart"></ng-container>
+                }
+              } @else {
+                <ng-container [ngTemplateOutlet]="chartLoader"></ng-container>
+              }
+            </div>
+          </article>
+
+          <!-- Product Type -->
+          <article class="db-chart-wrap">
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <h2 class="m-0 text-sm font-bold text-gray-900">
+                  Product Type
+                </h2>
+                <p class="m-0 mt-1 text-[12px] text-gray-500">
+                  Retail &amp; White Label
+                </p>
+              </div>
+            </div>
+            <div class="flex flex-col justify-center min-h-[220px]">
+              @if (!isLoadingProductTypeChartData) {
+                @if (hasProductTypeData) {
+                  <apx-chart
+                    [series]="chartOptions2.series"
+                    [chart]="chartOptions2.chart"
+                    [labels]="chartOptions2.labels"
+                    [colors]="chartOptions2.colors"
+                    [responsive]="chartOptions2.responsive"
+                    [legend]="chartOptions2.legend"
+                    [plotOptions]="chartOptions2.plotOptions"
+                  ></apx-chart>
+                } @else {
+                  <ng-container [ngTemplateOutlet]="noChart"></ng-container>
+                }
+              } @else {
+                <ng-container [ngTemplateOutlet]="chartLoader"></ng-container>
+              }
+            </div>
+          </article>
+
+          <!-- Total Products Stock Status -->
+          <article class="db-chart-wrap flex flex-col justify-between">
+            <div
+              class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2"
+            >
+              <div>
+                <h2
+                  class="m-0 text-sm font-extrabold text-slate-900 tracking-tight"
+                >
+                  Total Products
+                </h2>
+                <p class="m-0 text-[11px] font-medium text-slate-400">
+                  Stock Status Overview
+                </p>
+              </div>
+              @if (
+                (totalSellerWiseInventoryCounts?.outOFStockInventory || 0) > 0
+              ) {
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-100"
+                >
+                  {{ totalSellerWiseInventoryCounts?.outOFStockInventory }} Out
+                  of stock
+                </span>
+              } @else {
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100"
+                >
+                  <span
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
+                  ></span>
+                  100% Healthy
+                </span>
+              }
+            </div>
+
+            <div class="flex flex-col justify-center min-h-[210px] px-1">
+              @if (!isLoadingSellerWiseInventoryCount) {
+                <div class="space-y-3.5">
+                  <!-- Modern Stock Rate Progress Bar -->
+                  <div>
+                    <div
+                      class="flex justify-between items-center text-xs font-semibold text-slate-600 mb-1.5"
+                    >
+                      <span
+                        class="flex items-center gap-1.5 text-xs font-bold text-slate-800"
+                      >
+                        <span
+                          class="w-2.5 h-2.5 rounded-full bg-emerald-500"
+                        ></span>
+                        Healthy Stock Rate
+                      </span>
+                      <span class="text-xs font-black text-emerald-600"
+                        >{{ getHealthyStockPercentage() }}%</span
+                      >
+                    </div>
+                    <div
+                      class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden p-0.5 border border-slate-200/50"
+                    >
+                      <div
+                        class="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-700 shadow-xs"
+                        [style.width.%]="getHealthyStockPercentage()"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <!-- In Stock vs Out of Stock Cards Grid -->
+                  <div class="grid grid-cols-2 gap-2.5 pt-1">
+                    <!-- In Stock Box -->
+                    <div
+                      class="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50/40 via-white to-white p-3 shadow-2xs hover:border-emerald-200 transition-all flex flex-col justify-between"
+                    >
+                      <div class="flex items-center justify-between mb-1.5">
+                        <span
+                          class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700"
+                          >In Stock</span
+                        >
+                        <span
+                          class="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-50 text-emerald-600"
+                        >
+                          <mat-icon
+                            class="icon-size-3.5"
+                            [svgIcon]="'heroicons_outline:check-circle'"
+                          ></mat-icon>
+                        </span>
+                      </div>
+                      <strong
+                        class="text-2xl font-black text-slate-900 block leading-tight"
+                      >
+                        {{
+                          formatNumber(
+                            totalSellerWiseInventoryCounts?.inStockInventory
+                          )
+                        }}
+                      </strong>
+                      <span
+                        class="text-[10px] font-semibold text-emerald-600 mt-1 block"
+                        >Ready to Ship</span
+                      >
+                    </div>
+
+                    <!-- Out of Stock Box -->
+                    <div
+                      class="rounded-xl p-3 shadow-2xs transition-all flex flex-col justify-between"
+                      [ngClass]="
+                        (totalSellerWiseInventoryCounts?.outOFStockInventory ||
+                          0) > 0
+                          ? 'border border-rose-100 bg-gradient-to-br from-rose-50/40 via-white to-white'
+                          : 'border border-slate-100 bg-gradient-to-br from-slate-50/40 via-white to-white'
+                      "
+                    >
+                      <div class="flex items-center justify-between mb-1.5">
+                        <span
+                          class="text-[10px] font-extrabold uppercase tracking-wider"
+                          [ngClass]="
+                            (totalSellerWiseInventoryCounts?.outOFStockInventory ||
+                              0) > 0
+                              ? 'text-rose-700'
+                              : 'text-slate-500'
+                          "
+                          >Out of Stock</span
+                        >
+                        <span
+                          class="flex h-6 w-6 items-center justify-center rounded-md"
+                          [ngClass]="
+                            (totalSellerWiseInventoryCounts?.outOFStockInventory ||
+                              0) > 0
+                              ? 'bg-rose-50 text-rose-600'
+                              : 'bg-slate-100 text-slate-400'
+                          "
+                        >
+                          <mat-icon
+                            class="icon-size-3.5"
+                            [svgIcon]="'heroicons_outline:exclamation-circle'"
+                          ></mat-icon>
+                        </span>
+                      </div>
+                      <strong
+                        class="text-2xl font-black text-slate-900 block leading-tight"
+                      >
+                        {{
+                          formatNumber(
+                            totalSellerWiseInventoryCounts?.outOFStockInventory
+                          )
+                        }}
+                      </strong>
+                      <span
+                        class="text-[10px] font-semibold mt-1 block"
+                        [ngClass]="
+                          (totalSellerWiseInventoryCounts?.outOFStockInventory ||
+                            0) > 0
+                            ? 'text-rose-600'
+                            : 'text-slate-400'
+                        "
+                      >
+                        {{
+                          (totalSellerWiseInventoryCounts?.outOFStockInventory ||
+                            0) > 0
+                            ? "Action Required"
+                            : "Zero Depleted"
+                        }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              } @else {
+                <ng-container [ngTemplateOutlet]="chartLoader"></ng-container>
+              }
+            </div>
+          </article>
+        </section>
+
+        <!-- Row 3: Brands -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-2 mb-3">
+          <!-- High Stock -->
+          <article class="db-chart-wrap flex flex-col justify-between">
+            <div
+              class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2"
+            >
+              <div>
+                <h2
+                  class="m-0 text-sm font-extrabold text-slate-900 tracking-tight"
+                >
+                  High Stock Brands
+                </h2>
+                <p class="m-0 text-[11px] font-medium text-slate-400">
+                  Top volumetric inventory leaders
+                </p>
+              </div>
+              <span
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100"
+              >
+                🏆 Top 5 Brands
+              </span>
+            </div>
+
+            <div class="flex-1 flex flex-col min-h-[250px] justify-between">
+              @if (!isLoadingBrandsBarChart) {
+                @if (topBrandsList.length > 0) {
+                  <div class="space-y-2 p-0.5">
+                    @for (
+                      item of topBrandsList;
+                      track item.brand;
+                      let idx = $index
+                    ) {
+                      <div
+                        class="rounded-xl p-2 px-2.5 flex items-center gap-2.5 transition-all border shadow-2xs bg-slate-50/40 hover:bg-indigo-50/30 border-slate-100/80"
+                      >
+                        <!-- Rank Avatar Badge (Distinct color for #1 to #5) -->
+                        <span
+                          class="flex h-6 w-6 items-center justify-center rounded-lg text-[11px] font-black shrink-0 shadow-2xs"
+                          [ngClass]="
+                            idx === 0
+                              ? 'bg-amber-500 text-white'
+                              : idx === 1
+                                ? 'bg-indigo-600 text-white'
+                                : idx === 2
+                                  ? 'bg-sky-500 text-white'
+                                  : idx === 3
+                                    ? 'bg-emerald-500 text-white'
+                                    : 'bg-violet-600 text-white'
+                          "
+                        >
+                          #{{ idx + 1 }}
+                        </span>
+
+                        <!-- Brand Name -->
+                        <span
+                          class="font-bold text-slate-800 text-xs truncate flex-1"
+                          [matTooltip]="item.brand"
+                        >
+                          {{ item.brand }}
+                        </span>
+
+                        <!-- Micro Gradient Progress Bar -->
+                        <div
+                          class="w-16 sm:w-24 bg-slate-100 h-2 rounded-full overflow-hidden p-0.5 border border-slate-200/50"
+                        >
+                          <div
+                            class="h-full rounded-full transition-all duration-700"
+                            [ngClass]="
+                              idx === 0
+                                ? 'bg-gradient-to-r from-amber-500 to-amber-400'
+                                : idx === 1
+                                  ? 'bg-gradient-to-r from-indigo-600 to-indigo-400'
+                                  : idx === 2
+                                    ? 'bg-gradient-to-r from-sky-500 to-sky-400'
+                                    : idx === 3
+                                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+                                      : 'bg-gradient-to-r from-violet-600 to-violet-400'
+                            "
+                            [style.width.%]="
+                              (item.totalStock / getMaxStock(topBrandsList)) *
+                              100
+                            "
+                          ></div>
+                        </div>
+
+                        <!-- Units Counter Badge -->
+                        <span
+                          class="px-2 py-0.5 rounded-md font-black text-[11px] tabular-nums shrink-0 min-w-[36px] text-center"
+                          [ngClass]="
+                            idx === 0
+                              ? 'bg-amber-50 text-amber-900 border border-amber-100'
+                              : idx === 1
+                                ? 'bg-indigo-50 text-indigo-900 border border-indigo-100'
+                                : idx === 2
+                                  ? 'bg-sky-50 text-sky-900 border border-sky-100'
+                                  : idx === 3
+                                    ? 'bg-emerald-50 text-emerald-900 border border-emerald-100'
+                                    : 'bg-violet-50 text-violet-900 border border-violet-100'
+                          "
+                        >
+                          {{ formatNumber(item.totalStock) }}
+                        </span>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <ng-container [ngTemplateOutlet]="noChart"></ng-container>
+                }
+              } @else {
+                <ng-container [ngTemplateOutlet]="chartLoader"></ng-container>
+              }
+            </div>
+          </article>
+
+          <!-- Least Stock -->
+          <article class="db-chart-wrap flex flex-col justify-between">
+            <div
+              class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2"
+            >
+              <div>
+                <h2
+                  class="m-0 text-sm font-extrabold text-slate-900 tracking-tight"
+                >
+                  Least Stock Brands
+                </h2>
+                <p class="m-0 text-[11px] font-medium text-slate-400">
+                  Depleted &amp; low volume brands
+                </p>
+              </div>
+              <span
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"
+                ></span>
+                Restock Alert
+              </span>
+            </div>
+
+            <div class="flex-1 flex flex-col min-h-[290px] justify-center">
+              @if (!isLoadingBrandsBarChart2) {
+                @if (leastBrandsList.length > 0) {
+                  <apx-chart
+                    [series]="chartOptions7.series"
+                    [chart]="chartOptions7.chart"
+                    [colors]="chartOptions7.colors"
+                    [stroke]="chartOptions7.stroke"
+                    [markers]="chartOptions7.markers"
+                    [fill]="chartOptions7.fill"
+                    [dataLabels]="chartOptions7.dataLabels"
+                    [plotOptions]="chartOptions7.plotOptions"
+                    [xaxis]="chartOptions7.xaxis"
+                    class="w-full flex items-center justify-center min-h-[290px]"
+                  ></apx-chart>
+                } @else {
+                  <ng-container [ngTemplateOutlet]="noChart"></ng-container>
+                }
+              } @else {
+                <ng-container [ngTemplateOutlet]="chartLoader"></ng-container>
+              }
+            </div>
+          </article>
+          <!-- Connected Marketplaces Table -->
+          <article class="db-insight-card">
+            <div class="db-insight-card__header">
+              <div>
+                <h2>Amazon Marketplaces</h2>
+                <p>Connected sales channels and status</p>
+              </div>
+            </div>
+            <div class="recent-table-wrap">
+              <table class="recent-table">
+                <thead>
+                  <tr>
+                    <th>Country</th>
+                    <th>Region</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (store of storeDetailsList; track store._id) {
+                    <tr>
+                      <td>{{ store.countryName || "-" }}</td>
+                      <td>{{ store.aws_region || "-" }}</td>
+                      <td>
+                        <span
+                          class="workflow-pill"
+                          [ngClass]="
+                            store.is_amazon_authorized
+                              ? 'workflow-processing'
+                              : 'workflow-cancel'
+                          "
+                        >
+                          {{
+                            store.is_amazon_authorized
+                              ? "Authorized"
+                              : "Pending"
+                          }}
+                        </span>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="3" class="recent-table__empty">
+                        No marketplaces connected.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <!-- Tables Section -->
+        <section class="grid grid-cols-1 xl:grid-cols-3 gap-2 mb-2"></section>
+      }
+
+      @if (activeTab === "file_upload") {
+        <div
+          class="w-full flex flex-col flex-auto min-h-0 bg-transparent p-0 shadow-none border-0 border-none"
+        >
+          <!-- Top Filter Bar -->
+          <div
+            class="flex flex-wrap items-center justify-between gap-2.5 mb-3.5 w-full"
+          >
+            <div class="flex items-center gap-2">
+              <h3
+                class="text-sm font-bold text-slate-800 tracking-tight m-0 flex items-center gap-2"
+              >
+                <mat-icon
+                  class="icon-size-4 text-blue-600"
+                  [svgIcon]="'heroicons_outline:document-report'"
+                ></mat-icon>
+                File Upload & Processing Status
+              </h3>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <!-- Search Bar -->
+              <div class="relative w-56 h-9 flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search file name..."
+                  [formControl]="fileUploadSearchControl"
+                  class="w-full h-9 pl-3.5 pr-8 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-2xs transition-all flex items-center leading-none"
+                />
+                <mat-icon
+                  class="absolute right-2.5 icon-size-4 text-slate-400 pointer-events-none"
+                  [svgIcon]="'heroicons_outline:search'"
+                ></mat-icon>
+              </div>
+
+              <!-- Status Filter Dropdown (MatSelect) -->
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+              >
+                <mat-select
+                  [value]="fileUploadStatus"
+                  (selectionChange)="
+                    onFileUploadStatusFilterChange($event.value)
+                  "
+                  placeholder="All Status"
+                >
+                  <mat-option value="all">All Status</mat-option>
+                  <mat-option value="PENDING">Pending</mat-option>
+                  <mat-option value="PROCESSING">Processing</mat-option>
+                  <mat-option value="COMPLETED">Completed</mat-option>
+                  <mat-option value="FAILED">Failed</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Refresh Button -->
+              <button
+                type="button"
+                (click)="refreshFileUploadLogs()"
+                class="h-9 px-3.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-2xs transition-all flex items-center justify-center gap-1.5 active:scale-95 shrink-0 leading-none"
+              >
+                <mat-icon
+                  class="icon-size-4 text-slate-500"
+                  [svgIcon]="'heroicons_outline:refresh'"
+                ></mat-icon>
+                Refresh
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Container (DIV Based Grid) -->
+          <div
+            class="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden mb-10"
+          >
+            <div class="overflow-x-auto min-w-[880px] pb-1">
+              <!-- Header Row -->
+              <div
+                class="dashboard-file-upload-grid table-header-row bg-slate-50/80 border-b border-slate-200/80 text-[10px] font-bold uppercase tracking-wider text-slate-500 py-2.5 px-3.5 select-none"
+              >
+                <div>File Details</div>
+                <div>Module</div>
+                <div>Status</div>
+                <div>Processing Progress</div>
+                <div class="text-center">Success / Fail</div>
+                <div>Date & Time</div>
+              </div>
+
+              <!-- Data Rows -->
+              <div class="divide-y divide-slate-100/80 text-xs text-slate-700">
+                @if (isLoadingFileUpload) {
+                  @for (sk of [1, 2, 3, 4, 5]; track sk) {
+                    <div
+                      class="dashboard-file-upload-grid table-data-row py-2.5 px-3.5 animate-pulse"
+                    >
+                      <div>
+                        <div class="w-36 h-3.5 bg-slate-200 rounded mb-1"></div>
+                        <div class="w-20 h-2.5 bg-slate-200 rounded"></div>
+                      </div>
+                      <div>
+                        <div class="w-18 h-4 bg-slate-200 rounded"></div>
+                      </div>
+                      <div>
+                        <div class="w-16 h-4 bg-slate-200 rounded-full"></div>
+                      </div>
+                      <div>
+                        <div class="w-full h-2.5 bg-slate-200 rounded"></div>
+                      </div>
+                      <div class="text-center">
+                        <div
+                          class="w-12 h-3.5 bg-slate-200 rounded mx-auto"
+                        ></div>
+                      </div>
+                      <div>
+                        <div class="w-24 h-3 bg-slate-200 rounded"></div>
+                      </div>
+                    </div>
+                  }
+                } @else if (fileUploadLogs.length === 0) {
+                  <div class="py-6 text-center text-slate-400">
+                    <div
+                      class="flex flex-col items-center justify-center gap-1.5"
+                    >
+                      <mat-icon class="icon-size-8 text-slate-300"
+                        >cloud_upload</mat-icon
+                      >
+                      <p class="font-semibold text-xs text-slate-600 m-0">
+                        No File Upload Records Found
+                      </p>
+                      <p class="text-[11px] text-slate-400 m-0">
+                        Uploaded files and processing progress will appear here.
+                      </p>
+                    </div>
+                  </div>
+                } @else {
+                  @for (
+                    fileItem of fileUploadLogs;
+                    track trackByFn($index, fileItem)
+                  ) {
+                    <div
+                      class="dashboard-file-upload-grid table-data-row py-2.5 px-3.5 hover:bg-blue-50/30 transition-colors duration-150 border-b border-slate-100"
+                    >
+                      <!-- File Details -->
+                      <div>
+                        <div class="flex items-center gap-2">
+                          <div
+                            class="w-6.5 h-6.5 rounded bg-blue-50/80 text-blue-600 flex items-center justify-center flex-shrink-0 border border-blue-100/60"
+                          >
+                            <mat-icon
+                              class="icon-size-3.5"
+                              [svgIcon]="'heroicons_outline:document-text'"
+                            ></mat-icon>
+                          </div>
+                          <div class="min-w-0">
+                            <p
+                              class="font-semibold text-slate-900 truncate m-0 max-w-[210px] text-[12px] leading-tight"
+                              [title]="
+                                fileItem.file_name_original ||
+                                fileItem.file_name
+                              "
+                            >
+                              {{
+                                fileItem.file_name_original ||
+                                  fileItem.file_name
+                              }}
+                            </p>
+                            <span
+                              class="text-[10px] text-slate-400 font-normal leading-none block mt-0.5"
+                            >
+                              {{
+                                fileItem.file_size
+                                  ? fileItem.file_size + " bytes"
+                                  : "File Upload"
+                              }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Module -->
+                      <div class="font-medium">
+                        @if (
+                          fileItem.is_catalog_file === true ||
+                          fileItem.is_catalog_file === "true" ||
+                          fileItem.is_catalog_file === 1
+                        ) {
+                          <span
+                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold tracking-tight bg-violet-50 text-violet-700 border border-violet-200/60 leading-none"
+                          >
+                            <mat-icon
+                              class="icon-size-3 text-violet-600"
+                              [svgIcon]="'heroicons_outline:folder'"
+                            ></mat-icon>
+                            Catalog
+                          </span>
+                        } @else {
+                          <span
+                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold tracking-tight bg-amber-50 text-amber-700 border border-amber-200/60 leading-none"
+                          >
+                            <mat-icon
+                              class="icon-size-3 text-amber-600"
+                              [svgIcon]="'heroicons_outline:shopping-bag'"
+                            ></mat-icon>
+                            Amazon Inventory
+                          </span>
+                        }
+                      </div>
+
+                      <!-- Status Badge -->
+                      <div>
+                        @if (fileItem.process_status === "PENDING") {
+                          <span
+                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60 leading-none"
+                          >
+                            <span
+                              class="w-1 h-1 rounded-full bg-amber-500 animate-ping"
+                            ></span>
+                            Pending
+                          </span>
+                        } @else if (fileItem.process_status === "PROCESSING") {
+                          <span
+                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-bold bg-blue-50 text-blue-700 border border-blue-200/60 leading-none"
+                          >
+                            <span
+                              class="w-1 h-1 rounded-full bg-blue-500 animate-pulse"
+                            ></span>
+                            Processing
+                          </span>
+                        } @else if (fileItem.process_status === "COMPLETED") {
+                          <span
+                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 leading-none"
+                          >
+                            <span
+                              class="w-1 h-1 rounded-full bg-emerald-500"
+                            ></span>
+                            Completed
+                          </span>
+                        } @else if (fileItem.process_status === "FAILED") {
+                          <span
+                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60 leading-none"
+                            [title]="
+                              fileItem.error_message || 'Processing failed'
+                            "
+                          >
+                            <span
+                              class="w-1 h-1 rounded-full bg-rose-500"
+                            ></span>
+                            Failed
+                          </span>
+                        } @else {
+                          <span
+                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200/60 leading-none"
+                          >
+                            {{ fileItem.process_status || "Pending" }}
+                          </span>
+                        }
+                      </div>
+
+                      <!-- Progress Bar & Record Count -->
+                      <div>
+                        <div class="space-y-0.5">
+                          <div
+                            class="flex items-center justify-between text-[10px] font-medium text-slate-600"
+                          >
+                            <span>
+                              @if (fileItem.process_status === "PROCESSING") {
+                                {{ fileItem.processed_records || 0 }} /
+                                {{ fileItem.total_record || 0 }} records
+                              } @else if (
+                                fileItem.process_status === "COMPLETED"
+                              ) {
+                                {{ fileItem.total_record || 0 }} /
+                                {{ fileItem.total_record || 0 }} records
+                              } @else {
+                                {{ fileItem.total_record || 0 }} total records
+                              }
+                            </span>
+                            <span class="font-bold text-slate-800"
+                              >{{
+                                calculateProgressPercentage(fileItem)
+                              }}%</span
+                            >
+                          </div>
+                          <div
+                            class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden"
+                          >
+                            <div
+                              class="h-1.5 rounded-full transition-all duration-500"
+                              [class.bg-amber-500]="
+                                fileItem.process_status === 'PENDING'
+                              "
+                              [class.bg-blue-600]="
+                                fileItem.process_status === 'PROCESSING'
+                              "
+                              [class.bg-emerald-500]="
+                                fileItem.process_status === 'COMPLETED'
+                              "
+                              [class.bg-rose-500]="
+                                fileItem.process_status === 'FAILED'
+                              "
+                              [style.width.%]="
+                                calculateProgressPercentage(fileItem)
+                              "
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Success / Fail Counts -->
+                      <div class="text-center">
+                        <div
+                          class="inline-flex items-center justify-center gap-2 text-[11px] font-bold"
+                        >
+                          <span
+                            class="text-emerald-600 flex items-center gap-0.5"
+                            title="Success count"
+                          >
+                            <span class="text-[10px]">✓</span>
+                            {{ fileItem.total_success ?? 0 }}
+                          </span>
+                          @if ((fileItem.total_fail ?? 0) > 0) {
+                            <span
+                              class="text-rose-600 flex items-center gap-0.5"
+                              title="Failed count"
+                            >
+                              <span class="text-[10px]">✗</span>
+                              {{ fileItem.total_fail }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Date & Time -->
+                      <div
+                        class="text-slate-500 text-[10px] font-medium whitespace-nowrap"
+                      >
+                        {{ formatCronDate(fileItem.createdAt) }}
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+
+            <!-- Sticky Bottom Pagination inside Table Container Card -->
+            <div
+              class="pagination-bar flex justify-end w-full border-t border-slate-200/80 bg-white"
+            >
+              <mat-paginator
+                class="ml-auto"
+                [length]="fileUploadTotalResults"
+                [pageSize]="fileUploadLimit"
+                [pageSizeOptions]="[5, 25, 50, 100]"
+                [pageIndex]="fileUploadPage - 1"
+                (page)="onFileUploadPageChange($event)"
+                [showFirstLastButtons]="false"
+              ></mat-paginator>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- TEMPLATES -->
+  <ng-template #metricSkeletonLoader>
+    <article class="skel-card skel-kpi">
+      <span class="skeleton-shimmer skel-circle"></span>
+      <div class="skel-kpi__body">
+        <span class="skeleton-shimmer skel-line skel-line--sm"></span>
+        <span class="skeleton-shimmer skel-line skel-line--lg"></span>
+        <span class="skeleton-shimmer skel-line skel-line--md"></span>
+      </div>
+    </article>
+  </ng-template>
+
+  <ng-template #chartLoader>
+    <div class="skel-chart__area">
+      @for (_ of [1, 2, 3, 4]; track $index) {
+        <span class="skeleton-shimmer skel-bar"></span>
+      }
+    </div>
+  </ng-template>
+
+  <ng-template #noChart>
+    <div class="db-empty">
+      <mat-icon class="!text-4xl !w-10 !h-10">bar_chart</mat-icon>
+      <h4>No data found!</h4>
+      <p>No chart data available.</p>
+    </div>
+  </ng-template>
+
+  <ng-template #skeletonLoader>
+    <div class="skel-card skel-kpi animate-pulse">
+      <span class="skeleton-shimmer skel-line skel-line--xl"></span>
+      <span class="skeleton-shimmer skel-line skel-line--lg"></span>
+    </div>
+  </ng-template>
+</div>

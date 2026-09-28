@@ -1,0 +1,319 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden">
+  <mat-drawer-container
+    class="flex-auto h-full bg-card dark:bg-transparent"
+    (backdropClick)="onBackdropClicked()"
+  >
+    <!-- Drawer -->
+    <mat-drawer
+      class="w-full sm:w-128 bg-white dark:bg-gray-900"
+      [mode]="drawerMode"
+      [opened]="false"
+      [position]="'end'"
+      [disableClose]="true"
+      #matDrawer
+    >
+      <router-outlet></router-outlet>
+    </mat-drawer>
+
+    <mat-drawer-content class="flex flex-col">
+      <!-- Main -->
+      <div class="flex flex-col flex-auto overflow-hidden">
+        <!-- Header -->
+        <div class="page-header">
+          <div class="flex items-center gap-3">
+            <div
+              class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+            >
+              <a
+                (click)="$event.preventDefault()"
+                mat-icon-button
+                [matTooltip]="tooltip"
+              >
+                <mat-icon
+                  class="icon-size-7 mb-0 mr-1 text-white"
+                  [svgIcon]="'heroicons_solid:shopping-cart'"
+                ></mat-icon>
+              </a>
+            </div>
+            <div>
+              <h1 class="text-2xl font-bold tracking-tight">Shops</h1>
+            </div>
+          </div>
+          <!-- Actions -->
+          <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript min-w-64 -mb-5"
+            >
+              <mat-icon
+                class="icon-size-5"
+                matPrefix
+                [svgIcon]="'heroicons_solid:search'"
+              ></mat-icon>
+              <input
+                matInput
+                [formControl]="searchInputControl"
+                maxlength="50"
+                [autocomplete]="'off'"
+                [placeholder]="'Search shops...'"
+              />
+            </mat-form-field>
+            <form [formGroup]="protalStatusfromGroup">
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+              >
+                <mat-select
+                  [formControlName]="'status'"
+                  placeholder="Filter by status"
+                >
+                  <mat-option [value]="">All Status</mat-option>
+                  <mat-option [value]="1">Active</mat-option>
+                  <mat-option [value]="0">Inactive</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </form>
+            <!-- Refresh Button -->
+            <button
+              type="button"
+              class="btn-secondary-action"
+              (click)="refresh()"
+              matTooltip="Refresh"
+            >
+              <mat-icon
+                class="icon-size-5"
+                svgIcon="mat_outline:refresh"
+              ></mat-icon>
+            </button>
+            <button
+              type="button"
+              class="btn-primary-action"
+              mat-flat-button
+              (click)="openDrawer('')"
+            >
+              <mat-icon
+                class="icon-size-5"
+                [svgIcon]="'heroicons_outline:plus'"
+              ></mat-icon>
+              <span>Add Shop</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main -->
+        <div class="flex flex-auto overflow-hidden">
+          <!-- User list -->
+          <div class="flex flex-col flex-auto overflow-auto sm:overflow-y-auto">
+            <div class="grid overflow-auto">
+              <button type="button" id="gotoTop" style="border: none"></button>
+            </div>
+
+            <div class="grid overflow-auto lg:mb-14">
+              <!-- Header -->
+              <div
+                class="user-grid table-header-row"
+                matSort
+                matSortDisableClear
+              >
+                @for (header of headers; track header) {
+                  <div [id]="header.key" class="flex items-center">
+                    @if (header.key !== "image") {
+                      <span
+                        class="flex items-center gap-1"
+                        [mat-sort-header]="header.sortKey || header.key"
+                      >
+                        {{ header.label }}
+                      </span>
+                    } @else {
+                      <span>
+                        {{ header.label }}
+                      </span>
+                    }
+                  </div>
+                }
+                <div class="text-center">Actions</div>
+              </div>
+
+              @if (isLoading) {
+                @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                  <div class="user-grid table-data-row animate-pulse">
+                    <div
+                      class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                    ></div>
+                    <div class="flex items-center justify-center pr-10">
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg"
+                      ></div>
+                    </div>
+                    <div
+                      class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"
+                    ></div>
+                    <div
+                      class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"
+                    ></div>
+                    <div
+                      class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                    ></div>
+                    <div class="flex justify-center">
+                      <div
+                        class="w-10 h-5 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                    </div>
+                    <div class="flex items-center justify-center">
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                    </div>
+                  </div>
+                }
+              } @else {
+                @if (portalFormInput | async; as portalList) {
+                  @if (portalList.length > 0) {
+                    @for (
+                      portal of portalList;
+                      track trackByFn(i, portal);
+                      let i = $index
+                    ) {
+                      <div class="user-grid table-data-row group">
+                        <div class="text-sm text-gray-600 dark:text-gray-400">
+                          {{
+                            portal.createdAt | date: "dd-MM-yyyy, HH:mm" || "-"
+                          }}
+                        </div>
+                        <div class="flex items-center justify-center pr-10">
+                          @if (
+                            portal.image_url &&
+                            portal.image_url !== "" &&
+                            portal.image_url !== "undefined"
+                          ) {
+                            <button
+                              type="button"
+                              (click)="handleLightBoxProduct(portal.image_url)"
+                              class="relative rounded-lg overflow-hidden w-8 h-8 bg-gray-100 dark:bg-gray-800 flex items-center justify-center ring-2 ring-transparent group-hover:ring-primary/20 transition-all cursor-pointer"
+                              matTooltip="Preview image"
+                            >
+                              <img
+                                class="w-full h-full object-contain"
+                                src="{{ portal.image_url }}"
+                                alt="portal image"
+                                onerror="
+                                  this.onerror = null;
+                                  this.src =
+                                    '../../../../../../assets/images/no-image-icon.png';
+                                "
+                              />
+                            </button>
+                          } @else {
+                            <div
+                              class="relative rounded-lg overflow-hidden w-8 h-8 bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
+                            >
+                              <mat-icon
+                                class="text-gray-400 icon-size-6"
+                                [svgIcon]="'heroicons_outline:building-storefront'"
+                              ></mat-icon>
+                            </div>
+                          }
+                        </div>
+                        <div
+                          class="truncate font-medium text-gray-900 dark:text-white"
+                          [matTooltip]="portal.portal_name"
+                        >
+                          {{ portal.portal_name || "-" }}
+                        </div>
+                        <div
+                          class="truncate text-sm text-gray-600 dark:text-gray-400"
+                          [matTooltip]="portal.portal_number"
+                        >
+                          {{ portal.portal_number || "-" }}
+                        </div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">
+                          {{
+                            portal.updatedAt | date: "dd-MM-yyyy, HH:mm" || "-"
+                          }}
+                        </div>
+                        <div class="flex justify-center">
+                          <mat-slide-toggle
+                            [color]="'primary'"
+                            [checked]="getStatus(portal.status)"
+                            (change)="toggleCompleted($event, portal._id)"
+                            class="scale-75 -mr-1"
+                          ></mat-slide-toggle>
+                        </div>
+                        <div class="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            mat-icon-button
+                            class="text-gray-500 hover:text-primary hover:bg-primary/10 transition-all"
+                            (click)="openDrawer(portal._id)"
+                            matTooltip="Edit shop"
+                          >
+                            <mat-icon
+                              class="icon-size-5"
+                              svgIcon="heroicons_outline:pencil"
+                            ></mat-icon>
+                          </button>
+                          <button
+                            type="button"
+                            mat-icon-button
+                            class="text-red-500 hover:text-red-700 hover:bg-red-50 transition-all"
+                            (click)="deleteSelectedPortal(portal._id)"
+                            matTooltip="Delete shop"
+                          >
+                            <mat-icon
+                              class="icon-size-5 text-red-500 hover:text-red-700"
+                              [svgIcon]="'heroicons_outline:trash'"
+                            ></mat-icon>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  } @else {
+                    <ng-container [ngTemplateOutlet]="noPortal"></ng-container>
+                  }
+                }
+              }
+            </div>
+
+            <ng-template #noPortal>
+              <div class="page-empty-state">
+                <div
+                  class="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-4"
+                >
+                  <mat-icon
+                    class="icon-size-12 text-primary"
+                    [svgIcon]="'heroicons_outline:shopping-cart'"
+                  ></mat-icon>
+                </div>
+                <h3
+                  class="text-xl font-semibold text-gray-900 dark:text-white mb-2"
+                >
+                  No shops found
+                </h3>
+                <p class="text-gray-500 dark:text-gray-400 max-w-sm">
+                  Get started by adding your first shop to manage your
+                  inventory.
+                </p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+      @if (portalFormInput | async; as portalList) {
+        @if (portalList?.length) {
+          <div class="pagination-bar">
+            <mat-paginator
+              [ngClass]="{ 'pointer-events-none': isLoading }"
+              [length]="
+                ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                (portalList?.length || 0) +
+                (pagination?.hasNextPage ? 1 : 0)
+              "
+              [pageSize]="pagination?.size || 100"
+              [pageSizeOptions]="[5, 25, 50, 100]"
+              [pageIndex]="(pagination?.page || 1) - 1"
+              [showFirstLastButtons]="false"
+            ></mat-paginator>
+          </div>
+        }
+      }
+    </mat-drawer-content>
+  </mat-drawer-container>
+</div>

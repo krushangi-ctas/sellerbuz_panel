@@ -1,0 +1,16 @@
+::ng-deep .mat-optgroup-label {
+    font-weight: bold;
+    /* Highlight parent label */
+    color: #3f51b5;
+    /* Customize color, e.g., a shade of blue */
+}
+
+::ng-deep .mat-option {
+    padding-left: 16px;
+    /* Add spacing for child options for better visual hierarchy */
+}
+
+::ng-deep .mat-option .mat-option-text {
+    font-size: 14px;
+    /* Adjust font size for child options */
+}

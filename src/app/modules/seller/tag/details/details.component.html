@@ -1,0 +1,132 @@
+<div
+  class="flex flex-col w-full h-full min-h-full flex-auto bg-white dark:bg-gray-900"
+>
+  <form
+    class="flex flex-col space-y-6"
+    [formGroup]="tagFormGroup"
+    (keydown)="onKeydown($event)"
+  >
+    <!-- Header -->
+    <div
+      class="flex items-center justify-between mb-4 p-5 page-header text-white shadow-md"
+    >
+      <div>
+        <h2 class="text-xl font-bold text-white">
+          {{ tagId !== "add" ? "Update" : "Add" }} Tag
+        </h2>
+        <!-- Conditional Subtitle -->
+        <p class="text-sm text-primary-100">
+          {{
+            tagId !== "add"
+              ? "You are updating an existing Tag."
+              : "You can add a new Tag here."
+          }}
+        </p>
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        [routerLink]="['../']"
+        (click)="closeDrawer()"
+        class="close-button"
+      >
+        <mat-icon
+          [svgIcon]="'heroicons_outline:x'"
+          class="text-white"
+        ></mat-icon>
+      </button>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Form Fields -->
+    <div class="grid grid-cols-1 gap-5 p-4 sm:p-8">
+      @if (isLoading) {
+        <!-- SKELETON LOADER FOR TAG DETAILS -->
+        <div class="space-y-4 animate-pulse">
+          <div
+            class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"
+          ></div>
+          <div
+            class="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"
+          ></div>
+        </div>
+      } @else {
+        <!-- Tag Name Input -->
+        <mat-form-field class="w-full fuse-mat-dense" appearance="outline">
+          <mat-label class="text-primary-700 font-medium">Tag Name</mat-label>
+          <input
+            type="text"
+            matInput
+            [formControlName]="'tag'"
+            maxlength="70"
+            placeholder="Enter tag name"
+          />
+          <!-- Error messages for 'tag' -->
+          @if (tagFormGroup.get("tag").hasError("required")) {
+            <mat-error> Tag Name is required! </mat-error>
+          }
+          @if (tagFormGroup.get("tag").hasError("minlength")) {
+            <mat-error>
+              Tag Name must be at least 3 characters long.
+            </mat-error>
+          }
+          @if (tagFormGroup.get("tag").hasError("maxlength")) {
+            <mat-error> Tag Name cannot exceed 20 characters. </mat-error>
+          }
+          <!-- Icon on the right side -->
+          <mat-icon matSuffix class="text-primary">edit</mat-icon>
+        </mat-form-field>
+
+        <!-- Description Input -->
+        <mat-form-field class="w-full fuse-mat-dense" appearance="outline">
+          <mat-label class="text-primary-700 font-medium"
+            >Description</mat-label
+          >
+          <textarea
+            rows="4"
+            matInput
+            [formControlName]="'description'"
+            maxlength="255"
+            placeholder="Enter tag description"
+          >
+          </textarea>
+          <!-- Error messages for 'description' -->
+          @if (tagFormGroup.get("description").hasError("required")) {
+            <mat-error> Description is required! </mat-error>
+          }
+          @if (tagFormGroup.get("description").hasError("minlength")) {
+            <mat-error>
+              Description must be at least 10 characters long.
+            </mat-error>
+          }
+          @if (tagFormGroup.get("description").hasError("maxlength")) {
+            <mat-error> Description cannot exceed 255 characters. </mat-error>
+          }
+          <!-- Icon on the right side -->
+          <mat-icon matSuffix class="text-primary">edit</mat-icon>
+        </mat-form-field>
+      }
+    </div>
+
+    <!-- Save Button -->
+    <div class="flex justify-end mt-6 mr-6 gap-3">
+      <button
+        type="button"
+        class="btn-cancel"
+        [routerLink]="['../']"
+        (click)="closeDrawer()"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="btn-primary font-semibold px-6"
+        (click)="addUpdatePortal()"
+        [disabled]="tagFormGroup.invalid || btnDisabled"
+      >
+        {{ tagId !== "add" ? "Update" : "Save" }}
+      </button>
+    </div>
+  </form>
+</div>

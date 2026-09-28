@@ -1,0 +1,162 @@
+<div class="p-2 guide-page">
+  <div class="guide-view">
+    <!-- HEADER -->
+    <div class="flex items-start gap-2">
+      <button
+        mat-icon-button
+        type="button"
+        [matTooltip]="'Step-by-step guides and references'"
+      >
+        <mat-icon svgIcon="heroicons_solid:information-circle"></mat-icon>
+      </button>
+
+      <div>
+        <div class="text-xl font-bold leading-none">Guide Documents</div>
+
+        <div class="mt-0.5 text-sm text-secondary">
+          Step-by-step guides and references
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-layout flex flex-col lg:flex-row">
+      <!-- LEFT: MODULE LIST -->
+      <aside
+        class="module-sidebar w-full lg:w-80 max-h-[40vh] lg:max-h-none sticky lg:static top-0 z-20 bg-white"
+      >
+        <div class="sidebar-title">Modules</div>
+
+        <div *ngIf="isTreeLoading" class="sidebar-loader">
+          <mat-progress-spinner
+            diameter="28"
+            mode="indeterminate"
+          ></mat-progress-spinner>
+        </div>
+
+        <mat-accordion multi>
+          <mat-expansion-panel
+            *ngFor="let p of parents; trackBy: trackById"
+            [expanded]="expandedParents.has(getId(p))"
+            [class.active-parent]="
+              selectedParent && getId(selectedParent) === getId(p)
+            "
+          >
+            <mat-expansion-panel-header (click)="toggleParent(p)">
+              <mat-panel-title>{{ p.title || p.moduleName }}</mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <mat-nav-list>
+              <a
+                mat-list-item
+                *ngFor="let c of p.children; trackBy: trackById"
+                (click)="selectChild(p, c)"
+                [class.active-item]="
+                  selectedChild &&
+                  (selectedChild.id || selectedChild._id) === (c.id || c._id)
+                "
+              >
+                <span class="module-name">{{ c.title || c.moduleName }}</span>
+              </a>
+            </mat-nav-list>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </aside>
+
+      <!-- CENTER: CONTENT (ONLY SCROLLABLE AREA) -->
+      <main class="guide-content p-3" #scrollContainer>
+        <div *ngIf="!selectedChild" class="empty-state">
+          <mat-icon>menu_book</mat-icon>
+          <p>Select a module to view its guide</p>
+        </div>
+
+        <div *ngIf="selectedChild" class="module-content">
+          <h1>{{ selectedChild.title || selectedChild.moduleName }}</h1>
+          <p class="module-description">{{ selectedChild.description }}</p>
+
+          <div class="step-nav-mobile" *ngIf="steps?.length">
+            <label class="step-nav-mobile-label" for="stepNavMobile"
+              >Jump to step</label
+            >
+            <select
+              id="stepNavMobile"
+              class="step-nav-mobile-select"
+              (change)="onMobileStepSelect($event)"
+            >
+              <option [value]="''">Select…</option>
+              <option
+                *ngFor="let s of steps"
+                [value]="getStepKey(s)"
+                [selected]="activeStepKey === getStepKey(s)"
+              >
+                {{ s.stepOrder }}. {{ s.title }}
+              </option>
+            </select>
+          </div>
+
+          <div class="steps">
+            <ng-container *ngIf="isChildLoading">
+              <div class="step-card skeleton" *ngFor="let _ of [1, 2, 3]">
+                <div class="skeleton-line w-35"></div>
+                <div class="skeleton-line w-80"></div>
+                <div class="skeleton-block"></div>
+                <div class="skeleton-line w-90"></div>
+                <div class="skeleton-line w-70"></div>
+              </div>
+            </ng-container>
+
+            <div
+              *ngFor="let s of steps; trackBy: trackByStep"
+              class="step-card"
+              #stepCard
+              [attr.data-step-key]="getStepKey(s)"
+              [attr.id]="'step-' + getStepKey(s)"
+            >
+              <div class="step-header">
+                <span class="step-number">{{ s.stepOrder }}</span>
+                <h3>{{ s.title }}</h3>
+              </div>
+
+              <img
+                *ngIf="s.screenshotUrl"
+                [src]="s.screenshotUrl | mediaUrl: ''"
+                class="step-image"
+                loading="lazy"
+                decoding="async"
+              />
+
+              <div
+                class="step-description prose max-w-none"
+                [innerHTML]="s.description"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- RIGHT: STEP NAVIGATION -->
+      <aside class="step-sidebar lg:w-80" *ngIf="selectedChild">
+        <div class="sidebar-title">ON THIS PAGE</div>
+
+        <div class="step-nav" *ngIf="isChildLoading">
+          <div class="step-nav-item skeleton" *ngFor="let _ of [1, 2, 3, 4, 5]">
+            <span class="skeleton-pill"></span>
+            <span class="skeleton-line w-80"></span>
+          </div>
+        </div>
+
+        <div class="step-nav" *ngIf="!isChildLoading">
+          <button
+            type="button"
+            class="step-nav-item"
+            *ngFor="let s of steps; trackBy: trackByStep"
+            (click)="jumpToStep(s)"
+            [class.active-step]="activeStepKey === getStepKey(s)"
+          >
+            <!-- <span class="step-nav-number">{{ s.stepOrder }}</span> -->
+            <span class="step-nav-title">{{ s.title }}</span>
+          </button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>

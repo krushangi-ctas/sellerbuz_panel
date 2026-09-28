@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "saas-panel",
+  "compatibility_date": "2026-08-13",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "dist/saas-panel",
+    "not_found_handling": "single-page-application"
+  }
+}

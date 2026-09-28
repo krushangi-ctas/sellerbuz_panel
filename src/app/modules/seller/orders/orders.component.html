@@ -1,0 +1,534 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white dark:bg-transparent"
+>
+  <!-- Header -->
+  <div
+    class="page-header flex-col md:flex-row items-stretch md:items-center justify-between gap-3"
+  >
+    <!-- Title Section -->
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="text-3xl font-extrabold tracking-tight flex items-center">
+        <a
+          (click)="$event.preventDefault()"
+          mat-icon-button
+          [matTooltip]="tooltip"
+        >
+          <mat-icon
+            class="icon-size-7 mb-0 mr-1 text-white"
+            [svgIcon]="'heroicons_outline:shopping-bag'"
+          ></mat-icon>
+        </a>
+        <span
+          class="text-xl sm:text-2xl font-bold tracking-tight text-white whitespace-nowrap"
+        >
+          Orders
+        </span>
+      </div>
+    </div>
+
+    <!-- Right Controls: Search Bar, Date Range Picker & Reset Button -->
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Search Input -->
+      <mat-form-field
+        class="fuse-mat-dense fuse-mat-no-subscript w-56 sm:w-64 -mb-5"
+      >
+        <mat-icon
+          matPrefix
+          class="icon-size-5 text-gray-400"
+          [svgIcon]="'heroicons_solid:search'"
+        ></mat-icon>
+        <input
+          matInput
+          [formControl]="ordersSearchControl"
+          placeholder="Search..."
+        />
+      </mat-form-field>
+
+      <!-- Date Range Picker -->
+      <mat-form-field
+        class="fuse-mat-dense fuse-mat-no-subscript min-w-[220px] -mb-5"
+      >
+        <mat-icon
+          svgIcon="heroicons_outline:calendar"
+          class="icon-size-5 text-gray-400"
+          matPrefix
+        ></mat-icon>
+        <mat-date-range-input [rangePicker]="ordersDatePicker" [max]="maxDate">
+          <input
+            matStartDate
+            [formControl]="ordersStartDateControl"
+            [autocomplete]="'off'"
+            placeholder="Start Date"
+          />
+          <input
+            matEndDate
+            [formControl]="ordersEndDateControl"
+            [autocomplete]="'off'"
+            placeholder="End Date"
+            (dateChange)="onOrderDateClickFilter()"
+          />
+        </mat-date-range-input>
+        <mat-datepicker-toggle
+          matSuffix
+          [for]="ordersDatePicker"
+        ></mat-datepicker-toggle>
+        <mat-date-range-picker #ordersDatePicker></mat-date-range-picker>
+      </mat-form-field>
+
+      <!-- Fulfillment Filter -->
+      <mat-form-field
+        class="fuse-mat-dense fuse-mat-no-subscript w-36 sm:w-40 -mb-5"
+      >
+        <mat-icon
+          svgIcon="heroicons_outline:truck"
+          class="icon-size-5 text-gray-400"
+          matPrefix
+        ></mat-icon>
+        <mat-select
+          [formControl]="fulfillmentChannelControl"
+          placeholder="Fulfillment"
+        >
+          <mat-option value="">All Fulfillment</mat-option>
+          <mat-option value="FBA">FBA</mat-option>
+          <mat-option value="FBM">FBM</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Marketplace Filter -->
+      <mat-form-field
+        class="fuse-mat-dense fuse-mat-no-subscript w-44 sm:w-48 -mb-5"
+      >
+        <mat-icon
+          svgIcon="heroicons_outline:globe-alt"
+          class="icon-size-5 text-gray-400"
+          matPrefix
+        ></mat-icon>
+        <mat-select
+          [formControl]="marketplaceControl"
+          placeholder="Marketplace"
+        >
+          <mat-option value="">All Marketplaces</mat-option>
+          @for (m of allMarketplaces; track m.id) {
+            <mat-option [value]="m.id">
+              {{ m.countryName }} ({{ m.countryCode }})
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Refresh Button -->
+      <button
+        type="button"
+        class="btn-secondary-action"
+        (click)="resetOrderFilters()"
+        matTooltip="Refresh"
+      >
+        <mat-icon class="icon-size-5" svgIcon="mat_outline:refresh"></mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Content Container -->
+  <div class="flex flex-auto overflow-auto">
+    <div class="flex flex-col flex-auto overflow-hidden sm:overflow-y-auto">
+      <div class="grid overflow-auto lg:mb-14">
+        <!-- Table Header Grid Row -->
+        <div
+          class="orders-grid z-10 sticky top-0 grid items-center gap-2 py-2.5 px-3 shadow-xs text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+          matSort
+          [matSortActive]="ordersSortBy"
+          [matSortDirection]="ordersSortOrder"
+          (matSortChange)="onOrdersSortChange($event)"
+          matSortDisableClear
+        >
+          <div class="flex items-center" [mat-sort-header]="'amazonOrderId'">
+            Amazon Order ID
+          </div>
+          <div class="flex items-center" [mat-sort-header]="'purchaseDate'">
+            Purchase Date
+          </div>
+          <div class="flex items-center" [mat-sort-header]="'marketplaceId'">
+            Marketplace
+          </div>
+          <div class="select-none">Fulfillment</div>
+          <div class="select-none">Items Count</div>
+          <div
+            class="flex items-center justify-center text-center"
+            [mat-sort-header]="'totalAmount'"
+          >
+            Total Amount
+          </div>
+          <div class="text-center select-none">Promo Total</div>
+          <div class="flex items-center" [mat-sort-header]="'orderStatus'">
+            Status
+          </div>
+          <div class="text-center select-none">Items Details</div>
+        </div>
+
+        <!-- Body Grid Rows -->
+        @if (ordersLoading) {
+          @for (dummy of [1, 2, 3, 4, 5]; track $index) {
+            <div
+              class="orders-grid grid items-center gap-2 py-3 px-3 border-b border-slate-200 dark:border-slate-700 animate-pulse"
+            >
+              <div>
+                <div
+                  class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-32"
+                ></div>
+              </div>
+              <div>
+                <div
+                  class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-28"
+                ></div>
+              </div>
+              <div>
+                <div
+                  class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-24"
+                ></div>
+              </div>
+              <div>
+                <div
+                  class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-16"
+                ></div>
+              </div>
+              <div>
+                <div
+                  class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-14"
+                ></div>
+              </div>
+              <div class="flex justify-center">
+                <div
+                  class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-16"
+                ></div>
+              </div>
+              <div class="flex justify-center">
+                <div
+                  class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-12"
+                ></div>
+              </div>
+              <div>
+                <div
+                  class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-20"
+                ></div>
+              </div>
+              <div class="text-center">
+                <div
+                  class="h-5 bg-slate-200 dark:bg-slate-700 rounded w-16 mx-auto"
+                ></div>
+              </div>
+            </div>
+          }
+        } @else if (amazonOrders && amazonOrders.length > 0) {
+          @for (order of amazonOrders; track order._id || order.amazonOrderId) {
+            <!-- Main Order Grid Row -->
+            <div
+              class="orders-grid grid items-center gap-2 py-2 px-2 border-b border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors text-sm"
+            >
+              <!-- Amazon Order ID -->
+              <div class="font-semibold truncate">
+                <div
+                  class="flex items-center gap-1.5 font-mono text-slate-800 dark:text-slate-100"
+                >
+                  <mat-icon
+                    svgIcon="heroicons_outline:hashtag"
+                    class="icon-size-4 text-slate-400"
+                  ></mat-icon>
+                  <span
+                    class="truncate hover:text-blue-600 cursor-pointer"
+                    [matTooltip]="order.amazonOrderId"
+                    >{{ order.amazonOrderId }}</span
+                  >
+                </div>
+              </div>
+
+              <!-- Purchase Date -->
+              <div class="truncate">
+                <div
+                  class="flex items-center gap-1 text-slate-600 dark:text-slate-300 font-medium text-sm"
+                >
+                  <mat-icon
+                    svgIcon="heroicons_outline:clock"
+                    class="icon-size-4 text-slate-400"
+                  ></mat-icon>
+                  <span>{{
+                    order.purchaseDate
+                      ? (order.purchaseDate | date: "dd-MM-yyyy, HH:mm")
+                      : "-"
+                  }}</span>
+                </div>
+              </div>
+
+              <!-- Marketplace -->
+              <div class="truncate">
+                <div
+                  class="flex items-center gap-1 text-slate-700 dark:text-slate-300 font-medium text-xs"
+                  [matTooltip]="getMarketplaceName(order.marketplaceId)"
+                >
+                  <mat-icon
+                    svgIcon="heroicons_outline:globe-alt"
+                    class="icon-size-4 text-blue-500"
+                  ></mat-icon>
+                  <span class="truncate">{{
+                    getMarketplaceName(order.marketplaceId)
+                  }}</span>
+                </div>
+              </div>
+
+              <!-- Fulfillment Channel -->
+              <div>
+                @if (
+                  order.fulfillmentChannel === "FBA" ||
+                  order.fulfillmentChannel === "AFN"
+                ) {
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-r-md rounded-l-xs text-[11px] font-bold bg-sky-50/80 text-sky-900 border border-sky-200/90 border-l-[3px] border-l-sky-600 dark:bg-sky-950/40 dark:text-sky-200 dark:border-sky-800 dark:border-l-sky-500 shadow-2xs tracking-wider uppercase"
+                    matTooltip="Fulfillment by Amazon (FBA)"
+                  >
+                    <mat-icon
+                      svgIcon="heroicons_solid:truck"
+                      class="icon-size-3.5 text-sky-600 dark:text-sky-400"
+                    ></mat-icon>
+                    <span>FBA</span>
+                  </span>
+                } @else {
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-r-md rounded-l-xs text-[11px] font-bold bg-amber-50/80 text-amber-900 border border-amber-200/90 border-l-[3px] border-l-amber-600 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800 dark:border-l-amber-500 shadow-2xs tracking-wider uppercase"
+                    matTooltip="Fulfillment by Merchant (FBM)"
+                  >
+                    <mat-icon
+                      svgIcon="heroicons_solid:home"
+                      class="icon-size-3.5 text-amber-600 dark:text-amber-400"
+                    ></mat-icon>
+                    <span>FBM</span>
+                  </span>
+                }
+              </div>
+
+              <!-- Items Count -->
+              <div>
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs border border-slate-200 dark:border-slate-700"
+                >
+                  <mat-icon
+                    svgIcon="heroicons_outline:cube"
+                    class="icon-size-3.5 text-slate-400"
+                  ></mat-icon>
+                  <span>{{ order.orderItems?.length || 0 }} Item(s)</span>
+                </span>
+              </div>
+
+              <!-- Total Amount (Centered) -->
+              <div class="text-center">
+                <span
+                  class="font-bold text-slate-900 dark:text-slate-100 text-sm"
+                >
+                  {{ getCurrencySign(order.marketplaceId)
+                  }}{{ order.totalAmount || "0.00" }}
+                </span>
+              </div>
+
+              <!-- Promotional Total (Centered) -->
+              <div class="text-center">
+                <span
+                  class="font-medium text-slate-500 dark:text-slate-400 text-sm"
+                >
+                  {{ getCurrencySign(order.marketplaceId)
+                  }}{{ order.promotionalTotal || "0.00" }}
+                </span>
+              </div>
+
+              <!-- Status Badge (Moved after Promo Total) -->
+              <div>
+                @if (order.orderStatus === "Shipped") {
+                  <span
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                  >
+                    <mat-icon class="icon-size-3.5 text-emerald-600"
+                      >check_circle</mat-icon
+                    >
+                    <span>Shipped</span>
+                  </span>
+                } @else if (
+                  order.orderStatus === "Cancelled" ||
+                  order.orderStatus === "Unfulfillable"
+                ) {
+                  <span
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800"
+                  >
+                    <mat-icon class="icon-size-3.5 text-rose-600"
+                      >cancel</mat-icon
+                    >
+                    <span>{{ order.orderStatus }}</span>
+                  </span>
+                } @else {
+                  <span
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                  >
+                    <mat-icon class="icon-size-3.5 text-amber-600"
+                      >schedule</mat-icon
+                    >
+                    <span>{{ order.orderStatus || "Pending" }}</span>
+                  </span>
+                }
+              </div>
+
+              <!-- Expand Action Button -->
+              <div class="text-center">
+                <button
+                  type="button"
+                  (click)="toggleOrderExpand(order.amazonOrderId)"
+                  class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors border border-slate-300 dark:border-slate-700 cursor-pointer shadow-2xs"
+                  matTooltip="View Order Items"
+                >
+                  <span>Items</span>
+                  <mat-icon class="icon-size-4 text-slate-500">
+                    {{
+                      expandedOrderId === order.amazonOrderId
+                        ? "expand_less"
+                        : "expand_more"
+                    }}
+                  </mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Expandable Sub-panel for Order Items -->
+            @if (expandedOrderId === order.amazonOrderId) {
+              <div
+                class="bg-slate-50/90 dark:bg-slate-900/60 p-3 border-b border-slate-200 dark:border-slate-700"
+              >
+                <div
+                  class="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"
+                >
+                  <div
+                    class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2"
+                  >
+                    <mat-icon
+                      svgIcon="heroicons_outline:shopping-cart"
+                      class="icon-size-4 text-primary"
+                    ></mat-icon>
+                    <span
+                      >Order Items ({{ order.orderItems?.length || 0 }})</span
+                    >
+                  </div>
+                  <div
+                    class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-700"
+                  >
+                    <div class="min-w-[1020px]">
+                      <!-- Header Grid Row -->
+                      <div
+                        class="order-items-grid grid items-center gap-2 py-2 px-3 bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 text-xs font-semibold border-b border-slate-200 dark:border-slate-600 select-none"
+                      >
+                        <div>Order Item ID</div>
+                        <div>ASIN</div>
+                        <div>Seller SKU</div>
+                        <div class="text-center">Qty Ordered</div>
+                        <div class="text-center">Qty Shipped</div>
+                        <div class="text-center">Item Price</div>
+                        <div class="text-center">Item Tax</div>
+                        <div class="text-center">Promo Discount</div>
+                      </div>
+
+                      <!-- Body Grid Rows -->
+                      <div
+                        class="divide-y divide-slate-100 dark:divide-slate-700 text-xs"
+                      >
+                        @for (
+                          item of order.orderItems;
+                          track item.orderItemId || $index
+                        ) {
+                          <div
+                            class="order-items-grid grid items-center gap-2 py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
+                          >
+                            <div
+                              class="text-slate-600 dark:text-slate-400 font-mono truncate"
+                            >
+                              {{ item.orderItemId || "-" }}
+                            </div>
+                            <div class="font-semibold truncate">
+                              <span
+                                class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400"
+                              >
+                                <mat-icon
+                                  svgIcon="heroicons_outline:external-link"
+                                  class="icon-size-3 text-blue-400"
+                                ></mat-icon>
+                                <span>{{ item.ASIN || "-" }}</span>
+                              </span>
+                            </div>
+                            <div class="truncate">
+                              <span
+                                class="inline-flex items-center gap-1 font-mono text-slate-700 dark:text-slate-300"
+                              >
+                                <mat-icon
+                                  svgIcon="heroicons_outline:tag"
+                                  class="icon-size-3 text-slate-400"
+                                ></mat-icon>
+                                <span>{{ item.sellerSku || "-" }}</span>
+                              </span>
+                            </div>
+                            <div
+                              class="font-semibold text-slate-700 dark:text-slate-300 text-center"
+                            >
+                              {{ item.quantityOrdered ?? 0 }}
+                            </div>
+                            <div
+                              class="font-semibold text-emerald-600 dark:text-emerald-400 text-center"
+                            >
+                              {{ item.quantityShipped ?? 0 }}
+                            </div>
+                            <div
+                              class="font-semibold text-slate-800 dark:text-slate-200 text-center"
+                            >
+                              {{ getCurrencySign(order.marketplaceId)
+                              }}{{ (item.itemPrice || 0).toFixed(2) }}
+                            </div>
+                            <div
+                              class="text-slate-600 dark:text-slate-400 text-center"
+                            >
+                              {{ getCurrencySign(order.marketplaceId)
+                              }}{{ (item.itemTax || 0).toFixed(2) }}
+                            </div>
+                            <div
+                              class="text-slate-600 dark:text-slate-400 text-center"
+                            >
+                              {{ getCurrencySign(order.marketplaceId)
+                              }}{{ (item.promotionDiscount || 0).toFixed(2) }}
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+        } @else {
+          <!-- Empty State -->
+          <div class="p-8 text-center text-slate-500">
+            <mat-icon
+              class="icon-size-10 mb-2 text-slate-400"
+              [svgIcon]="'heroicons_outline:shopping-bag'"
+            ></mat-icon>
+            <p class="text-lg font-semibold">No orders found.</p>
+            <p class="text-sm text-slate-400">
+              Try adjusting your search query or date range filters.
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Sticky Orders Paginator Footer -->
+      <mat-paginator
+        class="sm:absolute mt-auto sm:inset-x-0 sm:bottom-0 border-b sm:border-t sm:border-b-0 z-10 bg-gray-50 dark:bg-transparent"
+        [ngClass]="{ 'pointer-events-none': ordersLoading }"
+        [length]="ordersPagination?.totalItems || ordersPagination?.length || 0"
+        [pageSize]="ordersPageSize"
+        [pageIndex]="ordersPageIndex"
+        [pageSizeOptions]="[5, 25, 50, 100]"
+        (page)="onOrdersPageChange($event)"
+      ></mat-paginator>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,1339 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden">
+  <mat-drawer-container
+    class="flex-auto h-full bg-card dark:bg-transparent"
+    (backdropClick)="onBackdropClicked()"
+  >
+    <!-- Drawer -->
+    <mat-drawer
+      class="w-full md:w-160 bg-white dark:bg-gray-900"
+      [mode]="drawerMode"
+      [opened]="false"
+      [position]="'end'"
+      [disableClose]="true"
+      #matDrawer
+    >
+      <router-outlet></router-outlet>
+    </mat-drawer>
+
+    <mat-drawer-content class="flex flex-col">
+      <!-- Main -->
+      <div class="flex flex-col flex-auto overflow-hidden">
+        <!-- Header -->
+        <div class="page-header">
+          <div class="flex items-center gap-3">
+            <div
+              class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+            >
+              <a
+                (click)="$event.preventDefault()"
+                mat-icon-button
+                [matTooltip]="tooltip"
+              >
+                <mat-icon
+                  class="icon-size-7 mb-0 mr-1 text-white"
+                  [svgIcon]="'heroicons_solid:users'"
+                ></mat-icon>
+              </a>
+            </div>
+            <div>
+              <h1 class="text-2xl font-bold tracking-tight text-white">
+                Sellers
+              </h1>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+            <!-- Search & Filters in Header -->
+            <form
+              class="flex flex-wrap items-center gap-2"
+              [formGroup]="sellerStatusfromGroup"
+            >
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-32 -mb-5"
+              >
+                <input
+                  matInput
+                  formControlName="minProduct"
+                  type="number"
+                  min="0"
+                  max="1000000"
+                  [placeholder]="'Min Products'"
+                />
+              </mat-form-field>
+
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-32 -mb-5"
+              >
+                <input
+                  matInput
+                  formControlName="maxProduct"
+                  type="number"
+                  min="0"
+                  max="1000000"
+                  [placeholder]="'Max Products'"
+                />
+              </mat-form-field>
+
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+              >
+                <input
+                  matInput
+                  formControlName="eqProduct"
+                  type="number"
+                  min="0"
+                  max="1000000"
+                  [placeholder]="'Exact Products'"
+                />
+              </mat-form-field>
+
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-48 -mb-5"
+              >
+                <mat-icon
+                  class="icon-size-5 text-gray-400"
+                  matPrefix
+                  [svgIcon]="'heroicons_solid:search'"
+                ></mat-icon>
+                <input
+                  matInput
+                  [formControl]="searchInputControl"
+                  [autocomplete]="'off'"
+                  [placeholder]="'Search sellers...'"
+                />
+              </mat-form-field>
+
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+              >
+                <mat-icon
+                  svgIcon="heroicons_outline:building-storefront"
+                  class="icon-size-5 text-gray-400"
+                  matPrefix
+                ></mat-icon>
+                <mat-select
+                  formControlName="shops"
+                  placeholder="All Shops"
+                  multiple
+                >
+                  @if (portalList && portalList.length) {
+                    @for (portal of portalList; track portal) {
+                      <mat-option [value]="portal?._id || portal?.id">{{
+                        portal.portal_name
+                      }}</mat-option>
+                    }
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-32 -mb-5"
+              >
+                <mat-icon
+                  svgIcon="mat_outline:filter_alt"
+                  class="icon-size-5 text-gray-400"
+                  matPrefix
+                ></mat-icon>
+                <mat-select [formControlName]="'status'" placeholder="Status">
+                  <mat-option [value]="">All</mat-option>
+                  <mat-option [value]="1">Active</mat-option>
+                  <mat-option [value]="0">Inactive</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </form>
+
+            <button
+              type="button"
+              class="btn-secondary-action"
+              (click)="refresh()"
+              matTooltip="Refresh"
+            >
+              <mat-icon
+                class="icon-size-5"
+                svgIcon="mat_outline:refresh"
+              ></mat-icon>
+            </button>
+            <!-- <button type="button" mat-mini-fab (click)="showFilter = !showFilter"
+              class="rounded-md min-w-8 min-h-8 w-8 h-8 flex items-center justify-center search-bar-btn -mt-1 bg-primary text-white"
+              matTooltip="Toggle filters">
+              <mat-icon class="icon-size-5" svgIcon="mat_outline:filter_alt"></mat-icon>
+            </button> -->
+            @if (canAdd) {
+              <button
+                type="button"
+                [routerLink]="['./add']"
+                class="btn-primary-action"
+                mat-flat-button
+              >
+                <mat-icon
+                  class="icon-size-5"
+                  [svgIcon]="'heroicons_outline:plus'"
+                ></mat-icon>
+                <span>Add Seller</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Filter Panel -->
+        @if (showFilter) {
+          <div
+            class="flex flex-wrap items-center gap-2 p-4 bg-gray-50/80 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700"
+          >
+            <form
+              class="flex flex-wrap items-center gap-2"
+              [formGroup]="sellerStatusfromGroup"
+            >
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-32"
+              >
+                <input
+                  matInput
+                  formControlName="minProduct"
+                  min="0"
+                  max="1000000"
+                  [placeholder]="'Min Products'"
+                />
+              </mat-form-field>
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-32"
+              >
+                <input
+                  matInput
+                  formControlName="maxProduct"
+                  min="0"
+                  max="1000000"
+                  [placeholder]="'Max Products'"
+                />
+              </mat-form-field>
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-36"
+              >
+                <input
+                  matInput
+                  formControlName="eqProduct"
+                  min="0"
+                  max="1000000"
+                  [placeholder]="'Exact Products'"
+                />
+              </mat-form-field>
+              <!-- <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-32">
+              <input matInput formControlName="minOrder" min="0" max="1000000" [placeholder]="'Min Orders'" />
+            </mat-form-field>
+            <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-32">
+              <input matInput formControlName="maxOrder" min="0" max="1000000" [placeholder]="'Max Orders'" />
+            </mat-form-field> -->
+              <!-- <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-36">
+              <input matInput formControlName="eqOrder" min="0" max="1000000" [placeholder]="'Exact Orders'" />
+            </mat-form-field> -->
+            </form>
+          </div>
+        }
+
+        <!-- Sellers list -->
+        <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+          <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+            <div class="grid">
+              <div
+                class="table-header-row"
+                [ngClass]="{
+                  'seller-no-update-control': !canUpdate,
+                  'seller-grid': canUpdate,
+                }"
+                matSort
+                matSortDisableClear
+              >
+                @for (header of headers; track header; let i = $index) {
+                  @if (header.key !== "Status" || canUpdate) {
+                    @if (header?.sortBy) {
+                      <div
+                        class="flex items-center"
+                        [mat-sort-header]="header.sortBy"
+                      >
+                        {{ header.key }}
+                      </div>
+                    } @else {
+                      <div class="flex items-center">{{ header.key }}</div>
+                    }
+                  }
+                }
+              </div>
+
+              @if (isLoading) {
+                @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                  <div
+                    class="table-data-row animate-pulse"
+                    [ngClass]="{
+                      'seller-no-update-control': !canUpdate,
+                      'seller-grid': canUpdate,
+                    }"
+                  >
+                    <!-- 1. Expand Arrow Placeholder -->
+                    <div class="flex items-center justify-center">
+                      <div
+                        class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                    </div>
+
+                    <!-- 2. Name Placeholder -->
+                    <div class="flex items-center min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 max-w-full"
+                      ></div>
+                    </div>
+
+                    <!-- 3. Email Placeholder -->
+                    <div class="flex items-center gap-2 min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-40 max-w-full"
+                      ></div>
+                      <div
+                        class="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded-full flex-shrink-0"
+                      ></div>
+                    </div>
+
+                    <!-- 4. Contact No Placeholder -->
+                    <div class="flex items-center gap-2 min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28 max-w-full"
+                      ></div>
+                      <div
+                        class="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded-full flex-shrink-0"
+                      ></div>
+                    </div>
+
+                    <!-- 5. Product Count Badge Placeholder -->
+                    <div class="flex items-center">
+                      <div
+                        class="w-10 h-5 bg-gray-200 dark:bg-gray-700 rounded"
+                      ></div>
+                    </div>
+
+                    <!-- 6. Portal Name Placeholder -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                      ></div>
+                    </div>
+
+                    <!-- 7. Status Slide Toggle Placeholder -->
+                    @if (canUpdate) {
+                      <div class="flex items-center">
+                        <div
+                          class="w-9 h-5 bg-gray-200 dark:bg-gray-700 rounded-full"
+                        ></div>
+                      </div>
+                    }
+
+                    <!-- 8. Action Buttons Placeholder (Eye, Pencil, Trash) -->
+                    <div class="flex items-center justify-end gap-2">
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                    </div>
+                  </div>
+                }
+              } @else {
+                @if (sellerFormInput | async; as sellers) {
+                  @if (sellers.length) {
+                    @for (
+                      contact of sellers;
+                      track trackByFn(i, contact);
+                      let i = $index
+                    ) {
+                      <div class="col-span-full grid grid-cols-1">
+                        <div
+                          class="table-data-row group"
+                          [ngClass]="{
+                            'bg-blue-50/70 border-blue-100':
+                              selectedSeller &&
+                              selectedSeller._id === getContactId(contact),
+                            'seller-no-update-control': !canUpdate,
+                            'seller-grid': canUpdate,
+                          }"
+                        >
+                          <div class="flex items-center justify-center">
+                            <button
+                              type="button"
+                              mat-icon-button
+                              (click)="
+                                toggleExpand(getContactId(contact));
+                                $event.stopPropagation()
+                              "
+                              class="w-8 h-8 min-w-8"
+                            >
+                              <mat-icon
+                                class="icon-size-5"
+                                [svgIcon]="
+                                  expandedSeller === getContactId(contact)
+                                    ? 'heroicons_outline:chevron-down'
+                                    : 'heroicons_outline:chevron-right'
+                                "
+                              >
+                              </mat-icon>
+                            </button>
+                          </div>
+
+                          <div class="flex items-center gap-3 min-w-0">
+                            <div
+                              class="min-w-0 cursor-pointer flex items-center gap-2 flex-wrap sm:flex-nowrap"
+                            >
+                              <div
+                                class="font-medium truncate"
+                                [matTooltip]="
+                                  contact.first_name + ' ' + contact.last_name
+                                "
+                              >
+                                {{ contact.first_name }} {{ contact.last_name }}
+                              </div>
+                              @if (hasActivePlan(contact)) {
+                                <span
+                                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                >
+                                  {{ getActivePlanName(contact) }}
+                                </span>
+                              } @else {
+                                <span
+                                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-900/30 dark:text-rose-400"
+                                >
+                                  No Plan
+                                </span>
+                              }
+                            </div>
+                          </div>
+
+                          <div class="flex items-center gap-1 min-w-0">
+                            <span
+                              class="text-sm text-gray-600 truncate"
+                              [matTooltip]="contact?.email"
+                              >{{ contact?.email || "-" }}</span
+                            >
+                            @if (contact?.email) {
+                              <button
+                                type="button"
+                                mat-icon-button
+                                class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-primary transition-colors"
+                                [cdkCopyToClipboard]="contact?.email"
+                                matTooltip="Copy email"
+                              >
+                                <mat-icon
+                                  svgIcon="mat_outline:content_copy"
+                                  class="icon-size-3"
+                                ></mat-icon>
+                              </button>
+                            }
+                          </div>
+
+                          <div class="flex items-center gap-1 min-w-0">
+                            <span
+                              class="text-sm text-gray-600 truncate"
+                              [matTooltip]="contact?.contact_no"
+                              >{{ contact?.contact_no || "-" }}</span
+                            >
+                            @if (contact?.contact_no) {
+                              <button
+                                type="button"
+                                mat-icon-button
+                                class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-primary transition-colors"
+                                [cdkCopyToClipboard]="contact?.contact_no"
+                                matTooltip="Copy phone"
+                              >
+                                <mat-icon
+                                  svgIcon="mat_outline:content_copy"
+                                  class="icon-size-3"
+                                ></mat-icon>
+                              </button>
+                            }
+                          </div>
+
+                          <!-- <div class="flex items-center">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium" [ngClass]="{
+                                'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400':
+                                  contact?.order_count < 10,
+                                'bg-primary/10 text-primary dark:bg-primary/20':
+                                  contact?.order_count >= 10,
+                              }">
+                      {{ contact?.order_count || 0 }}
+                    </span>
+                  </div> -->
+
+                          <div class="flex items-center">
+                            <span
+                              class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded bg-blue-50 text-blue-700 border border-blue-100"
+                            >
+                              {{ contact?.product_count || 0 }}
+                            </span>
+                          </div>
+
+                          <div class="flex items-center">
+                            <span class="text-sm font-medium text-slate-800">
+                              {{ portalMap[contact?.portal_id] || "-" }}
+                            </span>
+                          </div>
+
+                          @if (canUpdate) {
+                            <div class="flex items-center">
+                              <mat-slide-toggle
+                                [color]="'primary'"
+                                [checked]="getStatus(contact.status)"
+                                (change)="toggleSellerStatus(contact, $event)"
+                                class="scale-75 -mr-1"
+                              >
+                              </mat-slide-toggle>
+                            </div>
+                          }
+                          <div class="flex items-center justify-end gap-1">
+                            <button
+                              type="button"
+                              class="table-action-btn"
+                              (click)="openInNewTab(getContactId(contact))"
+                              matTooltip="View seller"
+                            >
+                              <mat-icon
+                                class="icon-size-5 text-yellow-500"
+                                [svgIcon]="'heroicons_outline:eye'"
+                              ></mat-icon>
+                            </button>
+                            @if (canUpdate) {
+                              <button
+                                type="button"
+                                class="table-action-btn"
+                                [routerLink]="['./edit', getContactId(contact)]"
+                                matTooltip="Edit plan"
+                              >
+                                <mat-icon
+                                  class="icon-size-5"
+                                  [svgIcon]="'heroicons_outline:pencil'"
+                                ></mat-icon>
+                              </button>
+                            }
+                            @if (canDelete) {
+                              <button
+                                type="button"
+                                class="table-action-btn danger"
+                                (click)="
+                                  deleteSelectedseller(getContactId(contact))
+                                "
+                                matTooltip="Delete seller"
+                              >
+                                <mat-icon
+                                  class="icon-size-5 text-red-500"
+                                  [svgIcon]="'heroicons_outline:trash'"
+                                ></mat-icon>
+                              </button>
+                            } @else {
+                              <div class="w-8 h-8 flex-shrink-0"></div>
+                            }
+                          </div>
+                        </div>
+
+                        @if (expandedSeller === getContactId(contact)) {
+                          <div
+                            class="col-span-full bg-slate-50/70 border-b border-slate-100 p-4 pl-12 flex flex-col gap-4"
+                          >
+                            <!-- Plan & Usages Section -->
+                            <div
+                              class="bg-white border rounded-xl p-4 shadow-sm"
+                            >
+                              <div
+                                class="flex flex-wrap items-center justify-between mb-4 border-b pb-2"
+                              >
+                                <div class="flex items-center gap-2">
+                                  <mat-icon
+                                    class="icon-size-5 text-primary"
+                                    [svgIcon]="'heroicons_outline:credit-card'"
+                                  ></mat-icon>
+                                  <h4
+                                    class="font-semibold text-slate-800 text-sm"
+                                  >
+                                    Plan Subscription & Usage Limits
+                                  </h4>
+                                  <button
+                                    mat-icon-button
+                                    type="button"
+                                    class="icon-size-7"
+                                    matTooltip="Refresh usage limits"
+                                    [disabled]="
+                                      sellerPlanDetails[getContactId(contact)]
+                                        ?.loading
+                                    "
+                                    (click)="
+                                      refreshSellerUsages(
+                                        getContactId(contact)
+                                      );
+                                      $event.stopPropagation()
+                                    "
+                                  >
+                                    <mat-icon
+                                      class="icon-size-4"
+                                      [class.animate-spin]="
+                                        sellerPlanDetails[getContactId(contact)]
+                                          ?.loading
+                                      "
+                                      [svgIcon]="'heroicons_outline:arrow-path'"
+                                    ></mat-icon>
+                                  </button>
+                                </div>
+
+                                @if (
+                                  sellerPlanDetails[getContactId(contact)]
+                                    ?.loading
+                                ) {
+                                  <span
+                                    class="text-xs text-slate-500 flex items-center gap-1.5 animate-pulse"
+                                  >
+                                    <mat-icon
+                                      class="icon-size-4 spin"
+                                      [svgIcon]="'heroicons_outline:refresh'"
+                                    ></mat-icon>
+                                    Loading plan details...
+                                  </span>
+                                } @else {
+                                  <div
+                                    class="flex flex-wrap items-center gap-2 text-xs"
+                                  >
+                                    @if (isPlanCancelled(contact)) {
+                                      <span
+                                        class="px-2 py-0.5 rounded font-medium bg-rose-50 text-rose-700 border border-rose-100"
+                                      >
+                                        Status: Cancelled
+                                      </span>
+                                    }
+
+                                    @if (
+                                      canUpdate &&
+                                      sellerPlanDetails[contact._id]
+                                        ?.activeSubscriptionId
+                                    ) {
+                                      <button
+                                        type="button"
+                                        class="px-2 py-0.5 text-xs font-semibold text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 rounded border border-amber-200 transition-colors flex items-center gap-1"
+                                        (click)="
+                                          openSwitchPlanDialog(
+                                            contact,
+                                            sellerPlanDetails[contact._id]
+                                              .activeSubscriptionId
+                                          )
+                                        "
+                                      >
+                                        <mat-icon
+                                          class="icon-size-3.5 text-amber-500"
+                                          [svgIcon]="'heroicons_outline:arrow-path'"
+                                        ></mat-icon>
+                                        Switch Plan
+                                      </button>
+                                    }
+
+                                    @if (
+                                      canUpdate &&
+                                      sellerPlanDetails[contact._id]
+                                        ?.activeSubscriptionId &&
+                                      sellerPlanDetails[contact._id]?.usages
+                                        ?.length
+                                    ) {
+                                      <button
+                                        type="button"
+                                        class="px-2 py-0.5 text-xs font-semibold text-blue-700 hover:text-blue-900 bg-blue-550/10 hover:bg-blue-550/20 text-primary bg-primary/10 hover:bg-primary/20 rounded border border-primary-200/50 transition-colors flex items-center gap-1"
+                                        (click)="
+                                          openBulkAdjustLimitDialog(
+                                            contact,
+                                            sellerPlanDetails[contact._id]
+                                              .activeSubscriptionId
+                                          )
+                                        "
+                                      >
+                                        <mat-icon
+                                          class="icon-size-3.5 text-blue-500"
+                                          [svgIcon]="'heroicons_outline:plus-circle'"
+                                        ></mat-icon>
+                                        Bulk Adjust
+                                      </button>
+                                    }
+
+                                    @if (
+                                      canUpdate &&
+                                      sellerPlanDetails[contact._id]?.queues
+                                        ?.length
+                                    ) {
+                                      <button
+                                        type="button"
+                                        class="px-2 py-0.5 text-xs font-semibold text-blue-750 hover:text-blue-900 bg-blue-550/10 hover:bg-blue-550/20 text-primary bg-primary/10 hover:bg-primary/20 rounded border border-primary-200/50 transition-colors flex items-center gap-1"
+                                        style="
+                                          color: var(
+                                            --fuse-primary-700
+                                          ) !important;
+                                          background-color: var(
+                                            --fuse-primary-50
+                                          ) !important;
+                                          border-color: var(
+                                            --fuse-primary-100
+                                          ) !important;
+                                        "
+                                        (click)="
+                                          openRenewSubscriptionDialog(contact)
+                                        "
+                                      >
+                                        <mat-icon
+                                          class="icon-size-3.5 text-blue-500"
+                                          style="
+                                            color: var(
+                                              --fuse-primary-500
+                                            ) !important;
+                                          "
+                                          [svgIcon]="'heroicons_outline:refresh'"
+                                        ></mat-icon>
+                                        Renew Plan
+                                      </button>
+                                    }
+
+                                    @if (
+                                      canUpdate &&
+                                      sellerPlanDetails[contact._id]
+                                        ?.activeSubscriptionId
+                                    ) {
+                                      <button
+                                        type="button"
+                                        class="px-2 py-0.5 text-xs font-semibold text-red-700 hover:text-red-900 bg-red-50 hover:bg-red-100 rounded border border-red-200 transition-colors flex items-center gap-1"
+                                        (click)="
+                                          openAdminCancelActiveDialog(contact)
+                                        "
+                                      >
+                                        <mat-icon
+                                          class="icon-size-3.5 text-red-500"
+                                          [svgIcon]="'heroicons_outline:x-circle'"
+                                        ></mat-icon>
+                                        Cancel Active Plan
+                                      </button>
+                                    }
+                                  </div>
+                                }
+                              </div>
+
+                              @if (
+                                sellerPlanDetails[getContactId(contact)]
+                                  ?.loadError
+                              ) {
+                                <p class="text-xs text-rose-600 mb-3">
+                                  {{
+                                    sellerPlanDetails[getContactId(contact)]
+                                      ?.loadError
+                                  }}
+                                </p>
+                              }
+
+                              @if (
+                                sellerPlanDetails[getContactId(contact)]
+                                  ?.loading
+                              ) {
+                                <!-- Usages Grid Skeleton Loader -->
+                                <div
+                                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 animate-pulse"
+                                >
+                                  @for (
+                                    item of [1, 2, 3, 4, 5, 6];
+                                    track $index
+                                  ) {
+                                    <div
+                                      class="border rounded-lg p-3 bg-slate-50/50 flex flex-col justify-between space-y-2"
+                                    >
+                                      <!-- Feature Name Skeleton -->
+                                      <div
+                                        class="h-3.5 bg-gray-200 dark:bg-gray-700 rounded w-2/3"
+                                      ></div>
+                                      <!-- Usage Limit & Count Skeleton -->
+                                      <div
+                                        class="flex items-center justify-between mt-2"
+                                      >
+                                        <div
+                                          class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12"
+                                        ></div>
+                                        <div
+                                          class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                                        ></div>
+                                      </div>
+                                      <!-- Progress Bar Skeleton -->
+                                      <div
+                                        class="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full mt-1.5"
+                                      ></div>
+                                    </div>
+                                  }
+                                </div>
+                              } @else {
+                                @if (
+                                  sellerPlanDetails[contact._id]?.queues?.length
+                                ) {
+                                  <!-- Active Plan Section -->
+                                  @if (
+                                    getActiveQueue(contact._id);
+                                    as activeQ
+                                  ) {
+                                    <div class="mb-4">
+                                      <div
+                                        class="flex flex-wrap items-center gap-2 mb-3"
+                                      >
+                                        <span
+                                          class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                        >
+                                          Queue #1 · Active
+                                        </span>
+                                        <span
+                                          class="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-800 text-white"
+                                        >
+                                          {{
+                                            activeQ.activePlanName || "No Plan"
+                                          }}
+                                        </span>
+                                        <span
+                                          class="px-2 py-0.5 rounded text-[11px] bg-slate-100 text-slate-705 border border-slate-200/60 font-semibold"
+                                        >
+                                          Billing:
+                                          {{
+                                            sellerPlanDetails[contact._id]
+                                              ?.billingCycle || "None"
+                                              | titlecase
+                                          }}
+                                        </span>
+                                        @if (
+                                          sellerPlanDetails[contact._id]
+                                            ?.expiredAt
+                                        ) {
+                                          <span
+                                            class="px-2 py-0.5 rounded text-[11px] bg-slate-100 text-slate-705 border border-slate-200/60 font-semibold"
+                                          >
+                                            Expires:
+                                            {{
+                                              sellerPlanDetails[contact._id]
+                                                ?.expiredAt | date: "mediumDate"
+                                            }}
+                                          </span>
+                                        }
+                                      </div>
+
+                                      @if (activeQ.usages?.length) {
+                                        <div
+                                          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4"
+                                        >
+                                          @for (
+                                            usage of activeQ.usages;
+                                            track usage._id
+                                          ) {
+                                            <div
+                                              class="border rounded-xl p-3 bg-white flex flex-col justify-between shadow-sm"
+                                            >
+                                              <div
+                                                class="flex items-center gap-2 mb-2"
+                                              >
+                                                @if (
+                                                  usage.feature_id?.name
+                                                    ?.toLowerCase()
+                                                    ?.includes("delete")
+                                                ) {
+                                                  <mat-icon
+                                                    class="icon-size-4 text-rose-500"
+                                                    [svgIcon]="'heroicons_outline:trash'"
+                                                  ></mat-icon>
+                                                } @else if (
+                                                  usage.feature_id?.name
+                                                    ?.toLowerCase()
+                                                    ?.includes("role")
+                                                ) {
+                                                  <mat-icon
+                                                    class="icon-size-4 text-blue-500"
+                                                    [svgIcon]="'heroicons_outline:shield-check'"
+                                                  ></mat-icon>
+                                                } @else {
+                                                  <mat-icon
+                                                    class="icon-size-4 text-emerald-600"
+                                                    [svgIcon]="'heroicons_outline:users'"
+                                                  ></mat-icon>
+                                                }
+                                                <span
+                                                  class="font-bold text-xs text-slate-700 truncate"
+                                                >
+                                                  {{
+                                                    usage.feature_id?.name ||
+                                                      "Feature"
+                                                  }}
+                                                </span>
+                                              </div>
+                                              <div
+                                                class="flex items-end justify-between mt-1"
+                                              >
+                                                <span
+                                                  class="text-[10px] text-slate-400 font-medium uppercase tracking-wider"
+                                                  >Usage Limit</span
+                                                >
+                                                <span
+                                                  class="font-bold text-xs text-slate-800"
+                                                >
+                                                  {{ usage.usage }} /
+                                                  {{
+                                                    usage.has_limit === false
+                                                      ? "Unlimited"
+                                                      : usage.limit
+                                                  }}
+                                                </span>
+                                              </div>
+                                              <div
+                                                class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden"
+                                              >
+                                                <div
+                                                  class="bg-emerald-500 h-full rounded-full"
+                                                  [style.width.%]="
+                                                    usage.limit
+                                                      ? (usage.usage /
+                                                          usage.limit) *
+                                                        100
+                                                      : 0
+                                                  "
+                                                ></div>
+                                              </div>
+                                            </div>
+                                          }
+                                        </div>
+                                      } @else {
+                                        <p
+                                          class="text-xs text-slate-500 italic"
+                                        >
+                                          No usage limits configured for active
+                                          plan.
+                                        </p>
+                                      }
+                                    </div>
+                                  }
+
+                                  <!-- Future Plans Section -->
+                                  @if (
+                                    getFutureQueues(contact._id);
+                                    as futureQueues
+                                  ) {
+                                    @if (futureQueues.length > 0) {
+                                      <div
+                                        class="mt-6 border-t border-slate-100 pt-5"
+                                      >
+                                        <div
+                                          class="flex items-center justify-between mb-4"
+                                        >
+                                          <div class="flex items-center gap-2">
+                                            <h4
+                                              class="font-bold text-slate-800 text-sm"
+                                            >
+                                              Future Plans (Drag & Drop to
+                                              change order)
+                                            </h4>
+                                            <mat-icon
+                                              class="icon-size-4 text-slate-400 cursor-help"
+                                              [matTooltip]="'Drag handles on the left of each future plan to change its execution priority.'"
+                                              [svgIcon]="'heroicons_outline:information-circle'"
+                                            ></mat-icon>
+                                          </div>
+
+                                          <!-- Order Save/Cancel Buttons -->
+                                          @if (
+                                            sellerPlanDetails[contact._id]
+                                              ?.isOrderModified
+                                          ) {
+                                            <div
+                                              class="flex items-center gap-2"
+                                            >
+                                              <button
+                                                type="button"
+                                                (click)="
+                                                  cancelQueueOrder(contact._id)
+                                                "
+                                                class="px-2.5 py-1 text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-all shadow-sm"
+                                              >
+                                                Cancel
+                                              </button>
+                                              <button
+                                                type="button"
+                                                (click)="
+                                                  saveQueueOrder(contact._id)
+                                                "
+                                                class="px-2.5 py-1 text-xs font-semibold text-white bg-slate-905 hover:bg-slate-800 rounded-xl transition-all shadow-sm flex items-center gap-1"
+                                                style="
+                                                  background-color: var(
+                                                    --fuse-primary-600
+                                                  ) !important;
+                                                "
+                                              >
+                                                <mat-icon
+                                                  class="icon-size-3 text-white"
+                                                  [svgIcon]="'heroicons_outline:check'"
+                                                ></mat-icon>
+                                                Save Order
+                                              </button>
+                                            </div>
+                                          }
+                                        </div>
+
+                                        <div
+                                          class="space-y-3"
+                                          cdkDropList
+                                          (cdkDropListDropped)="
+                                            onQueueDrop(
+                                              $event,
+                                              contact._id,
+                                              contact
+                                            )
+                                          "
+                                        >
+                                          @for (
+                                            queue of futureQueues;
+                                            track queue.subscription_id;
+                                            let i = $index
+                                          ) {
+                                            <div
+                                              cdkDrag
+                                              [cdkDragData]="queue"
+                                              class="border border-slate-200/60 rounded-2xl p-3 bg-white hover:bg-slate-50/50 transition-all flex flex-col gap-3 shadow-sm"
+                                            >
+                                              <div
+                                                class="flex items-center justify-between"
+                                              >
+                                                <div
+                                                  class="flex items-center gap-3"
+                                                >
+                                                  <div
+                                                    cdkDragHandle
+                                                    class="cursor-grab text-slate-400 hover:text-slate-600 flex items-center justify-center p-0.5 rounded hover:bg-slate-100 dynamic-drag-handle"
+                                                  >
+                                                    <mat-icon
+                                                      class="icon-size-4"
+                                                      [svgIcon]="'heroicons_outline:menu'"
+                                                    ></mat-icon>
+                                                  </div>
+                                                  <span
+                                                    class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-750 border border-blue-105"
+                                                    style="
+                                                      color: var(
+                                                        --fuse-primary-700
+                                                      ) !important;
+                                                      background-color: var(
+                                                        --fuse-primary-50
+                                                      ) !important;
+                                                      border-color: var(
+                                                        --fuse-primary-100
+                                                      ) !important;
+                                                    "
+                                                  >
+                                                    Queue #{{ i + 2 }} · Future
+                                                  </span>
+                                                  @if (
+                                                    isNextUp(
+                                                      contact,
+                                                      queue.subscription_id
+                                                    )
+                                                  ) {
+                                                    <span
+                                                      class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-white leading-none"
+                                                    >
+                                                      Next up
+                                                    </span>
+                                                  }
+                                                  <span
+                                                    class="font-bold text-slate-700 text-xs truncate"
+                                                  >
+                                                    {{ queue.activePlanName }}
+                                                  </span>
+                                                  <span
+                                                    class="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600 font-medium"
+                                                  >
+                                                    {{
+                                                      queue.billingCycle
+                                                        | titlecase
+                                                    }}
+                                                  </span>
+                                                  @if (queue.expiredAt) {
+                                                    <span
+                                                      class="text-xs text-slate-400"
+                                                    >
+                                                      expires
+                                                      {{
+                                                        queue.expiredAt
+                                                          | date: "mediumDate"
+                                                      }}
+                                                    </span>
+                                                  }
+                                                </div>
+
+                                                <div
+                                                  class="flex items-center gap-2"
+                                                >
+                                                  @if (canUpdate) {
+                                                    <button
+                                                      type="button"
+                                                      class="px-2.5 py-1 text-xs font-semibold text-rose-700 hover:text-rose-900 bg-rose-50 hover:bg-rose-100 border border-rose-200/60 rounded-xl transition-all"
+                                                      (click)="
+                                                        cancelQueuedInstance(
+                                                          contact,
+                                                          queue.subscription_id
+                                                        )
+                                                      "
+                                                    >
+                                                      Cancel
+                                                    </button>
+                                                  }
+                                                  @if (queue.usages?.length) {
+                                                    <button
+                                                      type="button"
+                                                      class="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
+                                                      (click)="
+                                                        queue.expanded =
+                                                          !queue.expanded
+                                                      "
+                                                    >
+                                                      <mat-icon
+                                                        class="icon-size-4 transition-transform duration-200"
+                                                        [class.rotate-180]="
+                                                          queue.expanded
+                                                        "
+                                                        [svgIcon]="'heroicons_outline:chevron-down'"
+                                                      ></mat-icon>
+                                                    </button>
+                                                  }
+                                                </div>
+                                              </div>
+
+                                              <!-- Expandable Usages Preview -->
+                                              @if (
+                                                queue.usages?.length &&
+                                                queue.expanded
+                                              ) {
+                                                <div
+                                                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 border-t border-slate-100/60 pt-3"
+                                                >
+                                                  @for (
+                                                    usage of queue.usages;
+                                                    track usage._id
+                                                  ) {
+                                                    <div
+                                                      class="border border-slate-200/50 rounded-xl p-2.5 bg-slate-50/30 flex flex-col justify-between shadow-sm"
+                                                    >
+                                                      <div
+                                                        class="flex items-center gap-1.5 mb-1.5"
+                                                      >
+                                                        @if (
+                                                          usage.feature_id?.name
+                                                            ?.toLowerCase()
+                                                            ?.includes("delete")
+                                                        ) {
+                                                          <mat-icon
+                                                            class="icon-size-3.5 text-rose-500"
+                                                            [svgIcon]="'heroicons_outline:trash'"
+                                                          ></mat-icon>
+                                                        } @else if (
+                                                          usage.feature_id?.name
+                                                            ?.toLowerCase()
+                                                            ?.includes("role")
+                                                        ) {
+                                                          <mat-icon
+                                                            class="icon-size-3.5 text-blue-500"
+                                                            [svgIcon]="'heroicons_outline:shield-check'"
+                                                          ></mat-icon>
+                                                        } @else {
+                                                          <mat-icon
+                                                            class="icon-size-3.5 text-emerald-600"
+                                                            [svgIcon]="'heroicons_outline:users'"
+                                                          ></mat-icon>
+                                                        }
+                                                        <span
+                                                          class="font-bold text-[11px] text-slate-605 truncate"
+                                                        >
+                                                          {{
+                                                            usage.feature_id
+                                                              ?.name ||
+                                                              "Feature"
+                                                          }}
+                                                        </span>
+                                                      </div>
+                                                      <div
+                                                        class="flex items-end justify-between mt-1"
+                                                      >
+                                                        <span
+                                                          class="text-[9px] text-slate-400 uppercase font-medium"
+                                                          >Limit</span
+                                                        >
+                                                        <span
+                                                          class="font-bold text-xs text-slate-700"
+                                                        >
+                                                          {{
+                                                            usage.has_limit ===
+                                                            false
+                                                              ? "Unlimited"
+                                                              : usage.limit
+                                                          }}
+                                                        </span>
+                                                      </div>
+                                                    </div>
+                                                  }
+                                                </div>
+                                              }
+
+                                              <!-- Drag preview -->
+                                              <div
+                                                *cdkDragPreview
+                                                class="bg-white border border-slate-200 rounded-2xl p-3 shadow-lg flex items-center gap-3"
+                                              >
+                                                <mat-icon
+                                                  class="icon-size-4 text-slate-400"
+                                                  [svgIcon]="'heroicons_outline:menu'"
+                                                ></mat-icon>
+                                                <span
+                                                  class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-100"
+                                                >
+                                                  Queue #{{ i + 2 }} · Future
+                                                </span>
+                                                <span
+                                                  class="font-bold text-slate-700 text-xs truncate"
+                                                >
+                                                  {{ queue.activePlanName }}
+                                                </span>
+                                              </div>
+                                              <!-- Drag placeholder -->
+                                              <div
+                                                *cdkDragPlaceholder
+                                                class="bg-slate-50 border border-dashed border-slate-200 rounded-2xl h-12"
+                                              ></div>
+                                            </div>
+                                          }
+                                        </div>
+                                      </div>
+                                    }
+                                  }
+                                } @else {
+                                  <p class="text-xs text-slate-500 italic">
+                                    No usage limits configured for this seller.
+                                  </p>
+                                }
+                              }
+                            </div>
+
+                            <!-- Seller Users Section -->
+                            @if (contact?.seller_users?.length) {
+                              <div
+                                class="bg-white border rounded-xl p-4 shadow-sm"
+                              >
+                                <div
+                                  class="flex items-center gap-2 mb-3 border-b pb-2"
+                                >
+                                  <mat-icon
+                                    class="icon-size-5 text-slate-500"
+                                    [svgIcon]="'heroicons_outline:users'"
+                                  ></mat-icon>
+                                  <h4
+                                    class="font-semibold text-slate-800 text-sm"
+                                  >
+                                    Seller Users
+                                  </h4>
+                                </div>
+
+                                <div class="flex flex-col gap-2">
+                                  @for (
+                                    user of contact.seller_users;
+                                    track user._id
+                                  ) {
+                                    <div
+                                      class="flex items-center justify-between py-2 px-3 hover:bg-slate-50 rounded-lg transition-colors border"
+                                    >
+                                      <div class="flex items-center gap-2">
+                                        <mat-icon
+                                          class="icon-size-4 text-slate-400"
+                                          [svgIcon]="'heroicons_outline:arrow-turn-down-right'"
+                                        ></mat-icon>
+                                        <div class="flex flex-col">
+                                          <span
+                                            class="font-semibold text-xs text-slate-700"
+                                            >{{ user.first_name }}
+                                            {{ user.last_name }}</span
+                                          >
+                                          <span
+                                            class="text-[10px] text-slate-500"
+                                            >{{ user.email }}</span
+                                          >
+                                        </div>
+                                      </div>
+                                      <div class="flex items-center gap-2">
+                                        <span
+                                          class="py-0.5 px-2 text-[10px] font-semibold uppercase rounded bg-blue-50 text-blue-700 border border-blue-100"
+                                        >
+                                          {{ user.role }}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          mat-icon-button
+                                          class="w-8 h-8 text-slate-500 hover:text-primary hover:bg-primary/10 transition-all"
+                                          (click)="openInNewTab(user._id)"
+                                          matTooltip="View user details"
+                                        >
+                                          <mat-icon
+                                            class="icon-size-4"
+                                            [svgIcon]="'heroicons_outline:eye'"
+                                          ></mat-icon>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  }
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  } @else {
+                    <ng-container [ngTemplateOutlet]="nosellers"></ng-container>
+                  }
+                }
+              }
+
+              <ng-template #nosellers>
+                <div class="page-empty-state">
+                  <div class="icon-wrapper">
+                    <mat-icon
+                      class="icon-size-10"
+                      [svgIcon]="'heroicons_outline:users'"
+                    ></mat-icon>
+                  </div>
+                  <h3 class="text-xl font-bold text-slate-800 mb-2">
+                    No sellers found
+                  </h3>
+                  <p class="text-slate-500 max-w-sm">
+                    Get started by adding your first seller to manage your
+                    marketplace.
+                  </p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+
+          @if (sellerFormInput | async; as sellers) {
+            @if (sellers.length) {
+              <div class="pagination-bar">
+                <mat-paginator
+                  class="seller-list-paginator"
+                  [ngClass]="{ 'pointer-events-none': isLoading }"
+                  [length]="
+                    ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                    (sellers?.length || 0) +
+                    (pagination?.hasNextPage ? 1 : 0)
+                  "
+                  [pageSize]="pagination?.size || 100"
+                  [pageSizeOptions]="[5, 25, 50, 100]"
+                  [pageIndex]="(pagination?.page || 1) - 1"
+                  [showFirstLastButtons]="false"
+                >
+                </mat-paginator>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </mat-drawer-content>
+  </mat-drawer-container>
+</div>

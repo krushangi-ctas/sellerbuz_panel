@@ -1,0 +1,48 @@
+.seller-grid {
+  display: grid;
+  grid-template-columns: auto 310px 140px 190px 90px 120px;
+  padding-inline: 15px;
+  padding-block: 5px;
+
+  @screen sm {
+    grid-template-columns: auto 310px 140px 190px 90px 120px;
+  }
+
+  @screen md {
+    grid-template-columns: auto 310px 140px 190px 90px 120px;
+  }
+
+  @screen lg {
+    grid-template-columns: auto 310px 140px 190px 90px 120px;
+  }
+}
+
+:host ::ng-deep .user-list-paginator {
+  width: 100%;
+  background-color: var(--color-gray-100) !important;
+
+  .mat-mdc-paginator-container {
+    width: 100%;
+    justify-content: space-between;
+    background-color: transparent !important;
+  }
+}
+
+.seller-no-update-control {
+  display: grid;
+  grid-template-columns: auto 210px 190px 190px;
+  padding-inline: 15px;
+  padding-block: 5px;
+
+  @screen sm {
+    grid-template-columns: auto 210px 190px 190px;
+  }
+
+  @screen md {
+    grid-template-columns: auto 210px 190px 190px;
+  }
+
+  @screen lg {
+    grid-template-columns: auto 210px 190px 190px;
+  }
+}

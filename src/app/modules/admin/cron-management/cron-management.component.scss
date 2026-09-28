@@ -1,0 +1,15 @@
+.cron-logs-grid {
+  grid-template-columns: minmax(220px, 1.5fr) 150px 120px 150px 150px 100px;
+
+  @screen sm {
+    grid-template-columns: minmax(220px, 1.5fr) 150px 120px 150px 150px 100px;
+  }
+
+  @screen md {
+    grid-template-columns: minmax(240px, 1.5fr) 160px 130px 160px 160px 110px;
+  }
+
+  @screen lg {
+    grid-template-columns: minmax(260px, 1.5fr) 180px 130px 180px 180px 120px;
+  }
+}

@@ -1,0 +1,146 @@
+<div
+  class="flex flex-col -m-6 rounded-xl shadow-2xl min-w-140 max-w-200 bg-white overflow-hidden"
+>
+  <!-- Dialog Header -->
+  <div
+    class="sticky top-0 z-10 flex items-center justify-between bg-primary text-white px-6 py-4 rounded-t-xl shadow-sm"
+  >
+    <div class="flex items-center gap-3">
+      <mat-icon
+        class="icon-size-6 text-white"
+        svgIcon="heroicons_outline:cog"
+      ></mat-icon>
+      <span class="text-xl font-bold tracking-tight text-white">
+        {{ isEditMode ? "Edit Feature" : "Add New Feature" }}
+      </span>
+    </div>
+    <button
+      type="button"
+      mat-icon-button
+      (click)="cancel()"
+      [tabIndex]="-1"
+      class="text-white hover:bg-white/10 rounded-full transition-colors"
+    >
+      <mat-icon class="icon-size-5" svgIcon="heroicons_outline:x"></mat-icon>
+    </button>
+  </div>
+
+  <!-- Form Content -->
+  <div class="p-6 max-h-[75vh] overflow-y-auto">
+    <form [formGroup]="form" class="flex flex-col gap-4">
+      <!-- Feature Name Input -->
+      <mat-form-field class="w-full" appearance="outline">
+        <mat-label>Feature Name</mat-label>
+        <input
+          matInput
+          formControlName="name"
+          placeholder="Enter feature name (e.g. Add Seller Role)"
+          maxlength="150"
+        />
+        @if (form.get("name")?.hasError("required")) {
+          <mat-error>Feature Name is required</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Section Selection Dropdown -->
+      <mat-form-field class="w-full" appearance="outline">
+        <mat-label>Section</mat-label>
+        <mat-select
+          formControlName="section_id"
+          placeholder="Select a seller section"
+          (openedChange)="onSectionSelectOpened($event)"
+        >
+          <mat-option>
+            <ngx-mat-select-search
+              [formControl]="sectionSearchControl"
+              placeholderLabel="Search section..."
+              (keyup)="filterSections($event.target.value)"
+              noEntriesFoundLabel="'No section found'"
+            >
+            </ngx-mat-select-search>
+          </mat-option>
+          @if (isLoadingSections) {
+            <mat-option disabled>Loading sections...</mat-option>
+          } @else {
+            @for (sec of filteredSellerSections; track sec._id) {
+              <mat-option [value]="sec._id">{{ sec.name }}</mat-option>
+            }
+          }
+        </mat-select>
+        @if (form.get("section_id")?.hasError("required")) {
+          <mat-error>Section selection is required</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Description Input -->
+      <mat-form-field class="w-full" appearance="outline">
+        <mat-label>Description</mat-label>
+        <textarea
+          matInput
+          formControlName="desc"
+          rows="4"
+          placeholder="Enter feature description..."
+          maxlength="1000"
+        ></textarea>
+        @if (form.get("desc")?.hasError("required")) {
+          <mat-error>Description is required</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Status Toggle -->
+      <div
+        class="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50"
+      >
+        <div class="flex flex-col">
+          <span class="text-sm font-semibold text-slate-800">Status</span>
+          <span class="text-xs text-slate-500"
+            >Active features are available for usage meter mapping</span
+          >
+        </div>
+        <mat-slide-toggle
+          [checked]="form.get('status')?.value === 1"
+          (change)="form.get('status')?.setValue($event.checked ? 1 : 0)"
+          color="primary"
+        >
+          <span class="font-medium text-xs text-slate-700">
+            {{ form.get("status")?.value === 1 ? "Active" : "Inactive" }}
+          </span>
+        </mat-slide-toggle>
+      </div>
+    </form>
+  </div>
+
+  <!-- Dialog Actions -->
+  <div
+    class="flex items-center justify-end gap-3 px-6 py-4 bg-slate-50 border-t border-slate-200 rounded-b-xl"
+  >
+    <button
+      type="button"
+      mat-button
+      (click)="cancel()"
+      [disabled]="isSubmitting"
+      class="text-slate-600 hover:bg-slate-200"
+    >
+      Cancel
+    </button>
+
+    <button
+      type="button"
+      mat-flat-button
+      color="primary"
+      (click)="save()"
+      [disabled]="isFormInvalid || isSubmitting"
+      class="bg-primary text-white hover:bg-primary-600 px-6 py-2 rounded-xl font-medium shadow-md transition-all flex items-center gap-2"
+    >
+      @if (isSubmitting) {
+        <mat-spinner diameter="18" color="accent"></mat-spinner>
+      } @else {
+        <mat-icon
+          svgIcon="heroicons_outline:check"
+          class="icon-size-4"
+        ></mat-icon>
+      }
+      <span>{{ isEditMode ? "Update Feature" : "Save Feature" }}</span>
+    </button>
+  </div>
+</div>

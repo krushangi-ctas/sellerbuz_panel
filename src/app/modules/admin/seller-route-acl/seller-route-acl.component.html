@@ -1,0 +1,181 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white"
+>
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_solid:shield-check'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">
+            Seller API Access Control
+          </h1>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="searchInputControl"
+            maxlength="80"
+            [autocomplete]="'off'"
+            [placeholder]="'Search path, method, action...'"
+          />
+        </mat-form-field>
+
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refresh()"
+          matTooltip="Refresh"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+
+        <button
+          type="button"
+          class="btn-primary-action"
+          mat-flat-button
+          (click)="addMapping()"
+        >
+          <mat-icon
+            class="icon-size-5"
+            [svgIcon]="'heroicons_outline:plus'"
+          ></mat-icon>
+          <span>Add Mapping</span>
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="flex flex-col flex-auto min-h-0 overflow-hidden"
+      matSort
+      matSortDisableClear
+    >
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+        <div class="grid">
+          <div class="table-header-row route-acl-grid">
+            <div class="flex items-center" [mat-sort-header]="'method'">
+              Method
+            </div>
+            <div class="flex items-center" [mat-sort-header]="'path_pattern'">
+              Path pattern
+            </div>
+            <div class="flex items-center" [mat-sort-header]="'section_name'">
+              Section
+            </div>
+            <div class="flex items-center" [mat-sort-header]="'action'">
+              Action
+            </div>
+            <div class="flex items-center justify-end">Action</div>
+          </div>
+
+          @if (isLoading) {
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8]; track $index) {
+              <div class="table-data-row animate-pulse route-acl-grid">
+                <div class="h-4 bg-gray-200 rounded w-16"></div>
+                <div class="h-4 bg-gray-200 rounded w-48"></div>
+                <div class="h-4 bg-gray-200 rounded w-28"></div>
+                <div class="h-4 bg-gray-200 rounded w-16"></div>
+                <div class="h-4 bg-gray-200 rounded w-20 ml-auto"></div>
+              </div>
+            }
+          } @else {
+            @for (row of mappings$ | async; track trackByFn($index, row)) {
+              <div class="table-data-row route-acl-grid">
+                <div>
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 text-[11px] font-bold tracking-wide rounded bg-gray-100 text-gray-800"
+                    >{{ row.method }}</span
+                  >
+                </div>
+                <div
+                  class="font-mono text-sm overflow-hidden text-ellipsis whitespace-nowrap text-gray-700"
+                  [title]="row.path_pattern"
+                >
+                  {{ row.path_pattern }}
+                </div>
+                <div class="text-sm font-medium text-gray-700">
+                  {{ row.section_name || "—" }}
+                </div>
+                <div class="capitalize text-sm font-medium text-gray-700">
+                  {{ row.action }}
+                </div>
+                <div class="flex items-center justify-end gap-1">
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matTooltip="Edit"
+                    (click)="editMapping(row)"
+                  >
+                    <mat-icon
+                      class="icon-size-5"
+                      svgIcon="heroicons_outline:pencil"
+                    ></mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matTooltip="Delete"
+                    (click)="deleteMapping(row)"
+                  >
+                    <mat-icon
+                      class="icon-size-5 text-warn"
+                      svgIcon="heroicons_outline:trash"
+                    ></mat-icon>
+                  </button>
+                </div>
+              </div>
+            } @empty {
+              <div class="p-8 text-center text-secondary">
+                No seller route ACL mappings yet.
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      @if (mappings$ | async; as mappingsList) {
+        @if (mappingsList.length) {
+          <div class="pagination-bar">
+            <mat-paginator
+              [ngClass]="{ 'pointer-events-none': isLoading }"
+              [length]="
+                ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                (mappingsList?.length || 0) +
+                (pagination?.hasNextPage ? 1 : 0)
+              "
+              [pageSize]="pagination?.size || pageLimit"
+              [pageSizeOptions]="pageOptions"
+              [pageIndex]="(pagination?.page || 1) - 1"
+              [showFirstLastButtons]="false"
+            ></mat-paginator>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>

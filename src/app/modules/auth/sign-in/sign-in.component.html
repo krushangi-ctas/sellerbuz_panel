@@ -1,0 +1,306 @@
+<div class="auth-ref-container">
+  <div class="auth-ref-shell w-full">
+    <section class="auth-ref-form-panel">
+      <div class="auth-ref-form-wrap">
+        <div class="auth-ref-form-intro">
+          <div class="auth-ref-icon-badge">
+            <mat-icon [svgIcon]="'heroicons_solid:lock-closed'"></mat-icon>
+          </div>
+
+          <div
+            class="auth-ref-heading text-4xl font-extrabold tracking-tight text-primary-900"
+          >
+            Sign in
+          </div>
+        </div>
+
+        @if (showAlert) {
+          <fuse-alert
+            class="auth-ref-alert block"
+            [appearance]="'outline'"
+            [showIcon]="false"
+            [type]="alert.type"
+            [@shake]="alert.type === 'error'"
+          >
+            {{ alert.message }}
+          </fuse-alert>
+        }
+
+        <form
+          class="auth-ref-form"
+          [formGroup]="signInForm"
+          #signInNgForm="ngForm"
+        >
+          @if (step === "email") {
+            <mat-form-field
+              class="auth-ref-field w-full"
+              [appearance]="'outline'"
+              [subscriptSizing]="'dynamic'"
+            >
+              <mat-label>Email address</mat-label>
+              <input
+                id="email"
+                matInput
+                [formControlName]="'email'"
+                (keyup.enter)="sendOtp()"
+              />
+              @if (
+                signInForm.get("email")?.touched &&
+                signInForm.get("email")?.hasError("required")
+              ) {
+                <mat-error>Email address is required.</mat-error>
+              }
+
+              @if (
+                signInForm.get("email")?.touched &&
+                signInForm.get("email")?.hasError("email")
+              ) {
+                <mat-error>Please enter a valid email address.</mat-error>
+              }
+            </mat-form-field>
+
+            <button
+              class="auth-ref-submit fuse-mat-button-large w-full !text-white"
+              mat-flat-button
+              type="button"
+              [disabled]="isSendingOtp || signInForm.get('email')?.invalid"
+              (click)="sendOtp()"
+            >
+              @if (!isSendingOtp) {
+                <span>Continue</span>
+              } @else {
+                <mat-progress-spinner
+                  [diameter]="24"
+                  [mode]="'indeterminate'"
+                ></mat-progress-spinner>
+              }
+            </button>
+          } @else if (step === "password") {
+            <div class="password-card-header text-center mb-5">
+              <h3
+                class="text-2xl font-black text-primary-900 tracking-tight mb-1"
+              >
+                Developer Sign In
+              </h3>
+              <p class="text-xs text-slate-500 font-medium">
+                Logging in as
+                <strong class="text-slate-800 font-bold ml-1">{{
+                  signInForm.get("email")?.value
+                }}</strong>
+                <button
+                  type="button"
+                  class="ml-2 font-bold text-primary-600 hover:text-primary-800 underline cursor-pointer"
+                  (click)="changeEmail()"
+                >
+                  Edit
+                </button>
+              </p>
+            </div>
+
+            <mat-form-field
+              class="auth-ref-field w-full mb-3"
+              [appearance]="'outline'"
+              [subscriptSizing]="'dynamic'"
+            >
+              <mat-label>Developer Password</mat-label>
+              <input
+                id="password-input"
+                matInput
+                [type]="showPassword ? 'text' : 'password'"
+                [formControlName]="'password'"
+                (keyup.enter)="verifyPassword()"
+              />
+              <button
+                mat-icon-button
+                type="button"
+                matSuffix
+                (click)="showPassword = !showPassword"
+                [attr.aria-label]="'Toggle password visibility'"
+              >
+                <mat-icon
+                  [svgIcon]="
+                    showPassword
+                      ? 'heroicons_solid:eye'
+                      : 'heroicons_solid:eye-off'
+                  "
+                ></mat-icon>
+              </button>
+            </mat-form-field>
+
+            <button
+              class="auth-ref-submit fuse-mat-button-large w-full !text-white mt-2"
+              mat-flat-button
+              type="button"
+              [disabled]="isVerifying || !signInForm.get('password')?.value"
+              (click)="verifyPassword()"
+            >
+              @if (!isVerifying) {
+                <span>DEVELOPER LOGIN</span>
+              } @else {
+                <mat-progress-spinner
+                  [diameter]="24"
+                  [mode]="'indeterminate'"
+                ></mat-progress-spinner>
+              }
+            </button>
+          } @else if (step === "otp") {
+            <div class="otp-card-header text-center mb-5">
+              <h3
+                class="text-2xl font-black text-primary-900 tracking-tight mb-1"
+              >
+                Enter OTP
+              </h3>
+              <p class="text-xs text-slate-500 font-medium">
+                Verification code sent to
+                <strong class="text-slate-800 font-bold ml-1">{{
+                  signInForm.get("email")?.value
+                }}</strong>
+                <button
+                  type="button"
+                  class="ml-2 font-bold text-primary-600 hover:text-primary-800 underline cursor-pointer"
+                  (click)="changeEmail()"
+                >
+                  Edit
+                </button>
+              </p>
+            </div>
+
+            <!-- 6 Separate Digit Input Boxes -->
+            <div class="otp-boxes-container" (paste)="onOtpPaste($event)">
+              @for (digit of otpDigits; track $index) {
+                <input
+                  [id]="'otp-digit-' + $index"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  maxlength="1"
+                  [value]="otpDigits[$index]"
+                  (input)="onOtpInput($event, $index)"
+                  (keydown)="onOtpKeyDown($event, $index)"
+                  (focus)="$any($event.target).select()"
+                  class="otp-digit-box"
+                  [disabled]="isVerifying"
+                  autocomplete="off"
+                />
+              }
+            </div>
+
+            @if (
+              signInForm.get("otp")?.touched && signInForm.get("otp")?.invalid
+            ) {
+              <div
+                class="text-xs text-red-500 font-semibold text-center -mt-2 mb-3"
+              >
+                Please enter all 6 digits of the verification code.
+              </div>
+            }
+
+            <button
+              class="auth-ref-submit fuse-mat-button-large w-full !text-white mt-2"
+              mat-flat-button
+              type="button"
+              [disabled]="isVerifying || signInForm.get('otp')?.invalid"
+              (click)="verifyOtp()"
+            >
+              @if (!isVerifying) {
+                <span>VERIFY & LOGIN</span>
+              } @else {
+                <mat-progress-spinner
+                  [diameter]="24"
+                  [mode]="'indeterminate'"
+                ></mat-progress-spinner>
+              }
+            </button>
+
+            <div
+              class="flex items-center justify-between mt-4 text-xs text-slate-500 px-1"
+            >
+              <span>Didn't receive code?</span>
+              @if (resendCountdown > 0) {
+                <span
+                  class="font-bold text-primary-700 bg-primary-50 px-3 py-1 rounded-full border border-primary-100"
+                  >Resend in {{ resendCountdown }}s</span
+                >
+              } @else {
+                <button
+                  type="button"
+                  class="font-bold text-primary-600 hover:text-primary-800 underline cursor-pointer"
+                  (click)="resendOtp()"
+                  [disabled]="isSendingOtp"
+                >
+                  Resend OTP
+                </button>
+              }
+            </div>
+          }
+        </form>
+      </div>
+    </section>
+
+    <section class="auth-ref-visual-panel">
+      <div class="auth-ref-visual-card">
+        <div class="auth-ref-visual-title">
+          <a routerLink="/" class="flex items-center gap-1 group shrink-0">
+            <img
+              src="assets/ctasis-logo.png"
+              alt="SellerBuz"
+              class="h-10 w-auto object-contain"
+            />
+            <span
+              class="text-[1.8rem] font-bold tracking-tight font-outfit bg-gradient-to-r from-[#3C9AC4] to-[#13355A] bg-clip-text text-transparent"
+            >
+              SellerBuz
+            </span>
+          </a>
+        </div>
+
+        <div class="auth-ref-orbit-scene">
+          <div
+            class="auth-ref-orbit auth-ref-orbit--outer animate-spin-slow"
+          ></div>
+          <div
+            class="auth-ref-orbit auth-ref-orbit--mid animate-spin-slow"
+          ></div>
+          <div
+            class="auth-ref-orbit auth-ref-orbit--inner animate-spin-slow"
+          ></div>
+
+          <div class="auth-ref-core animate-pulse">
+            <img src="assets/logo.png" alt="Logo" />
+          </div>
+          <div class="auth-ref-node auth-ref-node--top animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:globe-alt'"></mat-icon>
+          </div>
+          <div class="auth-ref-node auth-ref-node--left animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:shopping-bag'"></mat-icon>
+          </div>
+          <div class="auth-ref-node auth-ref-node--right animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:chat-alt'"></mat-icon>
+          </div>
+          <div class="auth-ref-node auth-ref-node--bottom animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:chart-bar'"></mat-icon>
+          </div>
+          <div class="auth-ref-node auth-ref-node--lower-left animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:cog'"></mat-icon>
+          </div>
+          <div class="auth-ref-node auth-ref-node--lower-right animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:device-tablet'"></mat-icon>
+          </div>
+        </div>
+
+        <div class="auth-ref-copy">
+          <div class="auth-ref-copy-badge">All-In-One Platform</div>
+          <div class="auth-ref-copy-text">
+            Streamline your marketplace management with tools to oversee
+            multiple channels, optimize listings, and boost sales performance.
+          </div>
+          <div class="auth-ref-copy-text">
+            Efficient inventory management ensures real-time stock tracking,
+            automated alerts, and accurate forecasting to keep your operations
+            seamless.
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

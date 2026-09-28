@@ -1,0 +1,226 @@
+.inventory-grid {
+  grid-template-columns: 35px 80px 55px 170px 100px auto 150px 110px 120px 100px 120px 170px 70px 80px 40px;
+
+  @screen sm {
+    grid-template-columns: 35px 80px 55px 170px 100px auto 150px 110px 120px 100px 120px 170px 70px 80px 40px;
+  }
+
+  @screen md {
+    grid-template-columns: 35px 80px 55px 170px 100px auto 150px 110px 120px 100px 120px 170px 70px 80px 40px;
+  }
+
+  @screen lg {
+    grid-template-columns: 35px 80px 55px 170px 100px auto 150px 110px 120px 100px 120px 170px 70px 80px 40px;
+  }
+}
+
+::ng-deep .custom-field .mat-mdc-form-field-subscript-wrapper {
+  height: 0px;
+}
+
+.list-input {
+  width: 100px;
+  padding: 2px;
+  border: 1px solid;
+  border-radius: 10px;
+}
+
+::ng-deep .mat-slide-toggle.mat-warn.mat-checked .mat-slide-toggle-thumb {
+  background-color: green !important;
+}
+
+::ng-deep .mat-slide-toggle.mat-warn.mat-checked .mat-slide-toggle-bar {
+  background-color: lightgreen !important;
+}
+
+.textboxwidth {
+  width: 88px;
+  height: 20px;
+}
+
+.border-left {
+  border-left: 3px solid #d8d7d7;
+}
+
+.border-right {
+  border-right: 3px solid #d8d7d7;
+}
+
+.itemBol {
+  background-color: #dae0fd;
+}
+
+.itemAmz {
+  background-color: #dce6e5;
+}
+
+.itemAbebooks {
+  background-color: #f8e1c0;
+}
+
+.itemKaufland {
+  background-color: #f3dde9;
+}
+
+.itemEbay {
+  background-color: #ccf3c9;
+}
+
+.itemWorten {
+  background-color: #f7977f;
+}
+
+// .itemRakuten {
+//     background-color: #f7ed95;
+// }
+
+.itemFnac {
+  background-color: #f7ed95;
+}
+
+::ng-deep
+  .custom-field-mb.mat-form-field.mat-form-field-appearance-fill
+  .mat-form-field-wrapper {
+  margin-bottom: 0px;
+}
+
+// ::ng-deep .mat-form-field.mat-form-field-appearance-fill .mat-form-field-wrapper {
+//     margin-bottom: 0px;
+// }
+
+::ng-deep
+  .mat-form-field.mat-form-field-appearance-outline
+  .mat-form-field-wrapper {
+  margin-bottom: 0px;
+  padding: 0px;
+}
+
+::ng-deep
+  .mat-form-field-appearance-outline
+  .mat-form-field-outline
+  .bg-blue-200 {
+  background-color: rgb(124, 124, 255);
+}
+
+::ng-deep
+  .mat-form-field-appearance-outline
+  .mat-form-field-outline
+  .bg-green-200 {
+  background-color: rgb(84, 128, 43);
+}
+
+::ng-deep
+  .mat-form-field-appearance-outline
+  .mat-form-field-outline
+  .bg-red-200 {
+  background-color: rgb(243, 81, 81);
+}
+
+::ng-deep .mat-sort-header-container {
+  justify-content: center;
+}
+
+.styled-input {
+  background-color: #e98d8d;
+  /* Set background color */
+  border: 2px solid black;
+  /* Set black border */
+  padding: 10px;
+  /* Optional: adds padding inside the field */
+  border-radius: 4px;
+  /* Optional: adds rounded corners */
+  // text-align: center;
+}
+
+.textboxwidth {
+  width: 88px;
+  height: 15px;
+}
+
+.styled-input input {
+  background-color: transparent;
+  /* Make the input field background transparent */
+}
+
+.itemAmz {
+  background-color: #dce6e5;
+}
+
+::ng-deep
+  .custom-field-mb.mat-form-field.mat-form-field-appearance-fill
+  .mat-form-field-wrapper {
+  margin-bottom: 0px;
+}
+
+::ng-deep
+  .mat-form-field.mat-form-field-appearance-outline
+  .mat-form-field-wrapper {
+  margin-bottom: 0px;
+  padding: 0px;
+}
+
+::ng-deep
+  .mat-form-field-appearance-outline
+  .mat-form-field-outline
+  .bg-blue-200 {
+  background-color: rgb(124, 124, 255);
+}
+
+::ng-deep
+  .mat-form-field-appearance-outline
+  .mat-form-field-outline
+  .bg-green-200 {
+  background-color: rgb(84, 128, 43);
+}
+
+::ng-deep
+  .mat-form-field-appearance-outline
+  .mat-form-field-outline
+  .bg-red-200 {
+  background-color: rgb(243, 81, 81);
+}
+
+::ng-deep .mdc-label {
+  display: flex !important;
+  align-items: center !important;
+}
+
+::ng-deep .mat-mdc-dialog-container {
+  padding: 10px 0 !important;
+}
+
+::ng-deep .cdk-overlay-pane {
+  overflow-y: scroll !important;
+}
+
+::ng-deep .mat-mdc-select-panel {
+  max-height: 200px !important;
+}
+
+::ng-deep .mat-mdc-tab-labels {
+  display: flex !important;
+  flex-wrap: wrap !important;
+}
+
+/* Custom Tailwind Background Color with Opacity */
+.bg-custom {
+  background-color: rgb(8 78 62 / 89%);
+  /* Apply RGB with opacity 0.8 */
+  /* Apply RGB with opacity */
+}
+
+.search-bar-btn {
+  width: auto;
+}
+
+.inventory-update ::ng-deep .mat-mdc-tab-group .mat-mdc-tab-body-content {
+  padding: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .search-bar-btn {
+    display: flex;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}

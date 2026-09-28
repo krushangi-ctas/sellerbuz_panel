@@ -1,0 +1,1944 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden">
+  <mat-drawer-container
+    class="flex-auto h-full bg-card dark:bg-transparent"
+    (backdropClick)="onBackdropClicked()"
+  >
+    <!-- Drawer -->
+    <mat-drawer
+      class="w-full sm:w-160 md:w-[780px] lg:w-[860px] bg-white dark:bg-gray-900"
+      [mode]="drawerMode"
+      [opened]="false"
+      [position]="'end'"
+      [disableClose]="true"
+      #matDrawer
+    >
+      <router-outlet></router-outlet>
+    </mat-drawer>
+
+    <mat-drawer-content class="flex flex-col">
+      <!-- Header -->
+      <div class="page-header">
+        <div class="flex items-center gap-3">
+          <div
+            class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+          >
+            <a
+              (click)="$event.preventDefault()"
+              mat-icon-button
+              [matTooltip]="tooltip"
+            >
+              <mat-icon
+                class="icon-size-7 mb-0 mr-1 text-white"
+                [svgIcon]="'heroicons_solid:archive'"
+              ></mat-icon>
+            </a>
+            <span class="text-2xl font-bold tracking-tight text-white"
+              >Manage Catalog</span
+            >
+            <span class="mx-2 text-md flex gap-1">
+              @if (
+                (isSuperAdmin || rolePermission?.update || canUpdate) &&
+                (searchInputControl?.value?.trim()?.length > 1 ||
+                  selectedItems.size !== 0)
+              ) {
+                <div class="relative">
+                  <button
+                    type="button"
+                    [matMenuTriggerFor]="bulkActionsMenu"
+                    class="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg border border-white/20 transition-all text-sm"
+                  >
+                    {{
+                      selectedItems.size > 0
+                        ? "Action for selected (" + selectedItems.size + ")"
+                        : "Bulk Actions"
+                    }}
+                    <mat-icon class="icon-size-4 text-white"
+                      >keyboard_arrow_down</mat-icon
+                    >
+                  </button>
+                </div>
+              }
+            </span>
+            <mat-menu #bulkActionsMenu="matMenu">
+              @if (
+                searchInputControl?.value?.trim()?.length > 1 ||
+                selectedItems.size !== 0
+              ) {
+                <button
+                  type="button"
+                  mat-menu-item
+                  (click)="OpenAddTagConfirmationPopup(addTagsToProduct)"
+                >
+                  <mat-icon
+                    class="icon-size-5 mr-2"
+                    [svgIcon]="'heroicons_solid:tag'"
+                  ></mat-icon>
+                  Add Tag
+                </button>
+              }
+              @if (selectedItems.size !== 0) {
+                <button
+                  type="button"
+                  mat-menu-item
+                  (click)="OpenConfirmationPopup(syncAmazonTemplate)"
+                >
+                  <mat-icon class="mr-2">published_with_changes</mat-icon>
+                  Sync in amazon
+                </button>
+              }
+            </mat-menu>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+          <!-- Search -->
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+          >
+            <mat-icon
+              class="!w-4 !h-4 text-slate-400"
+              [svgIcon]="'heroicons_outline:search'"
+            ></mat-icon>
+            <input
+              matInput
+              [formControl]="searchInputControl"
+              maxlength="50"
+              [autocomplete]="'off'"
+              [placeholder]="'Search here...'"
+            />
+          </mat-form-field>
+
+          <!-- Tag filter -->
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+          >
+            <mat-icon
+              svgIcon="mat_outline:filter_alt"
+              class="icon-size-5 text-gray-400"
+              matPrefix
+            ></mat-icon>
+            <mat-select
+              [formControl]="tag"
+              placeholder="Tag"
+              (selectionChange)="onClickFilter('tag', $event.value)"
+            >
+              <mat-option [value]="null">All Tags</mat-option>
+              @for (value of tagList; track value) {
+                <mat-option [value]="value.tag">
+                  {{ value.tag }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Date Range filter -->
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript min-w-52 -mb-5"
+          >
+            <mat-icon
+              svgIcon="heroicons_outline:calendar"
+              class="icon-size-5 text-gray-400"
+              matPrefix
+            ></mat-icon>
+            <mat-date-range-input [rangePicker]="datePicker" [max]="maxDate">
+              <input
+                matStartDate
+                [formControl]="startDate"
+                [autocomplete]="'off'"
+                placeholder="Start"
+              />
+              <input
+                matEndDate
+                [formControl]="endDate"
+                [autocomplete]="'off'"
+                placeholder="End"
+                (dateChange)="onDateClickFilter()"
+              />
+            </mat-date-range-input>
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="datePicker"
+            ></mat-datepicker-toggle>
+            <mat-date-range-picker #datePicker></mat-date-range-picker>
+            @if (isResetDate) {
+              <button mat-icon-button type="button" (click)="clearDate()">
+                <mat-icon class="icon-size-4">clear</mat-icon>
+              </button>
+            }
+          </mat-form-field>
+
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            class="btn-secondary-action"
+            (click)="refresh()"
+            matTooltip="Refresh"
+          >
+            <mat-icon
+              class="icon-size-5"
+              svgIcon="mat_outline:refresh"
+            ></mat-icon>
+          </button>
+
+          <!-- Import Button -->
+          @if (isSuperAdmin || canImport) {
+            <button
+              type="button"
+              class="btn-primary-action"
+              mat-flat-button
+              (click)="OpenImportPopup(ImportFileTemplate)"
+            >
+              <mat-icon
+                svgIcon="heroicons_outline:arrow-up"
+                class="icon-size-5 text-white"
+              ></mat-icon>
+              <span class="hidden sm:inline">Import File</span>
+            </button>
+          }
+
+          <!-- Add Product Button -->
+          @if (isSuperAdmin || canAdd) {
+            <button
+              type="button"
+              class="btn-primary-action"
+              mat-flat-button
+              (click)="OpenManualAddPopup(ManualAddTemplate)"
+            >
+              <mat-icon
+                svgIcon="heroicons_outline:plus"
+                class="icon-size-5 text-white"
+              ></mat-icon>
+              <span class="hidden sm:inline">Add Product</span>
+            </button>
+          }
+
+          <!-- Export Button -->
+          @if (isSuperAdmin || canView) {
+            <button
+              type="button"
+              class="btn-secondary-action"
+              (click)="exportexcel()"
+              matTooltip="Export File"
+            >
+              <mat-icon
+                svgIcon="heroicons_outline:arrow-down"
+                class="icon-size-5"
+              ></mat-icon>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Main -->
+      <div class="flex flex-auto overflow-auto">
+        <div class="flex-col flex-auto overflow-auto flex">
+          <div class="grid overflow-auto mb-8 pb-8 sm:pb-8">
+            @if (isSuperAdmin || rolePermission?.view || canView) {
+              <div
+                class="inventory-grid items-center z-10 sticky top-0 grid gap-1 py-0.5 px-1 md:px-2 shadow text-sm font-semibold text-secondary bg-gray-100 dark:bg-black dark:bg-opacity-5"
+                matSort
+                matSortDisableClear
+              >
+                <div class="text-sm font-semibold">
+                  <mat-checkbox
+                    class="block"
+                    matTooltip="select all for add tag"
+                    [checked]="isAllSelected | async"
+                    (change)="toggleSelectAll($event)"
+                  >
+                  </mat-checkbox>
+                </div>
+                @for (header of headers; track header) {
+                  <div
+                    [id]="header.key"
+                    [ngClass]="{
+                      'mx-auto':
+                        header.key === 'master_stock' ||
+                        header.key === 'master_price',
+                    }"
+                  >
+                    @if (header.key !== "main_image_url") {
+                      <span
+                        [mat-sort-header]="header.sortKey || header.key"
+                        class="uppercase"
+                      >
+                        {{ header.label }}
+                      </span>
+                    }
+                    @if (header.key === "main_image_url") {
+                      <span class="uppercase">
+                        {{ header.label }}
+                      </span>
+                    }
+                  </div>
+                }
+                <div class="uppercase">Action</div>
+              </div>
+            }
+
+            <!-- SKELETON LOADER STATE (10 Rows) -->
+            @if (
+              (isSuperAdmin || rolePermission?.view || canView) && isLoading
+            ) {
+              @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                <div class="inventory-grid table-data-row animate-pulse">
+                  <!-- Checkbox Mask -->
+                  <div
+                    class="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded"
+                  ></div>
+
+                  <!-- Created Date Mask -->
+                  <div
+                    class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                  ></div>
+
+                  <!-- Product Image Thumbnail Mask -->
+                  <div class="flex items-center justify-center">
+                    <div
+                      class="h-10 w-10 bg-gray-200 dark:bg-gray-700 border-2 border-gray-200/50 rounded"
+                    ></div>
+                  </div>
+
+                  <!-- Title & ASIN Stacked Mask -->
+                  <div class="space-y-2">
+                    <div
+                      class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-40"
+                    ></div>
+                    <div
+                      class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                    ></div>
+                  </div>
+
+                  <!-- Brand Badge Mask -->
+                  <div
+                    class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16"
+                  ></div>
+
+                  <!-- Description Mask -->
+                  <div
+                    class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"
+                  ></div>
+
+                  <!-- SKU Display Block Mask -->
+                  <div
+                    class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                  ></div>
+
+                  <!-- EAN Badge Mask -->
+                  <div
+                    class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                  ></div>
+
+                  <!-- Tags Icon Mask -->
+                  <div class="flex justify-center">
+                    <div
+                      class="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded-full"
+                    ></div>
+                  </div>
+
+                  <!-- Master Stock Input Box Mask -->
+                  <div
+                    class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16 mx-auto"
+                  ></div>
+
+                  <!-- Master Price Input Box Mask -->
+                  <div
+                    class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20 mx-auto"
+                  ></div>
+
+                  <!-- Bullet Points Mask -->
+                  <div class="space-y-1">
+                    <div
+                      class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28 mx-auto"
+                    ></div>
+                    <div
+                      class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 mx-auto"
+                    ></div>
+                  </div>
+
+                  <!-- Country Badge Mask -->
+                  <div class="flex justify-center">
+                    <div
+                      class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"
+                    ></div>
+                  </div>
+
+                  <!-- Updated Date Mask -->
+                  <div
+                    class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                  ></div>
+
+                  <!-- Action Dots Button Mask -->
+                  <div class="flex justify-center">
+                    <div
+                      class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                    ></div>
+                  </div>
+                </div>
+              }
+            } @else {
+              <!-- ACTUAL DATA STATE -->
+              @if (
+                (isSuperAdmin || rolePermission?.view || canView) &&
+                  (inventoryFormInput | async);
+                as inventoryList
+              ) {
+                @if (inventoryList.length > 0) {
+                  @for (
+                    inventory of inventoryList;
+                    track trackByFn(i, inventory);
+                    let i = $index
+                  ) {
+                    <div
+                      class="inventory-grid grid items-center gap-1 px-2 md:px-3 py-1.5 border-b border-gray-200 hover:bg-slate-50/50 transition-colors duration-150"
+                    >
+                      <div class="text-sm font-semibold flex items-center">
+                        <mat-checkbox
+                          class="block"
+                          [checked]="selectedItems.has(inventory._id)"
+                          (change)="onCheckboxChange($event, inventory._id)"
+                        >
+                        </mat-checkbox>
+                      </div>
+                      <div
+                        class="flex flex-col text-xs text-slate-500 font-medium leading-normal"
+                      >
+                        <span class="text-slate-800 font-semibold">{{
+                          inventory.createdAt | date: "dd-MM-yyyy"
+                        }}</span>
+                        <span>{{ inventory.createdAt | date: "HH:mm" }}</span>
+                      </div>
+                      <div class="flex items-center justify-center">
+                        <div class="h-10 w-10">
+                          <button
+                            type="button"
+                            class="relative overflow-hidden h-full w-full rounded-lg border shadow-sm hover:shadow-md transition-all group duration-200"
+                            (click)="
+                              handleLightBoxProduct(
+                                inventory?.images ||
+                                  inventory?.main_image_url ||
+                                  inventory?.media
+                              )
+                            "
+                            matTooltip="View Image"
+                          >
+                            @if (
+                              getFileType(inventory?.main_image_url) === "image"
+                            ) {
+                              <img
+                                class="object-cover h-full w-full group-hover:scale-110 transition-transform duration-200"
+                                [src]="getImageUrl(inventory?.main_image_url)"
+                                alt="product image"
+                                onerror="
+                                  this.onerror = null;
+                                  this.src =
+                                    '../../../../../../assets/images/no-image-icon.png';
+                                "
+                              />
+                            } @else {
+                              @if (
+                                getFileType(inventory?.main_image_url) ===
+                                "video"
+                              ) {
+                                <video
+                                  class="object-cover h-full w-full group-hover:scale-110 transition-transform duration-200"
+                                  [src]="getImageUrl(inventory?.main_image_url)"
+                                  alt="product image"
+                                  onerror="
+                                    this.onerror = null;
+                                    this.src =
+                                      '../../../../../../assets/images/no-image-icon.png';
+                                  "
+                                ></video>
+                              } @else {
+                                <img
+                                  class="object-cover h-full w-full"
+                                  src="../../../../../../assets/images/no-image-icon.png"
+                                  alt="product image"
+                                />
+                              }
+                            }
+                            @if (inventory.image_count > 1) {
+                              <span
+                                class="absolute top-0 right-0 bg-slate-700/90 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white shadow"
+                              >
+                                {{ inventory.image_count }}
+                              </span>
+                            }
+                          </button>
+                        </div>
+                      </div>
+                      @if (inventory.title) {
+                        <div
+                          class="flex flex-col gap-0.5 leading-normal max-w-full"
+                        >
+                          <a
+                            [routerLink]="['./', inventory._id]"
+                            class="truncate text-sm font-semibold text-emerald-800 hover:text-emerald-900 underline underline-offset-2 transition-colors duration-150"
+                            [matTooltip]="inventory.title"
+                          >
+                            {{ inventory.title }}
+                          </a>
+                          <div class="flex items-center gap-1">
+                            <span
+                              class="text-[11px] font-mono font-semibold text-blue-600 select-all"
+                              [matTooltip]="inventory.asin"
+                            >
+                              {{ inventory.asin || "-" }}
+                            </span>
+                            @if (inventory.asin) {
+                              <button
+                                type="button"
+                                [cdkCopyToClipboard]="inventory.asin"
+                                class="text-blue-400 hover:text-blue-600 transition-colors flex items-center"
+                              >
+                                <mat-icon
+                                  svgIcon="mat_outline:content_copy"
+                                  class="icon-size-3"
+                                >
+                                </mat-icon>
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      } @else {
+                        <div class="text-slate-400 text-xs">-</div>
+                      }
+                      <div class="flex items-center justify-start">
+                        <div
+                          class="truncate text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full text-center inline-block"
+                          [matTooltip]="inventory.brand"
+                        >
+                          {{ inventory.brand || "-" }}
+                        </div>
+                      </div>
+                      <div
+                        class="truncate text-slate-500 text-xs font-normal text-start"
+                        [matTooltip]="inventory.description"
+                      >
+                        {{ stripHtml(inventory.description) || "-" }}
+                      </div>
+                      <div class="flex items-center justify-start">
+                        <div
+                          class="flex items-center gap-1 bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 w-fit"
+                        >
+                          <span
+                            class="text-xs font-mono font-semibold"
+                            [matTooltip]="inventory.sku"
+                          >
+                            {{ inventory.sku || "-" }}
+                          </span>
+                          @if (inventory.sku) {
+                            <button
+                              type="button"
+                              [cdkCopyToClipboard]="inventory.sku"
+                              class="text-slate-400 hover:text-slate-600 transition-colors flex items-center"
+                            >
+                              <mat-icon
+                                svgIcon="mat_outline:content_copy"
+                                class="icon-size-3"
+                              >
+                              </mat-icon>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                      <div class="flex items-center justify-start">
+                        @if (inventory.ean) {
+                          <div
+                            class="flex items-center gap-1 bg-rose-50 text-rose-700 px-2 py-0.5 rounded border border-rose-200 w-fit"
+                          >
+                            <span
+                              class="text-xs font-mono font-semibold"
+                              [matTooltip]="inventory.ean"
+                            >
+                              {{ inventory.ean }}
+                            </span>
+                            <button
+                              type="button"
+                              [cdkCopyToClipboard]="inventory.ean"
+                              class="text-rose-400 hover:text-rose-600 transition-colors flex items-center"
+                            >
+                              <mat-icon
+                                svgIcon="mat_outline:content_copy"
+                                class="icon-size-3"
+                              >
+                              </mat-icon>
+                            </button>
+                          </div>
+                        } @else {
+                          <span class="text-slate-400 text-xs">-</span>
+                        }
+                      </div>
+                      <div
+                        class="items-center text-center px-1 py-0 text-emerald-700 font-semibold line-clamp-3"
+                        [class.!cursor-pointer]="
+                          inventory?.tags && inventory?.tags.length > 0
+                        "
+                        (click)="
+                          inventory?.tags &&
+                            inventory?.tags.length > 0 &&
+                            openKeywordsPopup(inventory?.tags)
+                        "
+                        [matTooltip]="
+                          commonMapAndConcate(inventory?.tags || []) || ''
+                        "
+                      >
+                        @if (inventory?.tags && inventory?.tags.length > 0) {
+                          <mat-icon
+                            svgIcon="heroicons_solid:tag"
+                            class="text-emerald-700 hover:scale-110 transition-transform duration-150 cursor-pointer"
+                          ></mat-icon>
+                        }
+                        @if (inventory?.tags && inventory?.tags.length < 1) {
+                          <span class="text-slate-400 text-xs">-</span>
+                        }
+                      </div>
+                      <div
+                        class="py-1 px-0 text-center flex items-center justify-center"
+                      >
+                        <input
+                          type="number"
+                          [disabled]="
+                            !(
+                              isSuperAdmin ||
+                              rolePermission?.update ||
+                              canUpdate
+                            )
+                          "
+                          [value]="inventory.master_stock || 0"
+                          id="stock_{{ inventory._id }}"
+                          (keyup.enter)="
+                            addUpdateSelectedMasterInventory(
+                              inventory._id,
+                              'master_stock'
+                            )
+                          "
+                          (wheel)="stopScrollingWheel($event)"
+                          min="0"
+                          max="99999"
+                          oninput="
+                            if (this.value.length > 5)
+                              this.value = this.value.slice(0, 5);
+                            if (this.value < 0) this.value = 0;
+                          "
+                          class="w-18 text-center bg-slate-50 hover:bg-slate-100 focus:bg-white border border-purple-300 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-lg px-2 py-1 text-sm font-semibold text-slate-800 transition-all outline-none"
+                        />
+                      </div>
+                      <div
+                        class="py-1 px-0 text-center flex items-center justify-center"
+                      >
+                        <input
+                          type="number"
+                          [disabled]="
+                            !(
+                              isSuperAdmin ||
+                              rolePermission?.update ||
+                              canUpdate
+                            )
+                          "
+                          [value]="inventory.master_price || 0"
+                          id="price_{{ inventory._id }}"
+                          (keyup.enter)="
+                            addUpdateSelectedMasterInventory(
+                              inventory._id,
+                              'master_price'
+                            )
+                          "
+                          (wheel)="stopScrollingWheel($event)"
+                          min="0"
+                          max="99999"
+                          oninput="
+                            if (this.value.length > 5)
+                              this.value = this.value.slice(0, 5);
+                            if (this.value < 0) this.value = 0;
+                          "
+                          class="w-22 text-center bg-slate-50 hover:bg-slate-100 focus:bg-white border border-purple-300 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-lg px-2 py-1 text-sm font-semibold text-slate-800 transition-all outline-none"
+                        />
+                      </div>
+                      @if (inventory.bullet_points) {
+                        <div
+                          class="flex items-center justify-between gap-1.5 px-2 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg cursor-pointer transition-all duration-150"
+                          (click)="
+                            toggleExpandCatalog(inventory._id || inventory.id)
+                          "
+                          [matTooltip]="'Click to expand/collapse Bullet Points'"
+                        >
+                          <div
+                            class="truncate text-xs font-medium text-slate-700 flex-1"
+                          >
+                            {{
+                              flateAndFetchBulletsPoints(
+                                inventory.bullet_points,
+                                0
+                              ) || "Bullet Points"
+                            }}
+                          </div>
+                          <mat-icon
+                            class="icon-size-4 text-slate-500 flex-shrink-0"
+                            [svgIcon]="
+                              expandedCatalogId ===
+                              (inventory._id || inventory.id)
+                                ? 'heroicons_outline:chevron-down'
+                                : 'heroicons_outline:chevron-right'
+                            "
+                          ></mat-icon>
+                        </div>
+                      } @else {
+                        <div
+                          class="truncate text-center text-slate-400 text-xs"
+                        >
+                          -
+                        </div>
+                      }
+                      <div class="flex items-center justify-center">
+                        <span
+                          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-200"
+                        >
+                          <mat-icon
+                            class="icon-size-3.5 mr-1 text-violet-500"
+                            svgIcon="heroicons_solid:globe"
+                          ></mat-icon>
+                          {{ inventory.contry_of_origin || "-" }}
+                        </span>
+                      </div>
+                      <div
+                        class="flex flex-col text-xs text-slate-500 font-medium leading-normal"
+                      >
+                        <span class="text-slate-800 font-semibold">{{
+                          inventory.updatedAt | date: "dd-MM-yyyy"
+                        }}</span>
+                        <span>{{ inventory.updatedAt | date: "HH:mm" }}</span>
+                      </div>
+                      <div
+                        class="flex flex-col md:px-0 text-center items-center justify-center"
+                      >
+                        <button
+                          type="button"
+                          mat-icon-button
+                          [matMenuTriggerFor]="menu"
+                          class="text-slate-400 hover:text-slate-600 transition-colors duration-150"
+                        >
+                          <mat-icon
+                            [svgIcon]="'heroicons_outline:dots-vertical'"
+                          ></mat-icon>
+                        </button>
+                        <mat-menu
+                          #menu="matMenu"
+                          class="!shadow-2xl divide-y-2"
+                        >
+                          <button
+                            mat-menu-item
+                            type="button"
+                            (click)="
+                              OpenManualAddPopup(ManualAddTemplate, inventory)
+                            "
+                          >
+                            <mat-icon
+                              class="text-indigo-600 cursor-pointer"
+                              svgIcon="heroicons_solid:pencil-alt"
+                            ></mat-icon>
+                            <span class="flex flex-col">
+                              <span> Edit Product </span>
+                            </span>
+                          </button>
+                          @if (inventory?.tags; as tags) {
+                            @if (tags && inventory.tags.length > 0) {
+                              @if (isSuperAdmin || canDelete) {
+                                <button
+                                  mat-menu-item
+                                  type="button"
+                                  (click)="
+                                    removeCatalogProductTagBySeller(
+                                      inventory._id,
+                                      inventory.seller_id
+                                    )
+                                  "
+                                >
+                                  <mat-icon
+                                    class="text-red-400 cursor-pointer"
+                                    svgIcon="heroicons_solid:trash"
+                                  ></mat-icon>
+                                  <span class="flex flex-col">
+                                    <span> Remove Tag </span>
+                                  </span>
+                                </button>
+                              }
+                            }
+                          }
+                          @if (isSuperAdmin || canDelete) {
+                            <button
+                              mat-menu-item
+                              type="button"
+                              (click)="deleteCatalogProduct(inventory)"
+                            >
+                              <mat-icon
+                                class="text-red-500 cursor-pointer"
+                                svgIcon="heroicons_solid:trash"
+                              ></mat-icon>
+                              <span class="flex flex-col">
+                                <span> Delete Product </span>
+                              </span>
+                            </button>
+                          }
+                        </mat-menu>
+                      </div>
+                    </div>
+
+                    @if (
+                      expandedCatalogId === (inventory._id || inventory.id)
+                    ) {
+                      <div
+                        class="col-span-full bg-slate-50/80 border-b border-slate-200 p-4 pl-12 flex flex-col gap-3 transition-all"
+                      >
+                        <div
+                          class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"
+                        >
+                          <div
+                            class="flex items-center gap-2 mb-3 border-b pb-2"
+                          >
+                            <mat-icon
+                              class="icon-size-5 text-primary"
+                              [svgIcon]="'heroicons_outline:list-bullet'"
+                            ></mat-icon>
+                            <h4 class="font-semibold text-slate-800 text-sm">
+                              Bullet Points Details
+                            </h4>
+                            <span
+                              class="text-xs text-slate-500 font-medium ml-auto"
+                            >
+                              Total:
+                              {{
+                                getBulletPointsList(inventory.bullet_points)
+                                  .length
+                              }}
+                            </span>
+                          </div>
+                          @if (inventory?.bullet_points_loading) {
+                            <div class="space-y-2.5 animate-pulse py-1">
+                              @for (item of [1, 2, 3]; track $index) {
+                                <div class="flex items-center gap-2.5">
+                                  <div
+                                    class="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded-full flex-shrink-0"
+                                  ></div>
+                                  <div
+                                    class="h-3.5 bg-gray-200 dark:bg-gray-700 rounded w-3/4"
+                                  ></div>
+                                </div>
+                              }
+                            </div>
+                          } @else if (
+                            getBulletPointsList(inventory.bullet_points)
+                              .length > 0
+                          ) {
+                            <ul class="space-y-2">
+                              @for (
+                                bullet of getBulletPointsList(
+                                  inventory.bullet_points
+                                );
+                                track $index
+                              ) {
+                                <li
+                                  class="flex items-start gap-2.5 text-sm text-slate-700 font-medium"
+                                >
+                                  <mat-icon
+                                    class="icon-size-4 text-blue-600 flex-shrink-0 mt-0.5"
+                                    [svgIcon]="'heroicons_outline:check'"
+                                  ></mat-icon>
+                                  <span class="leading-relaxed">{{
+                                    bullet
+                                  }}</span>
+                                </li>
+                              }
+                            </ul>
+                          } @else {
+                            <p class="text-sm text-slate-400 italic">
+                              No bullet points available for this product.
+                            </p>
+                          }
+                        </div>
+                      </div>
+                    }
+                  }
+                } @else {
+                  <div
+                    class="flex flex-col items-center justify-center p-12 sm:p-20 text-center"
+                  >
+                    <div
+                      class="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-4"
+                    >
+                      <mat-icon
+                        class="icon-size-12 text-primary"
+                        [svgIcon]="'heroicons_outline:archive'"
+                      ></mat-icon>
+                    </div>
+                    <h3
+                      class="text-xl font-semibold text-gray-900 dark:text-white mb-2"
+                    >
+                      No products found
+                    </h3>
+                    <p class="text-gray-500 dark:text-gray-400 max-w-sm">
+                      Get started by importing your first products to the
+                      catalog.
+                    </p>
+                  </div>
+                }
+              }
+            }
+          </div>
+
+          <!-- Bottom Footer Paginator Control -->
+          @if (
+            (isSuperAdmin || rolePermission?.view) &&
+              (inventoryFormInput | async);
+            as inventoryList
+          ) {
+            @if (inventoryList?.length) {
+              <div class="overflow-auto">
+                <div
+                  class="sm:absolute absolute inset-x-0 bottom-0 sm:inset-x-0 sm:bottom-0 flex flex-col sm:flex-row justify-between border-b sm:border-t sm:border-b-0 z-10 bg-gray-50 dark:bg-transparent"
+                >
+                  <div
+                    class="flex flex-wrap sm:pr-3 sm:pl-2 items-center font-semibold text-secondary"
+                  >
+                    <mat-paginator
+                      [ngClass]="{ 'pointer-events-none': isLoading }"
+                      [length]="
+                        ((pagination?.page || 1) - 1) *
+                          (pagination?.size || 100) +
+                        (inventoryList?.length || 0) +
+                        (pagination?.hasNextPage ? 1 : 0)
+                      "
+                      [pageSize]="pagination?.size || 100"
+                      [pageSizeOptions]="[5, 25, 50, 100]"
+                      [pageIndex]="(pagination?.page || 1) - 1"
+                      [showFirstLastButtons]="false"
+                    ></mat-paginator>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+
+          <!-- Restricted Permissions State Template -->
+          @if (!(isSuperAdmin || rolePermission?.view || canView)) {
+            <div
+              class="flex flex-col items-center justify-center p-12 sm:p-20 text-center"
+            >
+              <div
+                class="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mb-4"
+              >
+                <mat-icon
+                  class="icon-size-12 text-amber-600"
+                  [svgIcon]="'heroicons_outline:lock-closed'"
+                ></mat-icon>
+              </div>
+              <h3
+                class="text-xl font-semibold text-gray-900 dark:text-white mb-2"
+              >
+                No permission to view catalog
+              </h3>
+              <p class="text-gray-500 dark:text-gray-400 max-w-sm">
+                This seller role does not have view access for the catalog
+                section.
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+    </mat-drawer-content>
+  </mat-drawer-container>
+</div>
+
+<ng-template #addTagsToProduct>
+  <div class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden">
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="text-lg font-semibold flex items-center gap-2 text-white">
+        <mat-icon
+          class="icon-size-5 text-white"
+          svgIcon="heroicons_outline:tag"
+        ></mat-icon>
+        <span class="text-white">Add Tags</span>
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeDialog()"
+        class="text-white"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+      </button>
+    </div>
+    <div class="p-6">
+      <div class="p-4 bg-blue-50 border border-blue-100 rounded-lg mb-4">
+        <p class="text-sm font-medium text-slate-700">
+          <mat-icon
+            class="icon-size-4 inline text-blue-600 mr-1"
+            svgIcon="heroicons_outline:information-circle"
+          ></mat-icon>
+          Note: Select tags to add to all searched products. This will override
+          existing tags on products that already have them.
+        </p>
+      </div>
+      <mat-form-field class="fuse-mat-dense w-full" [floatLabel]="'always'">
+        <mat-label>Tags</mat-label>
+        <mat-select
+          [(ngModel)]="tagId"
+          [ngModelOptions]="{ standalone: true }"
+          autocomplete="off"
+          (openedChange)="triggerEvent()"
+          placeholder="Select Tags"
+        >
+          @if (!taglistLoader) {
+            <mat-option>
+              <ngx-mat-select-search
+                placeholderLabel="Search tag"
+                (keyup)="filterTagData($event.target.value)"
+                noEntriesFoundLabel="'No tag found'"
+              >
+              </ngx-mat-select-search>
+            </mat-option>
+            @for (tag of filterTagList; track tag) {
+              <mat-option [value]="tag._id || tag.id || tag.tag">
+                {{ tag.tag }}
+              </mat-option>
+            }
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div
+      class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50"
+    >
+      <button type="button" class="btn-cancel" (click)="closeDialog()">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="bulkUpdateTagsOnProductList()"
+      >
+        Save
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #ImportFileTemplate>
+  <div
+    class="flex flex-col -m-6 rounded-xl shadow-2xl min-w-160 max-w-300 md:max-w-280 bg-white overflow-hidden"
+  >
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon
+          class="icon-size-5 text-white"
+          svgIcon="heroicons_outline:arrow-up"
+        ></mat-icon>
+        <span class="text-lg font-semibold text-white"
+          >Import Product Catalog</span
+        >
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closePopup()"
+        [tabIndex]="-1"
+        class="text-white"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+      </button>
+    </div>
+
+    <!-- File Download Section -->
+    <div class="p-5 flex flex-col space-y-4">
+      @if (isDisableFlow) {
+        <div class="space-y-4 animate-pulse">
+          <div class="h-24 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+          <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+          <div
+            class="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg w-48 mx-auto"
+          ></div>
+        </div>
+      } @else {
+        <div
+          class="border-2 border-dashed border-slate-200 p-4 rounded-xl text-center bg-slate-50"
+        >
+          <a
+            [href]="'../../../assets/sample-file/sample_product_catalog_data.xlsx'"
+            download
+            class="text-blue-600 font-semibold hover:underline inline-flex items-center"
+          >
+            <mat-icon
+              svgIcon="heroicons_outline:download"
+              class="mr-1 icon-size-5 text-blue-600"
+            ></mat-icon>
+            Download Sample File
+          </a>
+          <p class="text-xs text-slate-500 mt-1">
+            Please download the sample file, fill in the details, and upload it
+            to add products in bulk.
+          </p>
+        </div>
+        <div class="space-y-2 text-xs font-semibold text-slate-600">
+          <p class="flex items-start gap-2">
+            <mat-icon
+              svgIcon="heroicons_outline:exclamation-circle"
+              class="icon-size-5 text-amber-500"
+            ></mat-icon>
+            <span
+              >Please add a valid image URL (e.g.,
+              https://example.com/image.jpg).</span
+            >
+          </p>
+          <p class="flex items-start gap-2">
+            <mat-icon
+              svgIcon="heroicons_outline:exclamation-circle"
+              class="icon-size-5 text-amber-500"
+            ></mat-icon>
+            <span
+              >To add multiple bullet points, separate each using |||. Example:
+              <code class="bg-slate-100 px-1 rounded text-slate-800 font-mono"
+                >bullet1 ||| bullet2</code
+              ></span
+            >
+          </p>
+          <p class="flex items-start gap-2">
+            <mat-icon
+              svgIcon="heroicons_outline:exclamation-circle"
+              class="icon-size-5 text-amber-500"
+            ></mat-icon>
+            <span
+              >To add multiple images, separate URLs with
+              <code class="bg-slate-100 px-1 rounded text-slate-800 font-mono"
+                >,</code
+              ></span
+            >
+          </p>
+          <p class="flex items-start gap-2">
+            <mat-icon
+              svgIcon="heroicons_outline:exclamation-circle"
+              class="icon-size-5 text-amber-500"
+            ></mat-icon>
+            <span
+              >Add country code (e.g., IN - India, US - United States) in the
+              Country of Origin field.</span
+            >
+          </p>
+        </div>
+        <!-- File Upload Section -->
+        <div class="text-center flex flex-col items-center justify-center pt-2">
+          <div
+            class="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-xl"
+          >
+            <div class="flex flex-col items-center">
+              <button
+                type="button"
+                mat-flat-button
+                class="bg-slate-800 text-white font-semibold rounded-lg px-6 py-2 hover:bg-slate-900 transition-colors shadow-sm"
+                (click)="selectFile.click()"
+              >
+                <mat-icon
+                  svgIcon="heroicons_outline:arrow-up"
+                  class="mr-2 text-white"
+                ></mat-icon>
+                Upload File
+              </button>
+              <input
+                type="file"
+                hidden
+                #selectFile
+                (change)="onFileUpload($event)"
+              />
+            </div>
+
+            @if (fileNM) {
+              <div
+                class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 max-w-full truncate text-sm font-semibold"
+              >
+                <mat-icon
+                  class="icon-size-4 shrink-0 text-emerald-600"
+                  svgIcon="heroicons_outline:check-circle"
+                ></mat-icon>
+                <span class="truncate" [matTooltip]="fileNM">{{ fileNM }}</span>
+              </div>
+            }
+          </div>
+
+          @if (!fileNM) {
+            <mat-error
+              class="text-red-500 mt-3 text-xs flex items-center justify-center gap-1.5 font-bold"
+            >
+              <mat-icon
+                class="icon-size-4 text-red-500"
+                svgIcon="heroicons_outline:exclamation-circle"
+              ></mat-icon>
+              Please upload a valid file to proceed.
+            </mat-error>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Action Buttons -->
+    <div
+      class="flex justify-end gap-2 p-4 border-t border-slate-100 bg-slate-50"
+    >
+      <button type="button" class="btn-cancel" (click)="closeDialog()">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="!fileNM || isDisableFlow"
+        (click)="importInventoryFile()"
+      >
+        <mat-icon
+          class="icon-size-4 mr-1 text-white"
+          svgIcon="heroicons_outline:check"
+        ></mat-icon>
+        Confirm & Process
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Bullet Points Popup Dialog removed - display in expandable row instead -->
+
+<ng-template #keywords>
+  <div
+    class="flex flex-col max-w-240 max-h-128 md:min-w-160 -m-6 bg-white rounded-xl overflow-hidden"
+  >
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-white" svgIcon="heroicons_solid:tag"></mat-icon>
+        <span class="text-lg font-semibold text-white">Tags</span>
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closePopup()"
+        class="text-white"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+      </button>
+    </div>
+    <div class="p-5 overflow-auto max-h-[350px]">
+      <div class="flex flex-wrap gap-1.5">
+        @for (bullet of selectedKeywords; track bullet) {
+          @if (bullet) {
+            <span
+              class="inline-flex items-center px-2.5 py-1 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100"
+            >
+              {{ bullet }}
+            </span>
+          }
+        }
+      </div>
+    </div>
+    <div class="flex justify-end p-4 border-t bg-slate-50">
+      <button
+        type="button"
+        mat-flat-button
+        class="bg-slate-800 text-white font-medium rounded-lg px-4 py-2 hover:bg-slate-900 transition-colors"
+        (click)="closePopup()"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #moveInventoryTemplate>
+  <div
+    class="flex flex-col items-center bg-white shadow-xl rounded-xl max-w-240 md:min-w-160 p-6 border border-slate-200"
+  >
+    <!-- Icon Section -->
+    <div class="bg-blue-50 border border-blue-100 p-4 rounded-full">
+      <mat-icon class="text-blue-600 text-3xl">info</mat-icon>
+    </div>
+
+    <!-- Title -->
+    <h3 class="mt-4 text-lg font-bold text-slate-800">
+      Move Products to Retail
+    </h3>
+
+    <!-- Description -->
+    <p class="mt-2 text-sm text-slate-500 text-center font-medium max-w-md">
+      You are about to take action on these inventory items. Please confirm if
+      you want to proceed with moving these products to retail or reject the
+      action.
+    </p>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-center gap-3 w-full mt-6">
+      <button
+        type="button"
+        class="flex-1 max-w-xs flex items-center justify-center gap-2 py-2.5 px-4 text-white bg-red-600 hover:bg-red-700 font-semibold rounded-lg transition-colors"
+        (click)="OpenMoveProductConfirmationPopup('Reject')"
+      >
+        <mat-icon class="text-white icon-size-5" aria-hidden="true"
+          >thumb_down</mat-icon
+        >
+        <span>Reject Move</span>
+      </button>
+      <button
+        type="button"
+        class="flex-1 max-w-xs flex items-center justify-center gap-2 py-2.5 px-4 text-white bg-emerald-600 hover:bg-emerald-700 font-semibold rounded-lg transition-colors"
+        (click)="OpenMoveProductConfirmationPopup('Approve')"
+      >
+        <mat-icon class="text-white icon-size-5" aria-hidden="true"
+          >thumb_up</mat-icon
+        >
+        <span>Confirm Move</span>
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #ManualAddTemplate>
+  <div
+    class="flex flex-col -m-6 rounded-xl shadow-2xl min-w-160 max-w-300 md:max-w-280 bg-white overflow-hidden"
+  >
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon
+          class="icon-size-5 text-white"
+          [svgIcon]="
+            editingProductId
+              ? 'heroicons_outline:pencil-alt'
+              : 'heroicons_outline:plus'
+          "
+        ></mat-icon>
+        <span class="text-lg font-semibold text-white">
+          {{ editingProductId ? "Edit Product" : "Add Product Manually" }}
+        </span>
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeDialog()"
+        [tabIndex]="-1"
+        class="text-white"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+      </button>
+    </div>
+
+    <!-- Form Section -->
+    <div class="p-6 max-h-[400px] overflow-y-auto">
+      @if (isAddingProduct) {
+        <div class="space-y-4 animate-pulse">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+            <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+            <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+          </div>
+          <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+          <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+          <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+          <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+            <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+          </div>
+        </div>
+      } @else {
+        <form [formGroup]="manualAddForm" class="space-y-4">
+          <!-- Basic Information -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Title -->
+            <mat-form-field class="w-full">
+              <mat-label>Product Title</mat-label>
+              <input
+                matInput
+                formControlName="title"
+                placeholder="Enter product title"
+              />
+              @if (manualAddForm.get("title")?.hasError("required")) {
+                <mat-error> Product title is required </mat-error>
+              }
+              @if (manualAddForm.get("title")?.hasError("maxlength")) {
+                <mat-error>
+                  Product title cannot exceed 200 characters
+                </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Brand -->
+            <mat-form-field class="w-full">
+              <mat-label>Brand</mat-label>
+              <input
+                matInput
+                formControlName="brand"
+                placeholder="Enter brand name"
+              />
+              @if (manualAddForm.get("brand")?.hasError("required")) {
+                <mat-error> Brand is required </mat-error>
+              }
+              @if (manualAddForm.get("brand")?.hasError("maxlength")) {
+                <mat-error> Brand cannot exceed 40 characters </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <!-- SKU and ASIN -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- SKU -->
+            <mat-form-field class="w-full">
+              <mat-label>SKU</mat-label>
+              <input
+                matInput
+                formControlName="sku"
+                placeholder="Enter SKU"
+                maxlength="10"
+              />
+              @if (editingProductId) {
+                <mat-hint class="text-xs text-amber-600"
+                  >SKU cannot be edited</mat-hint
+                >
+              }
+              @if (manualAddForm.get("sku")?.hasError("required")) {
+                <mat-error> SKU is required </mat-error>
+              }
+              @if (manualAddForm.get("sku")?.hasError("maxlength")) {
+                <mat-error> SKU cannot exceed 10 characters </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- ASIN -->
+            <mat-form-field class="w-full">
+              <mat-label>ASIN</mat-label>
+              <input matInput formControlName="asin" placeholder="Enter ASIN" />
+              @if (manualAddForm.get("asin")?.hasError("required")) {
+                <mat-error> ASIN is required </mat-error>
+              }
+              @if (manualAddForm.get("asin")?.hasError("pattern")) {
+                <mat-error>
+                  ASIN must be exactly 10 alphanumeric characters or digits!
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <!-- Description -->
+          <mat-form-field class="w-full">
+            <mat-label>Description</mat-label>
+            <textarea
+              matInput
+              formControlName="description"
+              placeholder="Enter product description"
+              rows="3"
+            ></textarea>
+            @if (manualAddForm.get("description")?.hasError("required")) {
+              <mat-error> Description is required </mat-error>
+            }
+            @if (manualAddForm.get("description")?.hasError("maxlength")) {
+              <mat-error> Description cannot exceed 800 characters </mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Main Image URL -->
+          <mat-form-field class="w-full">
+            <mat-label>Main Image URL</mat-label>
+            <input
+              matInput
+              formControlName="main_image_url"
+              placeholder="https://example.com/image.jpg"
+            />
+            @if (manualAddForm.get("main_image_url")?.hasError("pattern")) {
+              <mat-error> Please enter a valid URL </mat-error>
+            }
+            <mat-hint
+              >Enter a valid image URL (e.g.,
+              https://example.com/image.jpg)</mat-hint
+            >
+          </mat-form-field>
+
+          <!-- Additional Images (Dynamic rows) -->
+          <div class="w-full">
+            <label
+              class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+              >Additional Images</label
+            >
+            <div class="space-y-2">
+              @for (
+                img of manualImages;
+                track trackImageEntry($index);
+                let i = $index
+              ) {
+                <div class="flex items-center gap-2">
+                  <div
+                    class="flex-1 flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all"
+                  >
+                    <mat-icon
+                      class="flex-shrink-0 ml-2 text-gray-400 icon-size-4"
+                      svgIcon="heroicons_outline:photograph"
+                    ></mat-icon>
+                    <input
+                      type="text"
+                      class="flex-1 px-2 py-2 text-sm bg-transparent border-0 outline-none text-gray-900 dark:text-white placeholder-gray-400"
+                      [(ngModel)]="manualImages[i]"
+                      [ngModelOptions]="{ standalone: true }"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                  @if (manualImages.length > 1) {
+                    <button
+                      type="button"
+                      class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full border border-red-200 text-red-500 hover:bg-red-50 dark:border-red-800/60 dark:hover:bg-red-950/30 transition-colors"
+                      (click)="removeImageEntry(i)"
+                      [matTooltip]="'Remove image'"
+                    >
+                      <mat-icon
+                        class="icon-size-4"
+                        svgIcon="heroicons_outline:x"
+                      ></mat-icon>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+            <button
+              type="button"
+              class="mt-2 flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 transition-colors"
+              (click)="addImageEntry()"
+            >
+              <mat-icon
+                class="icon-size-5"
+                svgIcon="heroicons_outline:plus-circle"
+              ></mat-icon>
+              Add Image
+            </button>
+            <p class="text-xs text-gray-400 mt-1">Each row is one image URL</p>
+          </div>
+
+          <!-- Bullet Points (Dynamic rows) -->
+          <div class="w-full">
+            <label
+              class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+              >Bullet Points</label
+            >
+            <div class="space-y-2">
+              @for (
+                point of manualBulletPoints;
+                track trackBulletPoint($index);
+                let i = $index
+              ) {
+                <div class="flex items-center gap-2">
+                  <div
+                    class="flex-1 flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all"
+                  >
+                    <div
+                      class="flex-shrink-0 ml-3 w-1.5 h-1.5 rounded-full bg-indigo-400"
+                    ></div>
+                    <input
+                      type="text"
+                      class="flex-1 px-2 py-2 text-sm bg-transparent border-0 outline-none text-gray-900 dark:text-white placeholder-gray-400"
+                      [(ngModel)]="manualBulletPoints[i]"
+                      [ngModelOptions]="{ standalone: true }"
+                      [placeholder]="'Bullet point ' + (i + 1)"
+                    />
+                  </div>
+                  @if (manualBulletPoints.length > 1) {
+                    <button
+                      type="button"
+                      class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full border border-red-200 text-red-500 hover:bg-red-50 dark:border-red-800/60 dark:hover:bg-red-950/30 transition-colors"
+                      (click)="removeBulletPoint(i)"
+                      [matTooltip]="'Remove bullet point'"
+                    >
+                      <mat-icon
+                        class="icon-size-4"
+                        svgIcon="heroicons_outline:x"
+                      ></mat-icon>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+            <button
+              type="button"
+              class="mt-2 flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 transition-colors"
+              (click)="addBulletPoint()"
+            >
+              <mat-icon
+                class="icon-size-5"
+                svgIcon="heroicons_outline:plus-circle"
+              ></mat-icon>
+              Add Bullet Point
+            </button>
+            <p class="text-xs text-gray-400 mt-1">
+              Each row is one bullet point
+            </p>
+          </div>
+
+          <!-- EAN -->
+          <mat-form-field class="w-full">
+            <mat-label>EAN</mat-label>
+            <input matInput formControlName="ean" placeholder="Enter EAN" />
+            @if (manualAddForm.get("ean")?.hasError("maxlength")) {
+              <mat-error> EAN cannot exceed 15 characters </mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Country of Origin -->
+          <mat-form-field class="w-full">
+            <mat-label>Country of Origin</mat-label>
+            <mat-select
+              formControlName="contry_of_origin"
+              (openedChange)="triggerCountryEvent()"
+            >
+              <mat-option>
+                <ngx-mat-select-search
+                  [formControl]="countryFilterCtrl"
+                  [preventHomeEndKeyPropagation]="true"
+                  placeholderLabel="Search country"
+                  (keyup)="filterCountryData($event.target.value)"
+                  noEntriesFoundLabel="'No country found'"
+                >
+                </ngx-mat-select-search>
+              </mat-option>
+              <mat-option value="">Select Country</mat-option>
+              @for (country of filteredCountryList; track country.code) {
+                <mat-option [value]="country.code">
+                  {{ country.label }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Stock and Price -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Stock -->
+            <mat-form-field class="w-full">
+              <mat-label>Stock</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="master_stock"
+                placeholder="0"
+                min="0"
+                (wheel)="stopScrollingWheel($event)"
+              />
+              @if (manualAddForm.get("master_stock")?.hasError("min")) {
+                <mat-error> Stock cannot be negative </mat-error>
+              }
+              @if (manualAddForm.get("master_stock")?.hasError("maxDigits")) {
+                <mat-error>Stock cannot exceed 10 digits</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Price -->
+            <mat-form-field class="w-full">
+              <mat-label>Price</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="master_price"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                (wheel)="stopScrollingWheel($event)"
+              />
+              @if (manualAddForm.get("master_price")?.hasError("min")) {
+                <mat-error> Price cannot be negative </mat-error>
+              }
+              @if (manualAddForm.get("master_price")?.hasError("maxDigits")) {
+                <mat-error>Price cannot exceed 10 digits</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </form>
+      }
+    </div>
+
+    <!-- Action Buttons -->
+    <div
+      class="flex justify-end gap-2 p-4 border-t border-slate-100 bg-slate-50"
+    >
+      <button type="button" class="btn-cancel" (click)="closeDialog()">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="manualAddForm.invalid || isAddingProduct"
+        (click)="addProductManually()"
+      >
+        <mat-icon
+          class="icon-size-4 mr-1 text-white"
+          svgIcon="heroicons_outline:check"
+        ></mat-icon>
+        @if (!isAddingProduct) {
+          <span>{{ editingProductId ? "Update Product" : "Add Product" }}</span>
+        }
+        @if (isAddingProduct) {
+          <span>{{ editingProductId ? "Updating..." : "Adding..." }}</span>
+        }
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #syncAmazonTemplate>
+  <div
+    class="flex flex-col -m-6 rounded-xl shadow-2xl min-w-96 max-w-120 bg-white overflow-hidden"
+  >
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="icon-size-5 text-white"
+          >published_with_changes</mat-icon
+        >
+        <span class="text-lg font-semibold text-white text-md"
+          >Sync in Amazon</span
+        >
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeUpdateDialog()"
+        [tabIndex]="-1"
+        class="text-white"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+      <p class="text-sm text-slate-500 font-medium">
+        Select a marketplace and configure your sync settings for selected
+        catalog items.
+      </p>
+
+      <!-- Mixed Selection Summary Note -->
+      @if (syncValidationResults?.allowedType === "mixed") {
+        <div
+          class="p-3.5 bg-blue-50/90 border border-blue-200/90 rounded-xl space-y-1.5 text-xs text-blue-900 font-medium"
+        >
+          <div
+            class="flex items-center gap-1.5 font-bold text-blue-800 text-xs uppercase tracking-wider"
+          >
+            <mat-icon
+              class="!w-4 !h-4 text-xs text-blue-600 flex items-center justify-center shrink-0"
+              svgIcon="heroicons_solid:information-circle"
+            ></mat-icon>
+            <span>Mixed Selection Batch</span>
+          </div>
+          <div class="space-y-1 pl-5">
+            <p class="flex items-center gap-1.5">
+              <span
+                class="inline-block w-2 h-2 rounded-full bg-emerald-500 shrink-0"
+              ></span>
+              <span
+                ><strong>{{ syncValidationResults.hasAsinCount }}</strong>
+                product(s) with ASIN will sync as <strong>Retail</strong></span
+              >
+            </p>
+            <p class="flex items-center gap-1.5">
+              <span
+                class="inline-block w-2 h-2 rounded-full bg-amber-500 shrink-0"
+              ></span>
+              <span
+                ><strong>{{ syncValidationResults.noAsinCount }}</strong>
+                product(s) without ASIN will sync as
+                <strong>White Label</strong></span
+              >
+            </p>
+          </div>
+        </div>
+      }
+
+      <!-- Marketplace -->
+      <mat-form-field
+        class="fuse-mat-dense w-full animate-none"
+        [floatLabel]="'always'"
+      >
+        <mat-label>Marketplace</mat-label>
+        <mat-select
+          [(ngModel)]="selectedMarketplaceId"
+          [ngModelOptions]="{ standalone: true }"
+          autocomplete="off"
+          (openedChange)="triggerMarketplaceEvent()"
+          (selectionChange)="onMarketplaceSelectionChange()"
+          placeholder="Select Marketplace"
+          required
+        >
+          <mat-option>
+            <ngx-mat-select-search
+              placeholderLabel="Search marketplace"
+              (keyup)="filterMarketplaceData($event.target.value)"
+              noEntriesFoundLabel="'No marketplace found'"
+            >
+            </ngx-mat-select-search>
+          </mat-option>
+          @for (mp of filteredMarketplaces; track mp.id) {
+            <mat-option [value]="mp.id">
+              {{ mp.countryName }} ({{ mp.countryCode }})
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Sync Product Type (Retail vs White Label) - Shown for pure selections -->
+      @if (syncValidationResults?.allowedType !== "mixed") {
+        <div class="space-y-1.5">
+          <label
+            class="text-xs font-semibold text-slate-700 block uppercase tracking-wider"
+          >
+            Sync Type
+          </label>
+          <mat-radio-group
+            [formControl]="syncProductType"
+            (change)="onSyncProductTypeChange($event.value)"
+            class="flex gap-4 items-center"
+          >
+            <mat-radio-button
+              value="retail"
+              [disabled]="isRetailDisabled"
+              class="text-sm font-medium"
+            >
+              Retail
+            </mat-radio-button>
+            <mat-radio-button
+              value="white_label"
+              [disabled]="isWhiteLabelDisabled"
+              class="text-sm font-medium"
+            >
+              White Label
+              @if (isWhiteLabelDisabled) {
+                <span class="text-xs text-rose-500 font-normal ml-1"
+                  >(Has ASIN)</span
+                >
+              }
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+      }
+
+      <!-- White Label Product Type Dropdown (Shown when White Label or Mixed) -->
+      @if (
+        syncProductType.value === "white_label" ||
+        syncValidationResults?.allowedType === "mixed"
+      ) {
+        <mat-form-field
+          class="fuse-mat-dense w-full animate-none"
+          [floatLabel]="'always'"
+        >
+          <mat-label>
+            {{
+              syncValidationResults?.allowedType === "mixed"
+                ? "White Label Product Type (for non-ASIN items)"
+                : "White
+          Label Product Type"
+            }}
+          </mat-label>
+          <mat-select
+            [formControl]="syncWlProductType"
+            placeholder="Select WL Product Type"
+            (openedChange)="triggerWlProductTypeEvent($event)"
+            required
+          >
+            <mat-option>
+              <ngx-mat-select-search
+                [formControl]="wlProductTypeFilterCtrl"
+                placeholderLabel="Search product type"
+                noEntriesFoundLabel="'No product type found'"
+              >
+              </ngx-mat-select-search>
+            </mat-option>
+            @for (pt of filteredWlProductTypes; track getProductTypeValue(pt)) {
+              <mat-option [value]="getProductTypeValue(pt)">
+                {{ getProductTypeLabel(pt) }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
+      <!-- Margin & Margin Mode -->
+      <div class="grid grid-cols-2 gap-4">
+        <mat-form-field
+          class="fuse-mat-dense w-full animate-none"
+          [floatLabel]="'always'"
+        >
+          <mat-label>Margin</mat-label>
+          <input
+            matInput
+            type="number"
+            min="0"
+            [formControl]="syncMargin"
+            placeholder="Enter margin"
+          />
+        </mat-form-field>
+
+        <mat-form-field
+          class="fuse-mat-dense w-full animate-none"
+          [floatLabel]="'always'"
+        >
+          <mat-label>Margin Mode</mat-label>
+          <mat-select [formControl]="syncMarginMode">
+            <mat-option value="PERCENTAGE">Percentage (%)</mat-option>
+            <mat-option value="FIX">Fixed Amount</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Fulfillment Type -->
+      <mat-form-field
+        class="fuse-mat-dense w-full animate-none"
+        [floatLabel]="'always'"
+      >
+        <mat-label>Fulfillment Type</mat-label>
+        <mat-select [formControl]="syncFulfillment">
+          <mat-option value="FBM">FBM</mat-option>
+          <mat-option value="FBA">FBA</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Footer -->
+    <div
+      class="flex justify-end gap-2 p-4 border-t border-slate-100 bg-slate-50"
+    >
+      <button type="button" class="btn-cancel" (click)="closeUpdateDialog()">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="
+          !selectedMarketplaceId ||
+          syncAsinConflict ||
+          ((syncProductType.value === 'white_label' ||
+            syncValidationResults?.allowedType === 'mixed') &&
+            !syncWlProductType.value)
+        "
+        (click)="confirmSyncInAmazon()"
+      >
+        <mat-icon
+          class="icon-size-4 mr-1 text-white"
+          svgIcon="heroicons_outline:check"
+        ></mat-icon>
+        <span>Sync</span>
+      </button>
+    </div>
+  </div>
+</ng-template>

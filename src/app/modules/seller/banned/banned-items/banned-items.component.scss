@@ -1,0 +1,37 @@
+.banned-item-grid {
+  grid-template-columns:
+    130px 48px 160px 160px minmax(180px, 1fr)
+    110px 110px 150px 260px 70px;
+  min-width: 1380px;
+
+  @screen sm {
+    grid-template-columns:
+      130px 48px 160px 160px minmax(180px, 1fr)
+      110px 110px 150px 260px 70px;
+  }
+
+  @screen md {
+    grid-template-columns:
+      130px 48px 160px 160px minmax(180px, 1fr)
+      110px 110px 150px 260px 70px;
+  }
+
+  @screen lg {
+    grid-template-columns:
+      130px 48px 160px 160px minmax(180px, 1fr)
+      110px 110px 150px 260px 70px;
+  }
+}
+
+.custom-header-scrollbar {
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+  }
+}

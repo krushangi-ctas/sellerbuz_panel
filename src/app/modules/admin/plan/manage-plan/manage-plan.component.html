@@ -1,0 +1,385 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden overflow-auto"
+>
+  <!-- Header -->
+  <div
+    class="page-header relative flex flex-col sm:flex-row flex-0 border-b sm:items-center sm:justify-between py-2 px-2"
+  >
+    <!-- Loader -->
+    <!-- <div class="absolute inset-x-0 " *ngIf="isLoading">
+            <mat-progress-bar [mode]="'indeterminate'"></mat-progress-bar>
+        </div> -->
+    <!-- Title -->
+    <div class="text-3xl font-extrabold tracking-tight">Plan Details</div>
+    <button
+      type="button"
+      class="btn-back ml-4 inline-flex items-center rounded-xl px-4 py-2 font-semibold shadow-sm transition-all duration-200"
+      mat-flat-button
+      (click)="goBack()"
+    >
+      <mat-icon [svgIcon]="'heroicons_outline:arrow-sm-left'"></mat-icon>
+      <span class="ml-2 mr-1">Go To Plan List</span>
+    </button>
+  </div>
+
+  <!-- Main -->
+  <!-- Enhanced template with complete custom plan implementation -->
+  <div class="flex-auto p-1 sm:p-1 overflow-auto">
+    <div class="max-w-[100%] mx-2 sm:mx-2 lg:mx-10">
+      <button
+        type="button"
+        type="button"
+        id="gotoTop"
+        style="border: none"
+      ></button>
+      <form [formGroup]="planFormGroup" class="flex flex-col gap-6 p-2">
+        @if (isLoading) {
+          <!-- SKELETON LOADER FOR PLAN FORM -->
+          <div class="animate-pulse space-y-6">
+            <div class="bg-card rounded-2xl border p-6 space-y-4">
+              <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+            </div>
+            <div class="bg-card rounded-2xl border p-6 space-y-4">
+              <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+              <div
+                class="h-24 bg-gray-200 dark:bg-gray-700 rounded w-full"
+              ></div>
+            </div>
+          </div>
+        } @else {
+          <!-- ====================================================== -->
+          <!-- BASIC DETAILS CARD -->
+          <!-- ====================================================== -->
+
+          <div class="bg-card rounded-2xl shadow border p-6">
+            <div class="mb-5">
+              <h2 class="text-xl font-semibold">Plan Information</h2>
+              <p class="text-secondary text-sm">
+                Configure subscription details
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-2">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Plan Name</mat-label>
+                  <input matInput formControlName="name" />
+                  @if (planFormGroup.get("name")?.hasError("required")) {
+                    <mat-error>Plan Name is required</mat-error>
+                  } @else if (
+                    planFormGroup.get("name")?.hasError("maxlength")
+                  ) {
+                    <mat-error>Plan Name cannot exceed 20 characters</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Price in cents</mat-label>
+                  <input
+                    type="number"
+                    matInput
+                    formControlName="price"
+                    (wheel)="stopScrollingWheel($event)"
+                  />
+                  @if (planFormGroup.get("price")?.hasError("required")) {
+                    <mat-error>Price is required</mat-error>
+                  } @else if (planFormGroup.get("price")?.hasError("min")) {
+                    <mat-error>Price must be greater than 0</mat-error>
+                  } @else if (planFormGroup.get("price")?.hasError("pattern")) {
+                    <mat-error>Price cannot exceed 10 digits</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Currency</mat-label>
+                  <mat-select formControlName="currency">
+                    @for (curr of currencyList; track curr) {
+                      <mat-option [value]="curr.code">
+                        {{ curr.code | uppercase }}
+                      </mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Interval</mat-label>
+                  <mat-select formControlName="interval">
+                    <mat-option value="month"> Month </mat-option>
+                    <mat-option value="quarterly"> Quarterly </mat-option>
+                    <!-- <mat-option value="both"> Both </mat-option> -->
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Trial Days</mat-label>
+                <input type="number" matInput formControlName="trial_days" />
+
+                @if (planFormGroup.get("trial_days")?.hasError("required")) {
+                <mat-error>Trial Days is required</mat-error>
+                } @else if (planFormGroup.get("trial_days")?.hasError("min")) {
+                <mat-error>Trial Days must be at least 0</mat-error>
+                }
+              </mat-form-field> -->
+              </div>
+
+              @if (planFormGroup.get("interval").value === "quarterly") {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Discount (%)</mat-label>
+                    <input
+                      type="number"
+                      matInput
+                      formControlName="discount"
+                      placeholder="0"
+                    />
+                    @if (planFormGroup.get("discount")?.hasError("min")) {
+                      <mat-error>Discount cannot be less than 0</mat-error>
+                    } @else if (
+                      planFormGroup.get("discount")?.hasError("max")
+                    ) {
+                      <mat-error>Discount cannot be more than 100</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Quarterly Price</mat-label>
+                    <input
+                      type="number"
+                      matInput
+                      formControlName="quarterly_price"
+                      readonly
+                    />
+                  </mat-form-field>
+                </div>
+              }
+
+              <div class="w-full">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Description</mat-label>
+                  <textarea
+                    rows="3"
+                    matInput
+                    formControlName="desc"
+                    maxlength="300"
+                  ></textarea>
+
+                  @if (planFormGroup.get("desc")?.hasError("maxlength")) {
+                    <mat-error
+                      >Description cannot exceed 300 characters</mat-error
+                    >
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="mt-4 flex flex-row gap-4">
+              <mat-checkbox formControlName="is_custom_plan">
+                Custom Plan
+              </mat-checkbox>
+              <mat-checkbox formControlName="is_popular">
+                Popular Plan
+              </mat-checkbox>
+            </div>
+          </div>
+
+          <!-- ====================================================== -->
+          <!-- MARKETING FEATURES -->
+          <!-- ====================================================== -->
+
+          <!-- ====================================================== -->
+          <!-- FEATURE USAGE LIMITS -->
+          <!-- ====================================================== -->
+
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <!-- Marketing Features -->
+            <div class="bg-card rounded-2xl shadow border p-6">
+              <div
+                class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1"
+              >
+                <div>
+                  <h2 class="text-xl font-semibold">Marketing Features</h2>
+
+                  <p class="text-secondary text-sm">
+                    Features visible on pricing page
+                  </p>
+                </div>
+
+                <button
+                  mat-flat-button
+                  class="bg-primary text-white"
+                  type="button"
+                  (click)="addMarketingFeature()"
+                >
+                  <mat-icon>add</mat-icon>
+                  Add Feature
+                </button>
+              </div>
+
+              <div formArrayName="marketing_features">
+                @for (item of marketingFeatures.controls; track $index) {
+                  <div class="flex items-start mb-1">
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label> Marketing Feature </mat-label>
+
+                      <input
+                        matInput
+                        [formControlName]="$index"
+                        placeholder="Unlimited Products"
+                        maxlength="100"
+                      />
+
+                      @if (
+                        planFormGroup
+                          .get("marketing_features")
+                          ?.get($index.toString())
+                          ?.hasError("maxlength")
+                      ) {
+                        <mat-error
+                          >Marketing Feature cannot exceed 100
+                          characters</mat-error
+                        >
+                      }
+                    </mat-form-field>
+
+                    <button
+                      mat-icon-button
+                      color="warn"
+                      type="button"
+                      (click)="removeMarketingFeature($index)"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Feature Usage Limits -->
+            <div class="bg-card rounded-2xl shadow border p-6">
+              <div class="mb-4">
+                <h2 class="text-xl font-semibold">Feature Usage Limits</h2>
+                <p class="text-secondary text-sm">
+                  Configure plan feature limits
+                </p>
+              </div>
+
+              <!-- Search Feature input -->
+              <mat-form-field appearance="outline" class="w-full mb-4">
+                <mat-label>Search Features</mat-label>
+                <input
+                  matInput
+                  [formControl]="featureSearchCtrl"
+                  placeholder="Search feature name..."
+                />
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
+
+              <div
+                formArrayName="features"
+                class="flex flex-col gap-3 max-h-[400px] overflow-y-auto pr-2"
+              >
+                @for (control of featureList.controls; track $index) {
+                  @if (
+                    !getSearchQuery() ||
+                    control
+                      .get("name")
+                      .value.toLowerCase()
+                      .includes(getSearchQuery())
+                  ) {
+                    <div
+                      [formGroupName]="$index"
+                      class="flex items-center justify-between p-3 border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
+                      [class.border-primary]="control.get('checked').value"
+                      [class.bg-primary-50]="control.get('checked').value"
+                      [class.dark:bg-primary-950]="control.get('checked').value"
+                    >
+                      <div class="flex items-center gap-3">
+                        <mat-checkbox formControlName="checked" color="primary">
+                          <span
+                            class="font-semibold text-md text-gray-800 dark:text-gray-200"
+                          >
+                            {{ control.get("name").value }}
+                          </span>
+                        </mat-checkbox>
+                      </div>
+
+                      <div class="w-36">
+                        @if (control.get("checked").value) {
+                          <mat-form-field appearance="outline" class="w-full">
+                            <mat-label>Usage Count</mat-label>
+                            <input
+                              type="number"
+                              matInput
+                              formControlName="usage_count"
+                              min="1"
+                              (wheel)="stopScrollingWheel($event)"
+                            />
+                            @if (
+                              control.get("usage_count")?.hasError("required")
+                            ) {
+                              <mat-error>Required</mat-error>
+                            } @else if (
+                              control.get("usage_count")?.hasError("min") ||
+                              control.get("usage_count")?.value <= 0
+                            ) {
+                              <mat-error>Min 1</mat-error>
+                            }
+                          </mat-form-field>
+                        } @else {
+                          <span class="text-xs text-secondary italic"
+                            >Disabled</span
+                          >
+                        }
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ====================================================== -->
+        <!-- ACTION BUTTONS -->
+        <!-- ====================================================== -->
+
+        <div class="sticky bottom-0 bg-card border rounded-2xl p-4 shadow">
+          <div class="flex flex-col sm:flex-row justify-end gap-3">
+            <button
+              class="btn-cancel"
+              mat-stroked-button
+              type="button"
+              (click)="goBack()"
+            >
+              Cancel
+            </button>
+
+            <button
+              class="btn-primary"
+              mat-flat-button
+              type="button"
+              [disabled]="planFormGroup.invalid || btnDisable"
+              (click)="addPlan()"
+            >
+              <mat-icon> save </mat-icon>
+              {{
+                btnDisable
+                  ? planId
+                    ? "Updating..."
+                    : "Creating..."
+                  : planId
+                    ? "Update Plan"
+                    : "Create Plan"
+              }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

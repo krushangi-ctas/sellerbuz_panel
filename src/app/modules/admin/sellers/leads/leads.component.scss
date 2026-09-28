@@ -1,0 +1,151 @@
+:host {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* ============================================================ */
+/* Grid — 8 columns for leads table                             */
+/* ============================================================ */
+.leads-grid {
+  display: grid;
+  grid-template-columns:
+    160px
+    /* Name          */
+    220px
+    /* Email         */
+    150px
+    /* Phone         */
+    140px
+    /* Selected Plan */
+    110px
+    /* Billing Cycle */
+    120px
+    /* Lead Status   */
+    auto
+    /* Created At    */
+    100px;
+  /* Actions       */
+  padding-inline: 15px;
+  padding-block: 5px;
+
+  @screen sm {
+    grid-template-columns:
+      120px
+      /* Name          */
+      180px
+      /* Email         */
+      130px
+      /* Phone         */
+      120px
+      /* Selected Plan */
+      100px
+      /* Billing Cycle */
+      100px
+      /* Lead Status   */
+      auto
+      /* Created At    */
+      88px;
+    /* Actions       */
+  }
+
+  @screen md {
+    grid-template-columns:
+      140px
+      /* Name          */
+      200px
+      /* Email         */
+      140px
+      /* Phone         */
+      130px
+      /* Selected Plan */
+      105px
+      /* Billing Cycle */
+      110px
+      /* Lead Status   */
+      auto
+      /* Created At    */
+      92px;
+    /* Actions       */
+  }
+
+  @screen lg {
+    grid-template-columns:
+      160px
+      /* Name          */
+      220px
+      /* Email         */
+      150px
+      /* Phone         */
+      140px
+      /* Selected Plan */
+      110px
+      /* Billing Cycle */
+      120px
+      /* Lead Status   */
+      auto
+      /* Created At    */
+      100px;
+    /* Actions       */
+  }
+}
+
+/* ============================================================ */
+/* Lead status badges                                           */
+/* ============================================================ */
+.lead-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+
+  &--pending {
+    background: #fefce8;
+    color: #854d0e;
+    border-color: #fde68a;
+  }
+
+  &--initiated {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+  }
+
+  &--success {
+    background: #ecfdf5;
+    color: #065f46;
+    border-color: #a7f3d0;
+  }
+
+  &--failed {
+    background: #fef2f2;
+    color: #991b1b;
+    border-color: #fecaca;
+  }
+
+  &--cancelled {
+    background: #fff7ed;
+    color: #9a3412;
+    border-color: #fed7aa;
+  }
+}
+
+/* ============================================================ */
+/* Paginator                                                     */
+/* ============================================================ */
+:host ::ng-deep .leads-list-paginator {
+  width: 100%;
+  background-color: var(--color-gray-100) !important;
+
+  .mat-mdc-paginator-container {
+    width: 100%;
+    justify-content: space-between;
+    background-color: transparent !important;
+  }
+}

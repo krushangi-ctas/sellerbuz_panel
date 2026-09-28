@@ -1,0 +1,361 @@
+<div
+  class="overflow-y-auto w-full bg-gray-50/60 dark:bg-gray-900/50 flex flex-col gap-5 p-4 sm:p-6 pb-8 flex-1 min-h-0"
+>
+  <!-- ── LOADING SKELETON ──────────────────────────────────────────────── -->
+  @if (isLoading) {
+  <div class="animate-pulse space-y-6">
+    <!-- Banner Skeleton -->
+    <div class="h-24 bg-slate-200/60 dark:bg-slate-800/50 rounded-2xl"></div>
+
+    <!-- Title & Toggle Skeleton -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="space-y-2 w-48">
+        <div class="h-6 bg-slate-200/60 dark:bg-slate-800/50 rounded-lg"></div>
+        <div
+          class="h-4 bg-slate-200/60 dark:bg-slate-800/50 rounded-lg w-2/3"
+        ></div>
+      </div>
+      <div
+        class="h-10 w-64 bg-slate-200/60 dark:bg-slate-800/50 rounded-xl"
+      ></div>
+    </div>
+
+    <!-- Grid Skeleton -->
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-2"
+    >
+      <div
+        class="h-[460px] bg-slate-200/60 dark:bg-slate-800/50 rounded-2xl"
+      ></div>
+      <div
+        class="h-[460px] bg-slate-200/60 dark:bg-slate-800/50 rounded-2xl"
+      ></div>
+      <div
+        class="h-[460px] bg-slate-200/60 dark:bg-slate-800/50 rounded-2xl"
+      ></div>
+      <div
+        class="h-[460px] bg-slate-200/60 dark:bg-slate-800/50 rounded-2xl"
+      ></div>
+    </div>
+  </div>
+
+  } @else {
+
+  <!-- ═══ RENEW BANNER ════════════════════════════════════════════════ -->
+  @if (hasActivePlan()) {
+  <div
+    class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/10 border border-emerald-200/60 dark:border-emerald-800/40 rounded-2xl shadow-sm px-6 py-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+  >
+    <div class="flex items-center gap-4">
+      <div
+        class="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center shrink-0 shadow-md shadow-emerald-200 dark:shadow-none"
+      >
+        <mat-icon class="text-white">event</mat-icon>
+      </div>
+      <div>
+        <h4
+          class="text-base font-bold text-emerald-900 dark:text-emerald-300 tracking-tight"
+        >
+          Renew Your Active Plan
+        </h4>
+        <p
+          class="text-sm text-emerald-700/80 dark:text-emerald-400 mt-1 leading-relaxed"
+        >
+          Your package expires on
+          <strong class="text-emerald-950 dark:text-emerald-200 font-bold"
+            >{{ formatDate(currentPlan?.expired_at || currentPlan?.expiredAt)
+            }}</strong
+          >. Renew now to unlock all features and continue growing.
+        </p>
+      </div>
+    </div>
+
+    <!-- Actions Block inside Renew Banner -->
+    <div
+      class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0 justify-end"
+    >
+      <!-- Renew Now Button -->
+      <button
+        type="button"
+        class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold h-10 px-6 rounded-xl transition-all shadow-md hover:shadow-lg shrink-0"
+        (click)="renewNow()"
+      >
+        <span>Renew Now</span>
+        <mat-icon class="icon-size-4 text-white">arrow_forward</mat-icon>
+      </button>
+
+      <!-- Edit Profile Button inside Renew Banner -->
+      <a
+        routerLink="/profile"
+        class="flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-300 text-xs font-bold h-10 px-5 rounded-xl transition-all border border-emerald-200 hover:border-emerald-300 dark:border-emerald-800 shadow-sm shrink-0 cursor-pointer"
+      >
+        <mat-icon class="icon-size-4.5 !text-emerald-600 dark:!text-emerald-300"
+          >manage_accounts</mat-icon
+        >
+        <span>Edit Profile</span>
+      </a>
+    </div>
+  </div>
+  }
+
+  <!-- ═══ PACKAGES MODULE ══════════════════════════════════════════════ -->
+  <div
+    class="bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden flex flex-col"
+  >
+    <!-- Section Heading & Actions Bar -->
+    <div
+      class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/20"
+    >
+      <div>
+        <h3
+          class="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight"
+        >
+          Available Subscription Packages
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          Upgrade or scale features based on your seller limits
+        </p>
+      </div>
+
+      <!-- Right side controls: Billing Toggle & Edit Profile Link -->
+      <div
+        class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto"
+      >
+        <!-- Billing Cycle Toggle -->
+        <div
+          class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-xl border border-slate-200/80 dark:border-slate-700 shrink-0"
+        >
+          <button
+            type="button"
+            class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
+            [class.bg-white]="selectedBillingCycle === 'monthly'"
+            [class.shadow-sm]="selectedBillingCycle === 'monthly'"
+            [class.text-indigo-600]="selectedBillingCycle === 'monthly'"
+            [class.text-gray-500]="selectedBillingCycle !== 'monthly'"
+            [class.dark:bg-gray-700]="selectedBillingCycle === 'monthly'"
+            [class.dark:text-white]="selectedBillingCycle === 'monthly'"
+            (click)="billingCycleChange.emit('monthly')"
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
+            [class.bg-white]="selectedBillingCycle === 'quarterly'"
+            [class.shadow-sm]="selectedBillingCycle === 'quarterly'"
+            [class.text-indigo-600]="selectedBillingCycle === 'quarterly'"
+            [class.text-gray-500]="selectedBillingCycle !== 'quarterly'"
+            [class.dark:bg-gray-700]="selectedBillingCycle === 'quarterly'"
+            [class.dark:text-white]="selectedBillingCycle === 'quarterly'"
+            (click)="billingCycleChange.emit('quarterly')"
+          >
+            Quarterly
+          </button>
+        </div>
+
+        <!-- Edit Profile Action Button (Fallback if no active plan banner is shown) -->
+        @if (!hasActivePlan()) {
+        <a
+          routerLink="/profile"
+          class="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 dark:bg-gray-800 dark:hover:bg-slate-700/50 text-gray-700 dark:text-gray-200 text-xs font-bold h-9 px-4 rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-sm shrink-0 cursor-pointer"
+        >
+          <mat-icon class="icon-size-4.5 text-slate-500 dark:text-slate-400"
+            >manage_accounts</mat-icon
+          >
+          <span>Edit Profile</span>
+        </a>
+        }
+      </div>
+    </div>
+
+    <!-- Plans Grid -->
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6"
+    >
+      @for (plan of filteredPlans; track trackByFn($index, plan)) {
+      <div
+        class="pricing-card"
+        [class.pricing-card-active]="isCurrentPlan(plan)"
+        [class.pricing-card-popular]="isPopularPlan(plan) && !isCurrentPlan(plan)"
+        [class.pricing-card-standard]="!isCurrentPlan(plan) && !isPopularPlan(plan)"
+      >
+        <!-- Popular top indicator gradient bar -->
+        @if (isPopularPlan(plan) && !isCurrentPlan(plan)) {
+        <div
+          class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#3C9AC4] via-cyan-500 to-[#13355A]"
+        ></div>
+        }
+
+        <!-- Badges header slot (equal height placeholder) -->
+        <div class="flex items-center justify-between px-5 pt-5 h-8">
+          @if (isCurrentPlan(plan)) {
+          <span
+            class="inline-flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm"
+          >
+            <span
+              class="w-1.5 h-1.5 rounded-full bg-white/70 inline-block animate-pulse"
+            ></span>
+            Current Active
+          </span>
+          } @else if (isPopularPlan(plan)) {
+          <span
+            class="inline-flex items-center bg-gradient-to-r from-[#3C9AC4] to-[#13355A] text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm"
+          >
+            Best Value
+          </span>
+          } @else if (hasDiscount(plan)) {
+          <span
+            class="inline-flex items-center bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm"
+          >
+            {{ getDiscountPercent(plan) }}% OFF
+          </span>
+          } @else {
+          <span></span>
+          }
+        </div>
+
+        <!-- Plan header: Icon + Name -->
+        <div class="flex items-center gap-3 px-5 mt-3">
+          <span
+            class="plan-icon-wrapper"
+            [class.plan-icon-active]="isCurrentPlan(plan)"
+            [class.plan-icon-popular]="isPopularPlan(plan) && !isCurrentPlan(plan)"
+            [class.plan-icon-standard]="!isCurrentPlan(plan) && !isPopularPlan(plan)"
+          >
+            <mat-icon
+              class="icon-size-5.5"
+              [svgIcon]="getPlanIcon(plan)"
+            ></mat-icon>
+          </span>
+          <div class="flex flex-col min-w-0">
+            <h4
+              class="text-base font-bold text-gray-900 dark:text-gray-100 truncate tracking-tight"
+            >
+              {{ plan.name }}
+            </h4>
+            <span
+              class="text-xs font-bold uppercase tracking-wider mt-0.5"
+              [class.text-emerald-600]="isCurrentPlan(plan)"
+              [class.text-cyan-600]="isPopularPlan(plan) && !isCurrentPlan(plan)"
+              [class.text-gray-400]="!isCurrentPlan(plan) && !isPopularPlan(plan)"
+            >
+              {{ getPlanTypeLabel(plan) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Description text block (fixed min-height for vertical alignment) -->
+        @if (plan.desc) {
+        <p
+          class="px-5 mt-4 text-xs text-gray-550 dark:text-gray-400 leading-relaxed min-h-[32px] line-clamp-2"
+        >
+          {{ plan.desc }}
+        </p>
+        } @else {
+        <div class="h-8 mt-4"></div>
+        }
+
+        <!-- Price Details -->
+        <div class="flex flex-col px-5 mt-4">
+          <div class="flex items-baseline gap-1.5 flex-wrap">
+            @if (hasDiscount(plan) && getOriginalPrice(plan)) {
+            <span class="text-sm text-gray-400 line-through font-semibold">
+              {{ formatAmount(getOriginalPrice(plan), plan.currency) }}
+            </span>
+            }
+            <span
+              class="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight"
+            >
+              {{ formatAmount(getFinalPrice(plan), plan.currency) }}
+            </span>
+            <span class="text-xs text-gray-400 font-semibold"
+              >/ {{ selectedBillingCycle === 'quarterly' ? 'quarter' : 'month'
+              }}</span
+            >
+          </div>
+
+          @if (hasDiscount(plan) && getSavingsAmount(plan)) {
+          <span class="text-xs text-emerald-600 font-semibold mt-1">
+            (Save {{ formatAmount(getSavingsAmount(plan), plan.currency) }} with
+            {{ getDiscountPercent(plan) }}% off)
+          </span>
+          }
+        </div>
+
+        <!-- Divider line -->
+        <div class="feature-divider"></div>
+
+        <!-- Features Checklist -->
+        <ul class="flex-1 space-y-2.5 px-5 mb-6 overflow-y-auto">
+          @for (feat of getFeatures(plan); track feat) {
+          <li
+            class="flex items-start gap-2.5 text-xs text-gray-600 dark:text-gray-300"
+          >
+            <mat-icon class="icon-size-4.5 shrink-0 mt-0.5 text-emerald-500"
+              >check_circle_outline</mat-icon
+            >
+            <span class="leading-normal">{{ feat }}</span>
+          </li>
+          } @if (getFeatures(plan).length === 0) {
+          <li class="flex items-center gap-2 text-xs text-gray-400 italic">
+            <mat-icon class="icon-size-4.5 text-gray-400"
+              >help_outline</mat-icon
+            >
+            <span>Custom features available on request.</span>
+          </li>
+          }
+        </ul>
+
+        <!-- Action / Primary CTA Card Button -->
+        <div class="px-5 pb-5 mt-auto">
+          @if (isCurrentPlan(plan)) {
+          <button
+            type="button"
+            class="w-full text-xs font-bold py-3 px-4 rounded-xl border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 bg-emerald-100/50 dark:bg-emerald-950/20 cursor-default flex items-center justify-center gap-1.5 shadow-sm"
+          >
+            <mat-icon class="icon-size-4 text-emerald-600 dark:text-emerald-400"
+              >check_circle</mat-icon
+            >
+            Active Package
+          </button>
+          } @else {
+          <button
+            type="button"
+            class="w-full text-xs font-bold py-3 px-4 rounded-xl transition-all duration-200 shadow-sm border flex items-center justify-center gap-1.5"
+            [class.bg-gradient-to-r]="isPopularPlan(plan)"
+            [class.from-[#3C9AC4]]="isPopularPlan(plan)"
+            [class.to-[#13355A]]="isPopularPlan(plan)"
+            [class.hover:opacity-95]="isPopularPlan(plan)"
+            [class.text-white]="isPopularPlan(plan)"
+            [class.border-transparent]="isPopularPlan(plan)"
+            [class.bg-white]="!isPopularPlan(plan)"
+            [class.hover:bg-slate-50]="!isPopularPlan(plan)"
+            [class.text-[#13355A]]="!isPopularPlan(plan)"
+            [class.border-slate-200]="!isPopularPlan(plan)"
+            [class.dark:bg-gray-800]="!isPopularPlan(plan)"
+            [class.dark:text-white]="!isPopularPlan(plan)"
+            [class.dark:border-slate-700]="!isPopularPlan(plan)"
+            [class.dark:hover:bg-gray-700]="!isPopularPlan(plan)"
+            (click)="openCheckout(plan)"
+          >
+            <span>{{ getCtaLabel(plan) }}</span>
+            <mat-icon class="icon-size-4">arrow_forward</mat-icon>
+          </button>
+          }
+        </div>
+      </div>
+      } @empty {
+      <div class="col-span-full py-16 text-center text-gray-400">
+        <mat-icon
+          class="icon-size-14 text-slate-200 dark:text-slate-800 block mx-auto mb-3"
+          [svgIcon]="'heroicons_outline:credit-card'"
+        ></mat-icon>
+        <span class="text-sm font-medium"
+          >No subscription packages available at the moment.</span
+        >
+      </div>
+      }
+    </div>
+  </div>
+  }
+</div>

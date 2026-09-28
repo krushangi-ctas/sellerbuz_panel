@@ -1,0 +1,237 @@
+<!-- Loading bar -->
+<fuse-loading-bar></fuse-loading-bar>
+
+<!-- Navigation -->
+<fuse-vertical-navigation
+  class="dark bg-primary-900 print:hidden"
+  [mode]="isScreenSmall ? 'over' : 'side'"
+  [name]="'mainNavigation'"
+  [navigation]="filteredNavigation.default"
+  [opened]="!isScreenSmall"
+>
+  <!-- Navigation header hook -->
+  <ng-container fuseVerticalNavigationContentHeader>
+    <div class="flex items-center w-full pb-0 p-4">
+      <!-- Logo -->
+      <div class="flex items-center justify-center mt-0">
+        <img class="w-50 h-13" src="assets/logo.png" />
+      </div>
+      <!-- Components -->
+      <!-- <div class="flex items-center ml-auto">
+      <user [showAvatar]="false"></user>
+    </div> -->
+    </div>
+    <!-- User -->
+    <div class="flex flex-col items-center w-full p-4 pt-3">
+      <!-- <div class="relative  w-24 h-24">
+
+    <ng-container *ngIf="user.avatar; else noImage">
+      <img class="w-full h-full rounded-full items-center p-2" [src]="imgPath+user.avatar"
+        alt="User profile photo" />
+    </ng-container>
+    <ng-template #noImage>
+      <img class="w-full h-full rounded-full items-center p-2" [src]="user.profileImgUrl"
+        alt="User profile photo" />
+    </ng-template>
+  </div> -->
+      <div class="flex flex-col items-center justify-center w-full mt-4">
+        <div
+          class="w-full whitespace-nowrap text-white overflow-hidden text-center leading-normal font-medium"
+        >
+          {{ user.first_name + " " + user.last_name }}
+        </div>
+        <div
+          class="w-full mt-0.5 whitespace-nowrap text-white overflow-hidden text-center text-md leading-normal font-medium"
+        >
+          {{ user.email }}
+        </div>
+      </div>
+    </div>
+    <!-- Search Input -->
+    <div class="p-4 relative">
+      <mat-icon
+        class="absolute left-6 top-1/2 transform -translate-y-1/2 text-white"
+        >search</mat-icon
+      >
+      <input
+        type="text"
+        placeholder="Search for..."
+        class="w-full p-2 border border-white rounded-md pr-10 pl-10 text-white placeholder:text-white"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="filterNavigation()"
+      />
+      @if (searchTerm) {
+        <button
+          type="button"
+          class="absolute right-4 inset-y-0 flex items-center p-1"
+          (click)="clearSearch()"
+          aria-label="Clear search"
+          matTooltip="Clear"
+        >
+          <mat-icon>clear</mat-icon>
+        </button>
+      }
+    </div>
+    <!-- No Results Message -->
+    @if (noResults) {
+      <div class="text-center text-white mt-4">No Sections Found</div>
+    }
+  </ng-container>
+  <!-- Navigation sections dynamically shown -->
+  @if (filteredNavigation.compact.length > 0) {
+    <fuse-vertical-navigation
+      [navigation]="filteredNavigation.compact"
+    ></fuse-vertical-navigation>
+  }
+  @if (filteredNavigation.default.length > 0) {
+    <fuse-vertical-navigation
+      [navigation]="filteredNavigation.default"
+    ></fuse-vertical-navigation>
+  }
+  @if (filteredNavigation.futuristic.length > 0) {
+    <fuse-vertical-navigation
+      [navigation]="filteredNavigation.futuristic"
+    ></fuse-vertical-navigation>
+  }
+  @if (filteredNavigation.horizontal.length > 0) {
+    <fuse-vertical-navigation
+      [navigation]="filteredNavigation.horizontal"
+    ></fuse-vertical-navigation>
+  }
+</fuse-vertical-navigation>
+
+<!-- Wrapper -->
+<div class="flex flex-col flex-auto w-full min-w-0">
+  @if (alertMessage) {
+    <fuse-alert
+      [appearance]="'outline'"
+      [dismissible]="true"
+      [dismissed]="true"
+      [name]="'alert_success'"
+      [type]="'success'"
+    >
+      <span fuseAlertTitle>Success</span>
+      {{ alertMessage }}
+    </fuse-alert>
+  }
+
+  <fuse-alert
+    [appearance]="'outline'"
+    [dismissible]="true"
+    [dismissed]="true"
+    [name]="'alert_error'"
+    [type]="'error'"
+  >
+    <span fuseAlertTitle>Error</span>
+    {{ alertMessage }}
+  </fuse-alert>
+  <!-- Header -->
+  <!-- <div
+  class="relative flex flex-0 items-center w-full h-8 px-4 md:px-6 z-49 shadow dark:shadow-none dark:border-b bg-card dark:bg-transparent print:hidden">
+  <button type="button" mat-icon-button (click)="toggleNavigation('mainNavigation')">
+    <mat-icon [svgIcon]="'heroicons_outline:menu'"></mat-icon>
+  </button>
+  <div class="flex items-center pl-2 space-x-0.5 sm:space-x-2">
+    <fuse-fullscreen class="hidden md:block"></fuse-fullscreen>
+  </div>
+</div> -->
+  <div
+    class="relative flex justify-between flex-0 items-center w-full h-12 px-4 md:px-6 z-49 shadow dark:shadow-none dark:border-b bg-card dark:bg-transparent print:hidden"
+  >
+    <!-- Navigation toggle button -->
+    <div class="flex items-center pl-2 space-x-0.5 sm:space-x-2">
+      <button
+        type="button"
+        mat-icon-button
+        (click)="toggleNavigation('mainNavigation')"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:menu'"></mat-icon>
+      </button>
+      @if (
+        filteredUserNavigation?.default &&
+        filteredUserNavigation?.default.length > 0
+      ) {
+        <button
+          type="button"
+          (click)="showDropdown = showDropdown ? false : true"
+        ></button>
+      }
+    </div>
+
+    <div class="flex items-center pl-2 space-x-0.5 sm:space-x-2">
+      <!-- Top right Marketplace dropdown commented out - Marketplace tabs now displayed on Inventory header -->
+      <!--
+      @if (
+        storeDetails &&
+        (currentUrl.includes("/master/amazon-inventory") ||
+          currentUrl === "/master/amazon/compliance")
+      ) {
+        <mat-form-field
+          class="flex fuse-mat-dense min-w-[240px] mt-4"
+          [floatLabel]="'always'"
+        >
+          <mat-select
+            autocomplete="off"
+            placeholder="Select Account"
+            [(value)]="selectedMarketplace"
+            (selectionChange)="onMarketplaceSelect($event.value)"
+          >
+            @for (store of storeDetails; track store) {
+              <mat-optgroup [label]="store.store_name">
+                @for (
+                  marketplace of getMarketplaces(store.marketplace_ids);
+                  track marketplace
+                ) {
+                  <mat-option [value]="marketplace.id">
+                    <div class="flex items-center">
+                      <img
+                        class="rounded-full mr-2"
+                        [src]="
+                          'assets/images/flags/' +
+                          marketplace.countryCode +
+                          '.svg'
+                        "
+                        [alt]="marketplace.countryCode"
+                        style="width: 20px; height: 20px"
+                      />
+                      <span
+                        >{{ marketplace.countryName }} ({{
+                          marketplace.countryCode
+                        }})</span
+                      >
+                    </div>
+                  </mat-option>
+                }
+              </mat-optgroup>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+      -->
+      <fuse-fullscreen
+        class="hidden md:inline-flex items-center justify-center"
+      ></fuse-fullscreen>
+      <messages class="inline-flex items-center justify-center"></messages>
+      <user
+        class="inline-flex items-center justify-center"
+        [showAvatar]="false"
+      ></user>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="flex flex-col flex-auto">
+    <!-- *ngIf="true" hack is required here for router-outlet to work correctly.
+  Otherwise, layout changes won't be registered and the view won't be updated! -->
+    @if (true) {
+      <router-outlet></router-outlet>
+    }
+  </div>
+
+  <!-- Footer -->
+  <!-- <div
+class="relative flex flex-0 items-center justify-start w-full h-14 px-4 md:px-6 z-49 border-t bg-card dark:bg-transparent print:hidden">
+<span class="font-medium text-secondary">{{ currentYear }} &copy; Myboeken.nl. All rights
+reserved.</span>
+</div> -->
+</div>

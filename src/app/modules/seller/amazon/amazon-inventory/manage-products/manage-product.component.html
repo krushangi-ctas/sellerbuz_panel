@@ -1,0 +1,2967 @@
+<div class="flex flex-col bg-gray-100 w-full lg:flex-0 xl:block">
+  <!-- header -->
+  <div
+    class="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 md:px-8 py-2 sticky top-14 z-30 shadow-sm gap-3"
+  >
+    <!-- Title Section -->
+    <div class="flex items-center gap-3 min-w-0">
+      <a
+        class="flex h-8 justify-center w-8 items-center min-h-8 mr-2 z-20"
+        (click)="$event.preventDefault()"
+        mat-icon-button
+        [matTooltip]="pageId ? 'Update Product Details' : 'Add Product Details'"
+        matTooltipPosition="below"
+      >
+        <mat-icon
+          class="text-white icon-size-7 shrink-0"
+          [svgIcon]="'heroicons_solid:archive'"
+        ></mat-icon>
+      </a>
+      <div class="min-w-0 flex flex-col">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <h1 class="text-xl font-bold tracking-tight text-white leading-tight">
+            {{ pageId ? "Update Product Details" : "Add Product Details" }}
+          </h1>
+          @if (selectedInventoryStatus === 9) {
+            <span
+              class="text-amber-200 font-semibold text-xs bg-amber-900/30 px-2 py-0.5 rounded border border-amber-400/20"
+            >
+              Note: All the highlighted missing attributes have been filled by
+              AI. Kindly verify and confirm!
+            </span>
+          }
+        </div>
+        <p
+          class="text-xs sm:text-sm mt-0.5 text-white/80 font-normal leading-normal"
+        >
+          {{
+            pageId
+              ? "Modify the existing inventory details below."
+              : "Fill in the details to add a new inventory item."
+          }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Actions Section -->
+    <div class="flex items-center shrink-0">
+      <button
+        type="button"
+        class="btn-back flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+        (click)="goBackPage()"
+      >
+        <mat-icon
+          class="icon-size-5 shrink-0"
+          svgIcon="mat_outline:arrow_back"
+        ></mat-icon>
+        <span>Go back</span>
+      </button>
+    </div>
+  </div>
+  <!-- body -->
+  @if (renderForm !== "editForm") {
+    <ng-container *ngTemplateOutlet="addProductTemplate"></ng-container>
+  }
+  @if (renderForm === "editForm") {
+    <ng-container *ngTemplateOutlet="updateProductTemplate"></ng-container>
+  }
+</div>
+<!-- add template -->
+<ng-template #addProductTemplate>
+  <div class="flex flex-col bg-white border min-w-full">
+    <form
+      class="flex flex-col flex-wrap"
+      [formGroup]="inventoryFormGroupWL"
+      (keydown)="onKeydown($event)"
+    >
+      <!-- Header -->
+
+      @if (sellerSetting?.amz_status === 0) {
+        <div class="flex flex-col m-4 p-4 rounded-lg items-center">
+          <mat-icon class="text-4xl text-yellow-600 mb-2">warning</mat-icon>
+          <p class="text-center text-lg font-semibold">
+            Amazon integration is currently disabled.
+          </p>
+          <p class="text-center text-sm mt-2">
+            To enable this feature and start managing your Amazon inventory,
+            configure your Amazon settings now.
+          </p>
+          <button
+            type="button"
+            mat-flat-button
+            color="primary"
+            class="bg-yellow-500 rounded text-white font-semibold hover:bg-yellow-600 mt-4 px-6 py-2"
+            (click)="navigateToSettings()"
+          >
+            Configure Amazon Settings
+          </button>
+        </div>
+      }
+      @if (sellerSetting?.amz_status === 1) {
+        <div
+          class="flex flex-col m-1 p-2 rounded-lg items-stretch overflow-auto"
+        >
+          <mat-tab-group class="flex-1" [(selectedIndex)]="selectedTabIndex">
+            <!-- Amazon and Additional Margin Settings Combined in One Tab -->
+            <mat-tab class="bg-white h-full w-full Fields Required">
+              <ng-template mat-tab-label>
+                <img
+                  src="assets/amazon-white.jpg"
+                  alt="Amazon Logo"
+                  class="h-6 w-auto mr-2"
+                />
+                <span>Amazon</span>
+              </ng-template>
+              <div class="w-full min-h-[40vh] overflow-y-auto">
+                <!-- Amazon Settings Content -->
+                <div
+                  class="grid grid-cols-1 gap-6 mt-0 sm:grid-cols-2 lg:grid-cols-4"
+                >
+                  <div class="flex flex-col pl-2">
+                    <mat-label>Fulfillment By</mat-label>
+                    <mat-form-field [floatLabel]="'always'">
+                      <mat-select
+                        [formControl]="productForm?.get('singleFulfillment')"
+                      >
+                        <mat-option [value]="'FBM'">FBM</mat-option>
+                        <mat-option [value]="'FBA'">FBA</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                  <div class="flex flex-col pl-2">
+                    <mat-label>Amz. Product Type</mat-label>
+                    <mat-form-field
+                      class="status-color"
+                      [floatLabel]="'always'"
+                    >
+                      <mat-select
+                        [formControl]="productForm?.get('singleProductType')"
+                      >
+                        <mat-option [value]="'retail'">Retail</mat-option>
+                        <mat-option [value]="'white_label'"
+                          >White Label</mat-option
+                        >
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                  <div class="flex flex-col pl-2">
+                    <mat-label>Margin Mode</mat-label>
+                    <mat-radio-group
+                      [formControl]="productForm?.get('amzMarginMode')"
+                      class="flex flex-col gap-2 sm:flex-row"
+                      [ngModelOptions]="{ standalone: true }"
+                    >
+                      <mat-radio-button
+                        value="FIX"
+                        class="flex gap-1 items-center"
+                      >
+                        <!-- <mat-icon svgIcon="heroicons_outline:currency-dollar"
+                      class="icon-size-5"></mat-icon> -->
+                        <span class="mx-1"> Fixed </span>
+                      </mat-radio-button>
+                      <mat-radio-button
+                        value="PERCENTAGE"
+                        class="flex gap-1 items-center"
+                      >
+                        <!-- <mat-icon svgIcon="heroicons_outline:chart-pie" class="icon-size-5"></mat-icon> -->
+                        <span class="mx-1"> Percentage </span>
+                      </mat-radio-button>
+                    </mat-radio-group>
+                  </div>
+                  <div class="flex flex-col">
+                    <mat-label>Margin</mat-label>
+                    <mat-form-field [floatLabel]="'always'">
+                      <input
+                        matInput
+                        [formControl]="productForm?.get('amzMargin')"
+                        type="number"
+                        placeholder="Margin"
+                        (wheel)="stopScrollingWheel($event)"
+                      />
+                    </mat-form-field>
+                  </div>
+                </div>
+                <hr />
+                <!-- Form Fields for Product Information -->
+                <div class="grid grid-cols-1 gap-6 mt-1">
+                  @if (
+                    productForm?.get("singleProductType")?.value !== "retail"
+                  ) {
+                    <div
+                      class="grid border-2 border-black border-dashed p-4 rounded-lg shadow-md"
+                    >
+                      <span class="flex items-center mb-2">
+                        <mat-icon class="text-red-800 icon-size-6"
+                          >warning</mat-icon
+                        >
+                        <span class="text-red-800 font-bold ml-2"
+                          >White Label Product</span
+                        >
+                      </span>
+                      <p class="mb-4">
+                        <strong class="text-red-800 font-bold"
+                          >Instruction:</strong
+                        >
+                        If you don't have a product identifier, you can create a
+                        product using a GTIN exemption. To obtain this
+                        exemption, you must submit a manual request through your
+                        Seller Central account.
+                      </p>
+                      <div class="flex items-center">
+                        <mat-checkbox
+                          [(ngModel)]="isGtinExemptionApproved"
+                          [ngModelOptions]="{ standalone: true }"
+                          class="mr-2"
+                          (change)="onGtinExamptionChange($event)"
+                        ></mat-checkbox>
+                        <span class="text-gray-700"
+                          >Check this box to proceed without a product
+                          identifier, ensuring that you have received approval
+                          for the GTIN exemption.</span
+                        >
+                      </div>
+                    </div>
+                  }
+                  <div
+                    class="flex bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-md shadow-md text-yellow-900 items-start"
+                  >
+                    <mat-icon class="text-yellow-700 mr-3">warning</mat-icon>
+                    <div>
+                      <p class="text-md font-semibold">Important Notice</p>
+                      <p class="text-sm">
+                        Your products will be synced with prices in
+                        <span class="font-bold"
+                          >{{ marketplaceData?.currencyCode }} ({{
+                            marketplaceData?.currency
+                          }})</span
+                        >. Please ensure your pricing is correctly adjusted.
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    class="flex flex-col items-stretch gap-3 lg:flex-row lg:items-start"
+                  >
+                    <mat-form-field
+                      class="w-full pr-0 md:max-h-10 lg:pr-1"
+                      [floatLabel]="'always'"
+                    >
+                      <mat-label> SKU</mat-label>
+                      <input
+                        matInput
+                        [formControlName]="'sku'"
+                        placeholder="SKU"
+                        type="text"
+                        required=""
+                        (blur)="onBlurSKUEvent(selectedMarketplaceId)"
+                      />
+                      @if (
+                        inventoryFormGroupWL.get("sku").hasError("required")
+                      ) {
+                        <mat-error> SKU is required! </mat-error>
+                      }
+                    </mat-form-field>
+                    @if (isLoader) {
+                      <div
+                        class="border-blue-800 border-t-4 h-10 rounded-full w-10 animate-spin mt-5 mx-auto"
+                      ></div>
+                    }
+                    @if (
+                      productForm?.get("singleProductType")?.value !== "retail"
+                    ) {
+                      <mat-form-field class="w-full" [floatLabel]="'always'">
+                        <mat-label>Product Type</mat-label>
+                        <mat-select
+                          [(ngModel)]="singleProductsVars.productTypes"
+                          [ngModelOptions]="{
+                            standalone: true,
+                          }"
+                          placeholder="Select product type"
+                          (selectionChange)="onProductTypeChange($event)"
+                          [disabled]="isLoadingRecommendations"
+                        >
+                          <mat-option>
+                            <ngx-mat-select-search
+                              [formControl]="selectSearchProducType"
+                              [preventHomeEndKeyPropagation]="true"
+                              placeholderLabel="Search product type"
+                              (keyup)="
+                                filterProductTypeDataForSingleProducts(
+                                  $event.target.value
+                                )
+                              "
+                              noEntriesFoundLabel="'No product type found'"
+                            >
+                            </ngx-mat-select-search>
+                          </mat-option>
+
+                          @if (isLoadingRecommendations) {
+                            <mat-option disabled class="!text-slate-400">
+                              <div class="flex items-center gap-2 py-1">
+                                <mat-spinner diameter="16"></mat-spinner>
+                                <span
+                                  class="text-xs font-semibold text-slate-500"
+                                  >Loading AI recommendations...</span
+                                >
+                              </div>
+                            </mat-option>
+                          }
+
+                          @for (
+                            group of filteredGroupedProductTypeList;
+                            track group.name
+                          ) {
+                            @if (
+                              group.productTypes &&
+                              group.productTypes.length > 0
+                            ) {
+                              <mat-optgroup [label]="group.name">
+                                @for (
+                                  item of group.productTypes;
+                                  track item.value
+                                ) {
+                                  <mat-option [value]="item.value">
+                                    {{ item.viewValue }}
+                                  </mat-option>
+                                }
+                              </mat-optgroup>
+                            }
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    }
+                    @if (
+                      productForm?.get("singleProductType")?.value === "retail"
+                    ) {
+                      @if (asinList?.length > 1) {
+                        <div class="flex min-w-0 flex-col pr-0 lg:pr-1">
+                          <mat-label>ASIN</mat-label>
+                          <mat-radio-group
+                            formControlName="product_id"
+                            class="flex flex-col border border-gray-300 p-2 rounded min-w-0 w-full lg:min-w-120"
+                            [ngClass]="{
+                              'overflow-auto max-h-48': asinList.length > 3,
+                            }"
+                          >
+                            @for (item of asinList; track item) {
+                              <mat-radio-button
+                                [value]="item.asin"
+                                class="flex gap-2 items-center"
+                              >
+                                <span class="font-bold">{{ item.asin }}</span>
+                                <div
+                                  class="text-gray-600 text-sm w-full lg:w-120 break-words"
+                                  [matTooltip]="item.title"
+                                >
+                                  ({{ item.title }})
+                                </div>
+                                <!-- <hr class="border border-slate-200 mt-0.5"> -->
+                                <hr class="my-1" />
+                              </mat-radio-button>
+                            }
+                          </mat-radio-group>
+                          <!-- Create New Listing Option -->
+                          <div class="mt-2">
+                            <a
+                              (click)="createNewListing()"
+                              class="text-blue-600 cursor-pointer font-semibold hover:underline"
+                            >
+                              Create a new listing?
+                            </a>
+                          </div>
+                        </div>
+                      } @else {
+                        <mat-form-field
+                          class="w-full pr-0 lg:pr-1"
+                          [floatLabel]="'always'"
+                        >
+                          <mat-label>ASIN</mat-label>
+                          <mat-icon matPrefix>label</mat-icon>
+                          <input
+                            matInput
+                            [formControlName]="'product_id'"
+                            placeholder="ASIN"
+                            type="text"
+                            [value]="
+                              asinList?.length === 1 ? asinList[0].asin : ''
+                            "
+                          />
+                          @if (
+                            inventoryFormGroupWL
+                              .get("product_id")
+                              .hasError("required")
+                          ) {
+                            <mat-error> ASIN is required! </mat-error>
+                          }
+                          @if (
+                            inventoryFormGroupWL
+                              .get("product_id")
+                              .hasError("pattern")
+                          ) {
+                            <mat-error>
+                              ASIN must be exactly 10 characters long and
+                              contain at least one uppercase letter and one
+                              digit.
+                            </mat-error>
+                          }
+                        </mat-form-field>
+                      }
+                      <!-- Single ASIN Handling -->
+                      <mat-form-field
+                        class="w-full pr-0 md:max-h-10 lg:pr-1"
+                        [floatLabel]="'always'"
+                      >
+                        <mat-label>Price </mat-label>
+                        <mat-icon matPrefix>money</mat-icon>
+                        <input
+                          matInput
+                          [formControlName]="'price'"
+                          min="1"
+                          placeholder="Price"
+                          type="number"
+                          (wheel)="stopScrollingWheel($event)"
+                          (input)="onPriceInputWL($event)"
+                        />
+                        @if (
+                          inventoryFormGroupWL.get("price").hasError("min")
+                        ) {
+                          <mat-error>Price must be at least 1!</mat-error>
+                        }
+                        @if (
+                          inventoryFormGroupWL.get("price").hasError("required")
+                        ) {
+                          <mat-error> Price is required! </mat-error>
+                        }
+                      </mat-form-field>
+                      <mat-form-field
+                        class="w-full pr-0 md:max-h-10 lg:pr-1"
+                        [floatLabel]="'always'"
+                      >
+                        <mat-label>Stock </mat-label>
+                        <mat-icon matPrefix>stock</mat-icon>
+                        <input
+                          matInput
+                          [formControlName]="'stock'"
+                          min="0"
+                          [max]="masterCatalog?.master_stock"
+                          placeholder="Stock"
+                          type="number"
+                          (wheel)="stopScrollingWheel($event)"
+                          (input)="onStockInputWL($event)"
+                        />
+                        @if (
+                          inventoryFormGroupWL.get("stock").hasError("required")
+                        ) {
+                          <mat-error>Stock is required!</mat-error>
+                        }
+                        @if (
+                          inventoryFormGroupWL.get("stock").hasError("max")
+                        ) {
+                          <mat-error
+                            >Stock must be less than your master
+                            stock!</mat-error
+                          >
+                        }
+                      </mat-form-field>
+                    }
+                  </div>
+                </div>
+              </div>
+              <!-- Action Buttons (Cancel / GoBack and Next/Submit) -->
+              <div
+                class="flex items-center justify-end w-full gap-3 mt-6 pt-4 border-t border-slate-200"
+              >
+                <button
+                  type="button"
+                  mat-stroked-button
+                  class="bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 font-semibold px-5 py-2 rounded-lg transition-colors shadow-sm flex items-center cursor-pointer"
+                  (click)="goBackPage()"
+                >
+                  <mat-icon
+                    class="icon-size-5 mr-1.5 text-slate-600"
+                    svgIcon="mat_outline:arrow_back"
+                  ></mat-icon>
+                  <span>Cancel</span>
+                </button>
+
+                @if (
+                  productForm?.get("singleProductType")?.value !== "retail"
+                ) {
+                  <button
+                    type="button"
+                    mat-flat-button
+                    class="bg-primary hover:bg-primary-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
+                    [disabled]="warningMessage !== ''"
+                    (click)="goToNextTab()"
+                  >
+                    <span>Next</span>
+                    <mat-icon
+                      class="icon-size-5"
+                      svgIcon="mat_outline:arrow_forward"
+                    ></mat-icon>
+                  </button>
+                }
+                @if (
+                  productForm?.get("singleProductType")?.value === "retail"
+                ) {
+                  <button
+                    type="button"
+                    mat-flat-button
+                    class="bg-primary hover:bg-primary-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
+                    (click)="
+                      addUpdateSelectedMasterInventory('master_inventory')
+                    "
+                  >
+                    <span>Submit</span>
+                    <mat-icon
+                      class="icon-size-5"
+                      svgIcon="mat_outline:upload_file"
+                    ></mat-icon>
+                  </button>
+                }
+              </div>
+            </mat-tab>
+            <!-- Dummy Next Tab (Will be activated after clicking the Next button) -->
+            @if (productForm?.get("singleProductType")?.value !== "retail") {
+              <mat-tab
+                class="bg-white h-full w-full Fields Required"
+                [disabled]="disableSecondTab || warningMessage !== ''"
+              >
+                <ng-template mat-tab-label>
+                  <span class="truncate"
+                    >Please fill product information here</span
+                  >
+                </ng-template>
+                <div
+                  class="bg-white p-4 rounded w-full max-h-[calc(100dvh-265px)] min-h-[40vh] overflow-y-auto"
+                >
+                  <div
+                    class="p-4 mb-2 min-w-[300px] overflow-y-auto rounded lg:min-w-[70vw]"
+                    [ngClass]="{
+                      'border border-red-500':
+                        formGroupTabOne?.controls &&
+                        objectKeys(formGroupTabOne.controls).length > 0,
+                    }"
+                  >
+                    <form [formGroup]="formGroupTabOne" class="flex flex-wrap">
+                      <div
+                        class="grid border-2 border-black border-dashed p-3 w-full mb-2"
+                      >
+                        <span class="flex text-center">
+                          <mat-icon class="text-black icon-size-6"
+                            >info</mat-icon
+                          >
+                          <span class="text-base text-black font-bold ml-2 mt-1"
+                            >Generate Listing Content</span
+                          >
+                        </span>
+                        <p class="mt-2">
+                          <strong>Note:</strong> It is your decision whether to
+                          use the optional, proposed content for your listings.
+                          The proposed content may not be accurate or relevant
+                          to your specific product. You are responsible for
+                          making any changes necessary to accurately list and
+                          describe your specific product. By using the proposed
+                          content, you agree that you have reviewed it, and that
+                          it is accurate, complete, and compliant with all
+                          applicable laws and Amazon policies.
+                        </p>
+                        <mat-form-field
+                          appearance="outline"
+                          class="w-full mt-2"
+                          [floatLabel]="'always'"
+                        >
+                          <textarea
+                            matInput
+                            #listingContent
+                            placeholder="Enter content here..."
+                            rows="3"
+                          ></textarea>
+                        </mat-form-field>
+                        <div class="flex justify-end w-full items-center">
+                          <button
+                            type="button"
+                            (click)="
+                              CheckForAiCalls();
+                              AiAttemptsEnable &&
+                                onGenrateContentWithAi(listingContent.value)
+                            "
+                            [disabled]="
+                              !listingContent.value || !AiAttemptsEnable
+                            "
+                            [ngClass]="{
+                              'bg-blue-500 text-white':
+                                listingContent.value && AiAttemptsEnable,
+                              'bg-gray-300 text-gray-500 cursor-not-allowed':
+                                !listingContent.value || !AiAttemptsEnable,
+                            }"
+                            class="rounded duration-200 px-4 py-2 transition"
+                          >
+                            Generate listing content with AI
+                          </button>
+                        </div>
+                      </div>
+                      @if (formGroupTabOne?.controls) {
+                        <div class="flex flex-wrap w-full">
+                          <!-- Loop through all controls in formGroupTabOne  -->
+                          @for (
+                            key of objectKeys(formGroupTabOne.controls);
+                            track key
+                          ) {
+                            @if (requiredFormFields[key]?.enumNames) {
+                              <div
+                                class="flex flex-col md:flex-row justify-between w-full items-start md:items-center md:w-1/2"
+                              >
+                                <!-- Dropdown Field -->
+                                <div class="flex items-center gap-2 w-full">
+                                  <mat-form-field
+                                    class="flex-1 w-full px-2 md:w-[90%]"
+                                    appearance="fill"
+                                  >
+                                    <mat-label
+                                      >{{
+                                        requiredFormFields[key].mainTitle || key
+                                      }}
+                                      *</mat-label
+                                    >
+                                    <mat-select
+                                      [formControlName]="key"
+                                      (openedChange)="
+                                        onDropdownOpenedChange(
+                                          $event,
+                                          key,
+                                          true
+                                        )
+                                      "
+                                    >
+                                      @if (requiredFormFields[key]?.enumNames) {
+                                        <mat-option>
+                                          <ngx-mat-select-search
+                                            [formControl]="
+                                              getFieldSearchControl(key, true)
+                                            "
+                                            [preventHomeEndKeyPropagation]="
+                                              true
+                                            "
+                                            [placeholderLabel]="
+                                              'Search ' +
+                                              (requiredFormFields[key]
+                                                ?.mainTitle ||
+                                                requiredFormFields[key]
+                                                  ?.title ||
+                                                'options')
+                                            "
+                                            noEntriesFoundLabel="'No options found'"
+                                          >
+                                          </ngx-mat-select-search>
+                                        </mat-option>
+                                      }
+                                      @for (
+                                        option of requiredFormFields[key]
+                                          .enumNames;
+                                        track option;
+                                        let i = $index
+                                      ) {
+                                        <mat-option
+                                          [value]="
+                                            requiredFormFields[key].enum[i]
+                                          "
+                                        >
+                                          @if (
+                                            requiredFormFields[key].enumNames[
+                                              i
+                                            ]?.startsWith("✨")
+                                          ) {
+                                            <span
+                                              class="flex items-center gap-1.5 text-primary [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white [.mdc-list-item--selected_&]:!text-white [.mdc-list-item--activated_&]:!text-white font-semibold"
+                                            >
+                                              <span
+                                                class="text-amber-500 font-bold"
+                                                >✨</span
+                                              >
+                                              <span>{{
+                                                requiredFormFields[
+                                                  key
+                                                ].enumNames[i]?.replace(
+                                                  "✨ ",
+                                                  ""
+                                                )
+                                              }}</span>
+                                              <span
+                                                class="ml-auto text-[10px] px-1.5 py-0.5 font-bold bg-primary-100 text-primary-800 [.mat-mdc-option-selected_&]:!bg-white/20 [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!bg-white/20 [.mat-mdc-option-active_&]:!text-white [.mdc-list-item--selected_&]:!bg-white/20 [.mdc-list-item--selected_&]:!text-white [.mdc-list-item--activated_&]:!bg-white/20 [.mdc-list-item--activated_&]:!text-white rounded-full"
+                                                >AI</span
+                                              >
+                                            </span>
+                                          } @else {
+                                            {{
+                                              requiredFormFields[key].enumNames[
+                                                i
+                                              ]
+                                            }}
+                                          }
+                                        </mat-option>
+                                      }
+                                    </mat-select>
+                                    @if (
+                                      formGroupTabOne
+                                        .get(key)
+                                        ?.hasError("required")
+                                    ) {
+                                      <mat-error>
+                                        {{
+                                          requiredFormFields[key].mainTitle ||
+                                            key
+                                        }}
+                                        is required!
+                                      </mat-error>
+                                    }
+                                  </mat-form-field>
+                                  @if (
+                                    key === "recommended_browse_nodes___value"
+                                  ) {
+                                    <button
+                                      type="button"
+                                      class="inline-flex items-center gap-1 px-3 py-2 mt-3 text-xs font-semibold text-white bg-primary hover:bg-primary-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-150 disabled:opacity-50 whitespace-nowrap mb-4 cursor-pointer"
+                                      (click)="fetchAiBrowseNodes()"
+                                      [disabled]="isLoadingBrowseNodes"
+                                      title="Find Browse Nodes with AI"
+                                    >
+                                      @if (isLoadingBrowseNodes) {
+                                        <mat-spinner
+                                          diameter="14"
+                                          class="!text-white"
+                                        ></mat-spinner>
+                                        <span>Finding AI...</span>
+                                      } @else {
+                                        <span class="text-amber-300 font-bold"
+                                          >✨</span
+                                        >
+                                        <span>Find with AI</span>
+                                      }
+                                    </button>
+                                  }
+                                </div>
+                                <!-- Refresh Button -->
+                                <button
+                                  type="button"
+                                  mat-icon-button
+                                  class="-mt-2"
+                                  (click)="resetField(key)"
+                                >
+                                  <mat-icon svgIcon="refresh"></mat-icon>
+                                </button>
+                                <!-- <mat-icon svgIcon="refresh"></mat-icon> -->
+                              </div>
+                            } @else {
+                              @if (!key.startsWith("bullet_")) {
+                                <!-- Standard Input Field -->
+                                <mat-form-field
+                                  class="w-full px-2"
+                                  [ngClass]="{
+                                    'md:w-1/2':
+                                      !requiredFormFields[key].fullWidth,
+                                  }"
+                                  appearance="fill"
+                                >
+                                  <mat-label
+                                    >{{
+                                      requiredFormFields[key].mainTitle || key
+                                    }}
+                                    *</mat-label
+                                  >
+                                  <!-- <input matInput [formControlName]="
+                                                                key
+                                                            " placeholder="Enter {{
+                                                                requiredFormFields[
+                                                                    key
+                                                                ].mainTitle ||
+                                                                    key
+                                                            }}" /> -->
+                                  @if (
+                                    requiredFormFields[key]?.input_type ===
+                                    "textarea"
+                                  ) {
+                                    <textarea
+                                      matInput
+                                      [formControlName]="key"
+                                      [rows]="requiredFormFields[key]?.row || 3"
+                                      placeholder="Enter {{
+                                        requiredFormFields[key]?.mainTitle ||
+                                          key
+                                      }}"
+                                    >
+                                    </textarea>
+                                  }
+                                  <!-- Default input field -->
+                                  @if (
+                                    !requiredFormFields[key]?.input_type ||
+                                    requiredFormFields[key]?.input_type !==
+                                      "textarea"
+                                  ) {
+                                    <input
+                                      matInput
+                                      [formControlName]="key"
+                                      placeholder="Enter {{
+                                        requiredFormFields[key]?.mainTitle ||
+                                          key
+                                      }}"
+                                    />
+                                  }
+                                  @if (
+                                    formGroupTabOne
+                                      .get(key)
+                                      ?.hasError("required")
+                                  ) {
+                                    <mat-error>
+                                      {{
+                                        requiredFormFields[key].mainTitle || key
+                                      }}
+                                      is required!
+                                    </mat-error>
+                                  }
+                                </mat-form-field>
+                              } @else {
+                                <!-- Bullet Point Fields -->
+                                <div class="w-full px-2">
+                                  @if (
+                                    getFormArrayControls(key, formGroupTabOne)
+                                      .length > 0
+                                  ) {
+                                    <div>
+                                      @for (
+                                        control of getFormArrayControls(
+                                          key,
+                                          formGroupTabOne
+                                        );
+                                        track control;
+                                        let i = $index
+                                      ) {
+                                        <div class="flex items-center">
+                                          <mat-form-field
+                                            class="w-full"
+                                            appearance="fill"
+                                          >
+                                            <mat-label
+                                              >{{
+                                                requiredFormFields[key]
+                                                  ?.mainTitle || key
+                                              }}
+                                              *</mat-label
+                                            >
+                                            <!-- <input matInput [formControl]="
+                                                                            control
+                                                                        " placeholder="Enter {{
+                                                                            requiredFormFields[
+                                                                                key
+                                                                            ]
+                                                                                ?.mainTitle ||
+                                                                                key
+                                                                        }}" /> -->
+                                            @if (
+                                              requiredFormFields[key]
+                                                ?.input_type === "textarea"
+                                            ) {
+                                              <textarea
+                                                matInput
+                                                [formControl]="control"
+                                                [rows]="
+                                                  requiredFormFields[key]
+                                                    ?.row || 3
+                                                "
+                                                placeholder="Enter {{
+                                                  requiredFormFields[key]
+                                                    ?.mainTitle || key
+                                                }}"
+                                              >
+                                              </textarea>
+                                            }
+                                            <!-- Default input field -->
+                                            @if (
+                                              !requiredFormFields[key]
+                                                ?.input_type ||
+                                              requiredFormFields[key]
+                                                ?.input_type !== "textarea"
+                                            ) {
+                                              <input
+                                                matInput
+                                                [formControl]="control"
+                                                placeholder="Enter {{
+                                                  requiredFormFields[key]
+                                                    ?.mainTitle || key
+                                                }}"
+                                              />
+                                            }
+                                            @if (control.hasError("required")) {
+                                              <mat-error>
+                                                {{
+                                                  requiredFormFields[key]
+                                                    ?.mainTitle || key
+                                                }}
+                                                is required!
+                                              </mat-error>
+                                            }
+                                          </mat-form-field>
+                                          <mat-icon
+                                            svgIcon="heroicons_solid:minus-circle"
+                                            class="text-red-500 cursor-pointer mx-3"
+                                            (click)="
+                                              removeArrayItem(
+                                                key,
+                                                formGroupTabOne
+                                              )
+                                            "
+                                          >
+                                          </mat-icon>
+                                        </div>
+                                      }
+                                    </div>
+                                  } @else {
+                                    <p class="text-gray-500 text-sm italic">
+                                      No fields added yet. Click "Add Field" to
+                                      start.
+                                    </p>
+                                  }
+                                  <div
+                                    class="flex justify-end items-center mt-2"
+                                  >
+                                    <button
+                                      type="button"
+                                      mat-raised-button
+                                      color="primary"
+                                      (click)="
+                                        addArrayItem(key, formGroupTabOne, 'fb')
+                                      "
+                                    >
+                                      Add
+                                      {{
+                                        requiredFormFields[key]?.mainTitle ||
+                                          "Field"
+                                      }}
+                                    </button>
+                                  </div>
+                                </div>
+                              }
+                            }
+                          }
+                        </div>
+                      }
+                    </form>
+                  </div>
+                  <hr />
+                  @if (hasVariations) {
+                    <div class="grid text-lg">
+                      <mat-checkbox [formControl]="isHasVarients">
+                        <span class="text-xl">
+                          Select this option if your product has different
+                          variations such as size, color, or material.</span
+                        >
+                      </mat-checkbox>
+                    </div>
+                    @if (isHasVarients.value) {
+                      <ng-container *ngTemplateOutlet="variation">
+                      </ng-container>
+                    }
+                    <hr />
+                  }
+                  <!-- non mednatory feilds   -->
+                  <div
+                    class="p-4 mb-2 min-w-[300px] overflow-y-auto lg:min-w-[70vw]"
+                  >
+                    <form
+                      [formGroup]="formGroupTabTwo"
+                      class="flex flex-wrap -mx-2"
+                    >
+                      @if (formGroupTabTwo && formGroupTabTwo.controls) {
+                        <div class="flex flex-wrap w-full">
+                          <!-- Loop through all controls in formGroupTabTwo -->
+                          @for (
+                            key of objectKeys(formGroupTabTwo.controls);
+                            track key
+                          ) {
+                            <!-- Render the form field -->
+                            @if (nonRequiredFormFields[key]?.enumNames) {
+                              <!-- Dropdown Field -->
+                              <div
+                                class="flex flex-col md:flex-row justify-between w-full items-start md:items-center md:w-1/2"
+                              >
+                                <!-- Dropdown Field -->
+                                <mat-form-field
+                                  class="flex-1 w-full px-2 md:w-[90%]"
+                                  appearance="fill"
+                                >
+                                  <mat-label>
+                                    {{ nonRequiredFormFields[key].mainTitle }}
+                                  </mat-label>
+                                  <mat-select
+                                    [formControlName]="key"
+                                    (openedChange)="
+                                      onDropdownOpenedChange($event, key, false)
+                                    "
+                                  >
+                                    @if (
+                                      nonRequiredFormFields[key]?.enumNames
+                                    ) {
+                                      <mat-option>
+                                        <ngx-mat-select-search
+                                          [formControl]="
+                                            getFieldSearchControl(key, false)
+                                          "
+                                          [preventHomeEndKeyPropagation]="true"
+                                          [placeholderLabel]="
+                                            'Search ' +
+                                            (nonRequiredFormFields[key]
+                                              ?.mainTitle || 'options')
+                                          "
+                                          noEntriesFoundLabel="'No options found'"
+                                        >
+                                        </ngx-mat-select-search>
+                                      </mat-option>
+                                    }
+                                    @for (
+                                      option of nonRequiredFormFields[key]
+                                        ?.enumNames;
+                                      track option;
+                                      let i = $index
+                                    ) {
+                                      <mat-option
+                                        [value]="
+                                          nonRequiredFormFields[key].enum[i]
+                                        "
+                                      >
+                                        {{ option }}
+                                      </mat-option>
+                                    }
+                                  </mat-select>
+                                  @if (
+                                    formGroupTabTwo
+                                      .get(key)
+                                      ?.hasError("required")
+                                  ) {
+                                    <mat-error>
+                                      {{
+                                        nonRequiredFormFields[key].mainTitle ||
+                                          key
+                                      }}
+                                      is required!
+                                    </mat-error>
+                                  }
+                                </mat-form-field>
+                                <button
+                                  type="button"
+                                  mat-icon-button
+                                  (click)="resetField(key)"
+                                >
+                                  <mat-icon svgIcon="refresh"></mat-icon>
+                                </button>
+                              </div>
+                            } @else {
+                              <div class="w-full px-2 md:w-1/2">
+                                <mat-form-field
+                                  class="w-full"
+                                  appearance="fill"
+                                >
+                                  <mat-label>{{
+                                    nonRequiredFormFields[key].mainTitle
+                                  }}</mat-label>
+                                  <input
+                                    matInput
+                                    [formControlName]="key"
+                                    placeholder="Enter {{ key }}"
+                                  />
+                                  @if (
+                                    formGroupTabTwo
+                                      .get(key)
+                                      ?.hasError("required")
+                                  ) {
+                                    <mat-error>
+                                      {{
+                                        nonRequiredFormFields[key].mainTitle ||
+                                          key
+                                      }}
+                                      is required!
+                                    </mat-error>
+                                  }
+                                </mat-form-field>
+                              </div>
+                            }
+                            <!-- String Input Field -->
+                          }
+                        </div>
+                      }
+                    </form>
+                  </div>
+                </div>
+                <!-- Action Buttons (GoBack and Submit) -->
+                <div
+                  class="flex items-center justify-end w-full gap-3 mt-6 pt-4 border-t border-slate-200 sticky bottom-0 bg-white z-10 py-3"
+                >
+                  <button
+                    type="button"
+                    mat-stroked-button
+                    class="bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 font-semibold px-5 py-2 rounded-lg transition-colors shadow-sm flex items-center cursor-pointer"
+                    (click)="goToPreviousTab()"
+                  >
+                    <mat-icon
+                      class="icon-size-5 mr-1.5 text-slate-600"
+                      svgIcon="mat_outline:arrow_back"
+                    ></mat-icon>
+                    <span>Go Back</span>
+                  </button>
+                  <button
+                    type="submit"
+                    mat-flat-button
+                    class="bg-primary hover:bg-primary-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
+                    (click)="hanldeSubmitWL()"
+                    [disabled]="disableThird"
+                  >
+                    <span>Submit</span>
+                    <mat-icon
+                      class="icon-size-5"
+                      svgIcon="mat_outline:upload_file"
+                    ></mat-icon>
+                  </button>
+                </div>
+              </mat-tab>
+            }
+          </mat-tab-group>
+        </div>
+      }
+    </form>
+  </div>
+</ng-template>
+<!-- update template -->
+<ng-template #updateProductTemplate>
+  <div class="flex flex-col h-full">
+    <!-- Form Section -->
+    <div
+      class="flex flex-col border h-full min-w-full"
+      (keydown)="onKeydown($event)"
+    >
+      <div class="h-full">
+        <mat-tab-group
+          class="flex h-full nonmendetory-input update-product-tabs"
+          [(selectedIndex)]="selectedUpadteTabIndex"
+          (selectedIndexChange)="onUpdateTabIndexChange($event)"
+        >
+          <mat-tab
+            class="bg-white h-full w-full Fields Required"
+            [disabled]="isFirstTabDisable"
+          >
+            <ng-template mat-tab-label>
+              <span>Update Product type</span>
+            </ng-template>
+            <div class="p-4">
+              @if (isLoading) {
+                <div class="animate-pulse p-4 space-y-3">
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"
+                  ></div>
+                  <div
+                    class="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"
+                  ></div>
+                </div>
+              } @else {
+                <mat-form-field class="flex w-full">
+                  <mat-label>Amazon Product Type</mat-label>
+                  <mat-select
+                    [(ngModel)]="selectProductType"
+                    (selectionChange)="updateProductTypeSelect($event)"
+                    [ngModelOptions]="{ standalone: true }"
+                    [placeholder]="'Select product type'"
+                    [disabled]="isLoadingRecommendations"
+                  >
+                    <mat-option>
+                      <ngx-mat-select-search
+                        placeholderLabel="Search product type"
+                        (keyup)="
+                          filterProductTypeDataForSingleProducts(
+                            $event.target.value
+                          )
+                        "
+                        noEntriesFoundLabel="'No product type found'"
+                      >
+                      </ngx-mat-select-search
+                    ></mat-option>
+
+                    @if (isLoadingRecommendations) {
+                      <mat-option disabled class="!text-slate-400">
+                        <div class="flex items-center gap-2 py-1">
+                          <mat-spinner diameter="16"></mat-spinner>
+                          <span class="text-xs font-semibold text-slate-500"
+                            >Loading AI recommendations...</span
+                          >
+                        </div>
+                      </mat-option>
+                    }
+
+                    @for (
+                      group of filteredGroupedProductTypeList;
+                      track group.name
+                    ) {
+                      @if (
+                        group.productTypes && group.productTypes.length > 0
+                      ) {
+                        <mat-optgroup [label]="group.name">
+                          @for (item of group.productTypes; track item.value) {
+                            <mat-option [value]="item.value">
+                              {{ item.viewValue }}
+                            </mat-option>
+                          }
+                        </mat-optgroup>
+                      }
+                    }
+                  </mat-select>
+                </mat-form-field>
+              }
+            </div>
+          </mat-tab>
+
+          <mat-tab class="bg-white h-full w-full Fields Required">
+            <ng-template mat-tab-label>
+              <span>Product information </span>
+            </ng-template>
+            @if (isLoading) {
+              <div class="p-4">
+                <ng-container
+                  *ngTemplateOutlet="formGroupSkeletonLoader"
+                ></ng-container>
+              </div>
+            } @else {
+              <div class="bg-white p-4 rounded w-full">
+                @if (isDisplayNote) {
+                  <div class="p-0.5 mb-2 overflow-y-auto">
+                    <div
+                      class="grid border-2 border-black border-dashed p-2 rounded-lg shadow-md"
+                    >
+                      <span class="flex text-center">
+                        <mat-icon class="text-black icon-size-6">info</mat-icon>
+                        <span class="text-base text-black font-bold ml-2 mt-1"
+                          >White Label Products- GTIN Exemption</span
+                        >
+                        <mat-icon
+                          [svgIcon]="'heroicons_outline:shield-check'"
+                          class="text-green-500 icon-size-6"
+                        ></mat-icon>
+                      </span>
+                      <p class="mb-4">
+                        <strong class="text-black font-bold">Note:</strong>
+                        This product is not subject to any identifier
+                        requirements, allowing for simpler listing and
+                        management
+                      </p>
+                    </div>
+                  </div>
+                }
+                <div
+                  class="p-4 rounded mb-2 min-w-[300px] lg:min-w-[70vw]"
+                  [ngClass]="{
+                    'border border-red-500':
+                      formGroupTabOne?.controls &&
+                      objectKeys(formGroupTabOne.controls).length > 0,
+                  }"
+                >
+                  <form [formGroup]="formGroupTabOne">
+                    @if (formGroupTabOne?.controls) {
+                      <div class="w-full">
+                        <!-- Flex container for inputs -->
+                        <div class="flex flex-wrap w-full -mx-2">
+                          <!-- Loop through all controls in formGroupTabOne -->
+                          @for (
+                            key of objectKeys(formGroupTabOne.controls);
+                            track key
+                          ) {
+                            <!-- Render enum-based dropdown or fallback to string input -->
+                            @if (requiredFormFields[key]?.enumNames) {
+                              <div
+                                class="flex flex-col md:flex-row justify-center w-full items-start md:items-center px-2 md:w-1/2"
+                              >
+                                <div class="flex items-center gap-2 w-full">
+                                  <mat-form-field
+                                    class="w-full"
+                                    appearance="fill"
+                                  >
+                                    <mat-label
+                                      class="p-2 font-bold"
+                                      [class.bg-red-200]="
+                                        highlightAttributeKey.includes(key)
+                                      "
+                                      [class.p-2]="
+                                        highlightAttributeKey.includes(key)
+                                      "
+                                      >{{
+                                        requiredFormFields[key]?.mainTitle ||
+                                          requiredFormFields[key]?.title ||
+                                          key
+                                      }}</mat-label
+                                    >
+                                    <mat-select
+                                      [formControlName]="key"
+                                      (openedChange)="
+                                        onDropdownOpenedChange(
+                                          $event,
+                                          key,
+                                          true
+                                        )
+                                      "
+                                    >
+                                      @if (requiredFormFields[key]?.enumNames) {
+                                        <mat-option>
+                                          <ngx-mat-select-search
+                                            [preventHomeEndKeyPropagation]="
+                                              true
+                                            "
+                                            [placeholderLabel]="
+                                              'Search ' +
+                                              (requiredFormFields[key]
+                                                ?.mainTitle ||
+                                                requiredFormFields[key]
+                                                  ?.title ||
+                                                'options')
+                                            "
+                                            (keyup)="
+                                              filterFieldOptions(
+                                                key,
+                                                $event.target.value,
+                                                true
+                                              )
+                                            "
+                                            noEntriesFoundLabel="'No options found'"
+                                          >
+                                          </ngx-mat-select-search>
+                                        </mat-option>
+                                      }
+                                      @for (
+                                        option of requiredFormFields[key]
+                                          .enumNames;
+                                        track option;
+                                        let i = $index
+                                      ) {
+                                        <mat-option
+                                          [value]="
+                                            requiredFormFields[key].enum[i]
+                                          "
+                                        >
+                                          @if (
+                                            requiredFormFields[key].enumNames[
+                                              i
+                                            ]?.startsWith("✨")
+                                          ) {
+                                            <span
+                                              class="flex items-center gap-1.5 text-primary [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white [.mdc-list-item--selected_&]:!text-white [.mdc-list-item--activated_&]:!text-white font-semibold"
+                                            >
+                                              <span
+                                                class="text-amber-500 font-bold"
+                                                >✨</span
+                                              >
+                                              <span>{{
+                                                requiredFormFields[
+                                                  key
+                                                ].enumNames[i]?.replace(
+                                                  "✨ ",
+                                                  ""
+                                                )
+                                              }}</span>
+                                              <span
+                                                class="ml-auto text-[10px] px-1.5 py-0.5 font-bold bg-primary-100 text-primary-800 [.mat-mdc-option-selected_&]:!bg-white/20 [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!bg-white/20 [.mat-mdc-option-active_&]:!text-white [.mdc-list-item--selected_&]:!bg-white/20 [.mdc-list-item--selected_&]:!text-white [.mdc-list-item--activated_&]:!bg-white/20 [.mdc-list-item--activated_&]:!text-white rounded-full"
+                                                >AI</span
+                                              >
+                                            </span>
+                                          } @else {
+                                            {{
+                                              requiredFormFields[key].enumNames[
+                                                i
+                                              ]
+                                            }}
+                                          }
+                                        </mat-option>
+                                      }
+                                    </mat-select>
+                                    @if (
+                                      formGroupTabOne
+                                        .get(key)
+                                        ?.hasError("required")
+                                    ) {
+                                      <mat-error>
+                                        {{
+                                          requiredFormFields[key].mainTitle ||
+                                            key
+                                        }}
+                                        is required!
+                                      </mat-error>
+                                    }
+                                  </mat-form-field>
+                                  @if (
+                                    key === "recommended_browse_nodes___value"
+                                  ) {
+                                    <button
+                                      type="button"
+                                      class="inline-flex items-center gap-1 px-3 py-2 text-xs mt-3 font-semibold text-white bg-primary hover:bg-primary-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-150 disabled:opacity-50 whitespace-nowrap mb-4 cursor-pointer"
+                                      (click)="fetchAiBrowseNodes()"
+                                      [disabled]="isLoadingBrowseNodes"
+                                      title="Find Browse Nodes with AI"
+                                    >
+                                      @if (isLoadingBrowseNodes) {
+                                        <mat-spinner
+                                          diameter="14"
+                                          class="!text-white"
+                                        ></mat-spinner>
+                                        <span>Finding AI...</span>
+                                      } @else {
+                                        <span class="text-amber-300 font-bold"
+                                          >✨</span
+                                        >
+                                        <span>Find with AI</span>
+                                      }
+                                    </button>
+                                  }
+                                </div>
+                                <button
+                                  type="button"
+                                  [disabled]="
+                                    formGroupTabOne?.get(key)?.disabled
+                                  "
+                                  mat-icon-button
+                                  class="-mt-2"
+                                  (click)="resetField(key)"
+                                >
+                                  <mat-icon svgIcon="refresh"></mat-icon>
+                                </button>
+                              </div>
+                            } @else {
+                              @if (!key.startsWith("bullet_")) {
+                                <!-- Standard Input Field -->
+                                <div
+                                  class="w-full px-2"
+                                  [ngClass]="{
+                                    'md:w-1/2':
+                                      !requiredFormFields[key].fullWidth,
+                                  }"
+                                >
+                                  <mat-form-field
+                                    class="w-full"
+                                    appearance="fill"
+                                  >
+                                    <mat-label
+                                      [class.bg-red-200]="
+                                        highlightAttributeKey.includes(key)
+                                      "
+                                      [class.p-2]="
+                                        highlightAttributeKey.includes(key)
+                                      "
+                                      >{{
+                                        requiredFormFields[key].mainTitle || key
+                                      }}</mat-label
+                                    >
+                                    <!-- <input matInput [formControlName]="
+                                                                    key
+                                                                " placeholder="Enter {{
+                                                                    requiredFormFields[
+                                                                        key
+                                                                    ]
+                                                                        .mainTitle ||
+                                                                        key
+                                                                }}" /> -->
+                                    @if (
+                                      requiredFormFields[key]?.input_type ===
+                                      "textarea"
+                                    ) {
+                                      <textarea
+                                        matInput
+                                        [formControlName]="key"
+                                        [rows]="
+                                          requiredFormFields[key]?.row || 3
+                                        "
+                                        placeholder="Enter {{
+                                          requiredFormFields[key]?.mainTitle ||
+                                            key
+                                        }}"
+                                      >
+                                      </textarea>
+                                    }
+                                    <!-- Default input field -->
+                                    @if (
+                                      !requiredFormFields[key]?.input_type ||
+                                      requiredFormFields[key]?.input_type !==
+                                        "textarea"
+                                    ) {
+                                      <input
+                                        matInput
+                                        [formControlName]="key"
+                                        placeholder="Enter {{
+                                          requiredFormFields[key]?.mainTitle ||
+                                            key
+                                        }}"
+                                      />
+                                    }
+                                    @if (
+                                      formGroupTabOne
+                                        .get(key)
+                                        ?.hasError("required")
+                                    ) {
+                                      <mat-error>
+                                        {{
+                                          requiredFormFields[key].mainTitle ||
+                                            key
+                                        }}
+                                        is required!
+                                      </mat-error>
+                                    }
+                                  </mat-form-field>
+                                </div>
+                              } @else {
+                                <div class="w-full">
+                                  <!-- Check if the key points to a FormArray -->
+                                  @if (
+                                    getFormArrayControls(key, formGroupTabOne)
+                                      .length > 0
+                                  ) {
+                                    <div>
+                                      @for (
+                                        control of getFormArrayControls(
+                                          key,
+                                          formGroupTabOne
+                                        );
+                                        track control;
+                                        let i = $index
+                                      ) {
+                                        <div class="flex items-center">
+                                          <!-- Input field for each array control -->
+                                          <mat-form-field
+                                            class="w-full"
+                                            appearance="fill"
+                                          >
+                                            <mat-label
+                                              [class.bg-red-200]="
+                                                highlightAttributeKey.includes(
+                                                  key
+                                                )
+                                              "
+                                              [class.p-2]="
+                                                highlightAttributeKey.includes(
+                                                  key
+                                                )
+                                              "
+                                              >{{
+                                                requiredFormFields[key]
+                                                  ?.mainTitle || key
+                                              }}</mat-label
+                                            >
+                                            <!-- <input matInput [formControl]="
+                                                                            control
+                                                                        " placeholder="Enter {{
+                                                                            requiredFormFields[
+                                                                                key
+                                                                            ]
+                                                                                ?.mainTitle ||
+                                                                                key
+                                                                        }}" /> -->
+                                            @if (
+                                              requiredFormFields[key]
+                                                ?.input_type === "textarea"
+                                            ) {
+                                              <textarea
+                                                matInput
+                                                [formControl]="control"
+                                                [rows]="
+                                                  requiredFormFields[key]
+                                                    ?.row || 3
+                                                "
+                                                placeholder="Enter {{
+                                                  requiredFormFields[key]
+                                                    ?.mainTitle || key
+                                                }}"
+                                              >
+                                              </textarea>
+                                            }
+                                            <!-- Default input field -->
+                                            @if (
+                                              !requiredFormFields[key]
+                                                ?.input_type ||
+                                              requiredFormFields[key]
+                                                ?.input_type !== "textarea"
+                                            ) {
+                                              <input
+                                                matInput
+                                                [formControl]="control"
+                                                placeholder="Enter {{
+                                                  requiredFormFields[key]
+                                                    ?.mainTitle || key
+                                                }}"
+                                              />
+                                            }
+                                            @if (control.hasError("required")) {
+                                              <mat-error>
+                                                {{
+                                                  requiredFormFields[key]
+                                                    ?.mainTitle || key
+                                                }}
+                                                is required!
+                                              </mat-error>
+                                            }
+                                          </mat-form-field>
+                                          <!-- Remove button for dynamic fields -->
+                                          <mat-icon
+                                            svgIcon="heroicons_solid:minus-circle"
+                                            class="text-red-500 cursor-pointer mx-3"
+                                            (click)="
+                                              removeArrayItem(
+                                                key,
+                                                formGroupTabOne
+                                              )
+                                            "
+                                          >
+                                          </mat-icon>
+                                        </div>
+                                      }
+                                    </div>
+                                  } @else {
+                                    <p class="text-gray-500 text-sm italic">
+                                      No fields added yet. Click "Add Field" to
+                                      start.
+                                    </p>
+                                  }
+                                  <!-- Add new input button -->
+                                  <div
+                                    class="flex justify-end items-center mt-2"
+                                  >
+                                    <button
+                                      type="button"
+                                      mat-raised-button
+                                      color="primary"
+                                      (click)="
+                                        addArrayItem(key, formGroupTabOne, 'fb')
+                                      "
+                                    >
+                                      Add
+                                      {{
+                                        requiredFormFields[key]?.mainTitle ||
+                                          "Field"
+                                      }}
+                                    </button>
+                                  </div>
+                                </div>
+                                <!-- Template for when FormArray is empty -->
+                              }
+                              <!-- Bullet Point Fields -->
+                            }
+                            <!-- String Input Field Template -->
+                          }
+                        </div>
+                      </div>
+                    }
+                  </form>
+                </div>
+                <hr />
+                @if (hasVariations && isShowVarientsControl) {
+                  <div class="grid text-lg">
+                    <mat-checkbox [formControl]="isHasVarients">
+                      <span class="text-xl">
+                        Select this option if your product has different
+                        variations such as size, color, or material.</span
+                      >
+                    </mat-checkbox>
+                  </div>
+                  @if (isHasVarients.value) {
+                    <ng-container *ngTemplateOutlet="variation"> </ng-container>
+                  }
+                  <hr />
+                }
+                <div
+                  class="p-4 mb-2 min-w-[300px] overflow-y-auto lg:min-w-[70vw]"
+                >
+                  <form
+                    [formGroup]="formGroupTabTwo"
+                    class="flex flex-wrap w-full -mx-2"
+                  >
+                    @if (formGroupTabTwo && formGroupTabTwo.controls) {
+                      <div class="flex flex-wrap w-full">
+                        <!-- Loop through all controls in formGroupTabTwo -->
+                        @for (
+                          key of objectKeys(formGroupTabTwo.controls);
+                          track key
+                        ) {
+                          <!-- Render the form field -->
+                          @if (nonRequiredFormFields[key]?.enumNames) {
+                            <div
+                              class="flex justify-center w-full items-center px-2 sm:w-1/3"
+                            >
+                              <mat-form-field
+                                class="flex-grow"
+                                appearance="fill"
+                              >
+                                <!-- Dropdown Field -->
+                                <mat-label
+                                  [class.bg-red-200]="
+                                    highlightAttributeKey.includes(key)
+                                  "
+                                  [class.p-2]="
+                                    highlightAttributeKey.includes(key)
+                                  "
+                                  >{{
+                                    nonRequiredFormFields[key]?.mainTitle || key
+                                  }}</mat-label
+                                >
+                                <mat-select
+                                  [formControlName]="key"
+                                  (openedChange)="
+                                    onDropdownOpenedChange($event, key, false)
+                                  "
+                                >
+                                  @if (nonRequiredFormFields[key]?.enumNames) {
+                                    <mat-option>
+                                      <ngx-mat-select-search
+                                        [preventHomeEndKeyPropagation]="true"
+                                        [placeholderLabel]="
+                                          'Search ' +
+                                          (nonRequiredFormFields[key]
+                                            ?.mainTitle || 'options')
+                                        "
+                                        (keyup)="
+                                          filterFieldOptions(
+                                            key,
+                                            $event.target.value,
+                                            false
+                                          )
+                                        "
+                                        noEntriesFoundLabel="'No options found'"
+                                      >
+                                      </ngx-mat-select-search>
+                                    </mat-option>
+                                  }
+                                  @for (
+                                    option of nonRequiredFormFields[key]
+                                      .enumNames;
+                                    track option;
+                                    let i = $index
+                                  ) {
+                                    <mat-option
+                                      [value]="
+                                        nonRequiredFormFields[key].enum[i]
+                                      "
+                                    >
+                                      {{ option }}
+                                    </mat-option>
+                                  }
+                                </mat-select>
+                                @if (
+                                  formGroupTabTwo.get(key)?.hasError("required")
+                                ) {
+                                  <mat-error>
+                                    {{
+                                      nonRequiredFormFields[key]?.mainTitle ||
+                                        key
+                                    }}
+                                    is required!
+                                  </mat-error>
+                                }
+                              </mat-form-field>
+                              <button
+                                type="button"
+                                mat-icon-button
+                                [disabled]="formGroupTabTwo?.get(key)?.disabled"
+                                (click)="resetField(key)"
+                              >
+                                <mat-icon svgIcon="refresh"></mat-icon>
+                              </button>
+                            </div>
+                          } @else {
+                            <div class="w-full px-2 sm:w-1/3">
+                              <mat-form-field class="w-full" appearance="fill">
+                                <mat-label
+                                  [class.bg-red-200]="
+                                    highlightAttributeKey.includes(key)
+                                  "
+                                  [class.p-2]="
+                                    highlightAttributeKey.includes(key)
+                                  "
+                                  >{{
+                                    nonRequiredFormFields[key]?.mainTitle || key
+                                  }}</mat-label
+                                >
+                                <input
+                                  matInput
+                                  [formControlName]="key"
+                                  placeholder="Enter {{ key }}"
+                                />
+                                @if (
+                                  formGroupTabTwo.get(key)?.hasError("required")
+                                ) {
+                                  <mat-error>
+                                    {{
+                                      nonRequiredFormFields[key].mainTitle ||
+                                        key
+                                    }}
+                                    is required!
+                                  </mat-error>
+                                }
+                              </mat-form-field>
+                            </div>
+                          }
+                          <!-- String Input Field -->
+                        }
+                      </div>
+                    }
+                  </form>
+                </div>
+              </div>
+            }
+          </mat-tab>
+
+          <mat-tab class="bg-white h-full w-full">
+            <ng-template mat-tab-label>
+              <mat-icon class="icon-size-4 mr-1 align-middle">history</mat-icon>
+              <span>Version history</span>
+            </ng-template>
+            <div class="px-4 pt-1 pb-3">
+              <ng-container
+                *ngTemplateOutlet="versionHistoryPanel"
+              ></ng-container>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+
+        @if (selectedUpadteTabIndex === 0 && !isLoading) {
+          <div
+            class="sticky bottom-0 z-30 flex items-center justify-end w-full gap-3 px-4 py-3 border-t border-slate-200 bg-white shadow-md"
+          >
+            <button
+              type="button"
+              mat-stroked-button
+              class="bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 font-semibold px-5 py-2 rounded-lg transition-colors shadow-sm cursor-pointer"
+              (click)="goBackPage()"
+            >
+              <span class="inline-flex items-center justify-center gap-2">
+                <mat-icon
+                  class="icon-size-5 shrink-0 text-slate-600"
+                  svgIcon="mat_outline:arrow_back"
+                ></mat-icon>
+                <span>Cancel</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              mat-flat-button
+              class="bg-primary hover:bg-primary-600 text-white font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm cursor-pointer"
+              (click)="goToNextTabInUpate()"
+            >
+              <span class="inline-flex items-center justify-center gap-2">
+                <span>Next</span>
+                <mat-icon
+                  class="icon-size-5 shrink-0"
+                  svgIcon="mat_outline:arrow_forward"
+                ></mat-icon>
+              </span>
+            </button>
+          </div>
+        }
+
+        @if (selectedUpadteTabIndex === 1 && !isLoading) {
+          <div
+            class="sticky bottom-0 z-30 flex justify-end w-full gap-3 items-center nonmendetory-input px-4 py-3 border-t border-slate-200 bg-white shadow-md"
+          >
+            <button
+              type="button"
+              mat-stroked-button
+              class="bg-white text-black border border-black hover:bg-gray-50 rounded-full px-6 py-2.5 font-semibold transition duration-200 cursor-pointer"
+              (click)="goToUpdatePreviousTab()"
+              [disabled]="isFirstTabDisable || isSubmittingListing"
+            >
+              <span class="inline-flex items-center justify-center gap-2">
+                <mat-icon
+                  class="icon-size-5 shrink-0"
+                  svgIcon="mat_outline:arrow_back"
+                ></mat-icon>
+                <span>Back</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              mat-flat-button
+              class="bg-primary hover:bg-primary-600 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-full mx-1 px-6 py-2.5 font-semibold transition duration-200 min-w-[140px] cursor-pointer"
+              (click)="confirmAlterVarients()"
+              [disabled]="disableSubmitButton || isSubmittingListing"
+            >
+              <span class="inline-flex items-center justify-center gap-2">
+                @if (isSubmittingListing) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                  <span>Saving...</span>
+                } @else {
+                  <span>Submit</span>
+                  <mat-icon
+                    class="icon-size-5 shrink-0"
+                    svgIcon="mat_outline:upload_file"
+                  ></mat-icon>
+                }
+              </span>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</ng-template>
+<ng-template #variation>
+  <article class="text-2xl font-semibold">Variations</article>
+  <section class="overflow-x-auto">
+    <div class="border border-red-300 p-2 rounded shadow">
+      <p class="text-lg">
+        To list variations (for example, same product in different size or
+        color), begin by selecting a variation type below. The variation type
+        cannot be edited after the parent SKU is created.
+      </p>
+
+      <!--  Checkboxes to Select Variation Type -->
+      <div class="py-4">
+        <span class="text-lg block font-semibold pt-3">
+          Choose Variation Type:
+        </span>
+
+        <div class="grid grid-cols-4 gap-4">
+          @for (variant of varientsFormFields.enums; track variant) {
+            <mat-checkbox
+              class="truncate overflow-hidden text-ellipsis"
+              [formControl]="variationControls.get(variant)"
+              (change)="toggleVariation(variant, $event.checked)"
+            >
+              {{ variant }}
+            </mat-checkbox>
+          }
+        </div>
+      </div>
+
+      <!--  Chips Input for Selected Variations -->
+      @if (objectKeys(selectedVariations).length > 0) {
+        <div class="mt-4">
+          <span class="text-lg block font-semibold">
+            Enter Variation Values:
+          </span>
+          <div class="grid grid-cols-1 gap-4">
+            @for (variant of objectKeys(selectedVariations); track variant) {
+              <div class="p-2 rounded shadow space-x-3">
+                <span class="block font-medium mb-1">{{ variant }}</span>
+                <mat-form-field class="min-w-80">
+                  <input
+                    matInput
+                    #chipInput
+                    [placeholder]="'Add ' + variant"
+                    (keydown.enter)="
+                      addChip(variant, chipInput.value); chipInput.value = ''
+                    "
+                  />
+                </mat-form-field>
+                <mat-chip-list class="space-x-2">
+                  @for (chip of selectedVariations[variant]; track chip) {
+                    <mat-chip class="bg-primary-50 border-primary-100 px-2">
+                      {{ chip }}
+                      <mat-icon
+                        matChipRemove
+                        (click)="removeChip(variant, chip)"
+                        >cancel</mat-icon
+                      >
+                    </mat-chip>
+                  }
+                </mat-chip-list>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+  @if (varientsValus && isArray(varientsValus) && varientsValus.length > 0) {
+    <article class="text-2xl font-semibold mt-3">Variations List</article>
+    <section class="space-y-5 overflow-x-auto">
+      <div class="border border-red-300 p-2 rounded shadow">
+        <div class="py-4 pt-0">
+          <span class="text-lg block font-semibold">
+            For the fields below, list the variations that exist for your
+            products. For example, if you're selling Pirate Shirts in the sizes
+            Small, Medium, and Large, and in the colors White and Black, list
+            all those terms. This is necessary even if you don't carry every
+            combination, or are temporarily out of stock on some.
+          </span>
+        </div>
+        <div class="">
+          <ng-container *ngTemplateOutlet="varient_grid"></ng-container>
+        </div>
+      </div>
+    </section>
+  }
+  @if (
+    existingVarientsValus &&
+    isArray(existingVarientsValus) &&
+    existingVarientsValus.length > 0 &&
+    renderForm !== "addProductTemplate"
+  ) {
+    <article class="text-2xl font-semibold mt-3">Update Variations</article>
+    <section class="space-y-5 overflow-x-auto">
+      <div class="border border-red-300 p-2 rounded shadow">
+        <div class="py-4 pt-0">
+          <span class="text-lg block font-semibold">
+            For the fields below, list the variations that exist for your
+            products. For example, if you're selling Pirate Shirts in the sizes
+            Small, Medium, and Large, and in the colors White and Black, list
+            all those terms. This is necessary even if you don't carry every
+            combination, or are temporarily out of stock on some.
+          </span>
+        </div>
+        <div class="">
+          <ng-container *ngTemplateOutlet="update_varient_grid"></ng-container>
+        </div>
+      </div>
+    </section>
+  }
+</ng-template>
+<ng-template #varient_grid>
+  @if (isLoading) {
+    <ng-container *ngTemplateOutlet="varientGridSkeletonLoader"></ng-container>
+  } @else {
+    <section class="overflow-x-auto w-full">
+      <div
+        class="px-3 py-3"
+        [ngClass]="{
+          'grid-conteiner-generic': isGtinExemptionApproved,
+          'grid-container ': !isGtinExemptionApproved,
+        }"
+      >
+        <!-- HEADER ROW -->
+        <div class="grid-header px-3">
+          <div
+            class="first-column first-column-header"
+            [style.min-width]="
+              'calc(160px * ' +
+              (varientsFormFields['headers']?.length || 1) +
+              ' + 5px * (' +
+              ((varientsFormFields['headers']?.length || 1) - 1) +
+              '))'
+            "
+            [style.grid-template-columns]="
+              'repeat(' +
+              (varientsFormFields['headers']?.length || 1) +
+              ', 160px)'
+            "
+          >
+            @for (header of varientsFormFields["headers"]; track header) {
+              <span class="bg-violet-200 border-violet-600 rounded">
+                {{ header }}
+              </span>
+            }
+          </div>
+          <div class="column-header">Seller SKU</div>
+          @if (!isGtinExemptionApproved) {
+            <div class="column-header">External Product ID</div>
+          }
+          @if (!isGtinExemptionApproved) {
+            <div class="column-header">External Product Type</div>
+          }
+          <div class="column-header">Images</div>
+          <!-- <div class="column-header">Offering Condition Type</div> -->
+          <div class="column-header">Your Price</div>
+          <div class="column-header">Quantity</div>
+        </div>
+
+        <!-- DATA ROW -->
+        @for (elements of varientsValus; track elements; let i = $index) {
+          <div
+            class="grid-row px-3"
+            [formGroup]="variantFormGroups.controls[i]"
+          >
+            <div
+              class="first-column"
+              [style.min-width]="
+                'calc(160px * ' +
+                (varientsFormFields['headers']?.length || 1) +
+                ' + 5px * (' +
+                ((varientsFormFields['headers']?.length || 1) - 1) +
+                '))'
+              "
+              [style.grid-template-columns]="
+                'repeat(' +
+                (varientsFormFields['headers']?.length || 1) +
+                ', 160px)'
+              "
+            >
+              @for (header of varientsFormFields["headers"]; track header) {
+                <span
+                  class="bg-violet-300/50 border-violet-600 text-lg rounded"
+                >
+                  {{ elements[header] || "-" }}
+                  <!-- Show '-' if value is missing -->
+                </span>
+              }
+            </div>
+            <!-- DYNAMIC FORM INPUT FIELDS -->
+            <div class="column">
+              <mat-form-field class="w-full" appearance="fill">
+                <!-- <mat-label>Seller SKU</mat-label> -->
+                <input matInput formControlName="sku" placeholder="Enter SKU" />
+              </mat-form-field>
+            </div>
+            @if (!isGtinExemptionApproved) {
+              <div class="column">
+                <mat-form-field class="w-full" appearance="fill">
+                  <input
+                    matInput
+                    formControlName="externally_assigned_product_identifier___value"
+                    placeholder="Enter Product ID"
+                  />
+                </mat-form-field>
+              </div>
+            }
+            @if (!isGtinExemptionApproved) {
+              <div class="column">
+                <mat-form-field class="w-full" appearance="fill">
+                  <mat-select
+                    placeholder="Enter Product Type"
+                    formControlName="externally_assigned_product_identifier___type"
+                    (openedChange)="
+                      onVariantDropdownOpenedChange(
+                        $event,
+                        'externally_assigned_product_identifier___type'
+                      )
+                    "
+                  >
+                    @if (
+                      varientsFormFields["controls"][
+                        "externally_assigned_product_identifier___type"
+                      ]?.enum
+                    ) {
+                      <mat-option>
+                        <ngx-mat-select-search
+                          [preventHomeEndKeyPropagation]="true"
+                          placeholderLabel="Search Product Type"
+                          (keyup)="
+                            filterVariantFieldOptions(
+                              'externally_assigned_product_identifier___type',
+                              $event.target.value
+                            )
+                          "
+                          noEntriesFoundLabel="'No options found'"
+                        >
+                        </ngx-mat-select-search>
+                      </mat-option>
+                      @for (
+                        options of varientsFormFields["controls"][
+                          "externally_assigned_product_identifier___type"
+                        ]?.enum;
+                        track options;
+                        let optIdx = $index
+                      ) {
+                        <mat-option [value]="options">{{
+                          varientsFormFields["controls"][
+                            "externally_assigned_product_identifier___type"
+                          ]?.enumNames[optIdx]
+                        }}</mat-option>
+                      }
+                    }
+                  </mat-select>
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matSuffix
+                    (click)="
+                      variantFormGroups.controls[i]
+                        ?.get('externally_assigned_product_identifier___type')
+                        ?.setValue(null)
+                    "
+                    [disabled]="
+                      variantFormGroups.controls[i]?.get(
+                        'externally_assigned_product_identifier___type'
+                      )?.disabled
+                    "
+                  >
+                    <mat-icon>refresh</mat-icon>
+                  </button>
+                </mat-form-field>
+              </div>
+            }
+            <div class="column">
+              <mat-form-field
+                style="width: 100%"
+                class="w-full"
+                appearance="fill"
+              >
+                <button type="button" mat-icon-button matPrefix>
+                  <mat-icon>attach_file</mat-icon>
+                </button>
+                <input
+                  type="text"
+                  matInput
+                  formControlName="main_product_image_locator___media_location"
+                  placeholder="Enter product image"
+                  [value]="
+                    getFileName(
+                      'main_product_image_locator___media_location',
+                      i
+                    )
+                  "
+                />
+                <!-- <input type="file" hidden #f_input (change)="
+                                handleFileInputChange(
+                                    f_input.files,
+                                    'main_product_image_locator___media_location',
+                                    i
+                                )
+                            " accept=".jpeg,.jpg,.webp,.gif,.png" /> -->
+                <!-- <button mat-icon-button matSuffix (click)="
+                                variantFormGroups.controls[i]
+                                    ?.get(
+                                        'main_product_image_locator___media_location'
+                                    )
+                                    ?.setValue(null)
+                            " [disabled]="
+                                variantFormGroups.controls[i]?.get(
+                                    'main_product_image_locator___media_location'
+                                )?.disabled
+                            ">
+                <mat-icon>refresh</mat-icon>
+              </button> -->
+                <mat-error>this field is required</mat-error>
+              </mat-form-field>
+            </div>
+            <div class="column">
+              <mat-form-field class="w-full" appearance="fill">
+                <input
+                  matInput
+                  formControlName="purchasable_offer___our_price___schedule___value_with_tax"
+                  type="number"
+                  placeholder="Enter Price"
+                  [min]="1"
+                />
+              </mat-form-field>
+              @if (
+                hasError(
+                  "purchasable_offer___our_price___schedule___value_with_tax",
+                  i,
+                  "min"
+                )
+              ) {
+                <mat-error class="">
+                  Value of price must be greater then 1
+                </mat-error>
+              }
+            </div>
+            <div class="column">
+              <mat-form-field class="w-full" appearance="fill">
+                <input
+                  matInput
+                  type="number"
+                  formControlName="fulfillment_availability___quantity"
+                  placeholder="Enter Quantity"
+                  [min]="0"
+                  [max]="100000"
+                />
+              </mat-form-field>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+</ng-template>
+
+<ng-template #update_varient_grid>
+  @if (isLoading) {
+    <ng-container *ngTemplateOutlet="varientGridSkeletonLoader"></ng-container>
+  } @else {
+    <section class="overflow-x-auto w-full">
+      <div
+        class="px-3 py-3"
+        [ngClass]="{
+          'grid-conteiner-update-generic': isGtinExemptionApproved,
+          'grid-container-update': !isGtinExemptionApproved,
+        }"
+      >
+        <!-- HEADER ROW -->
+        <div class="grid-header px-3">
+          <div class="column-header">Actions</div>
+          <!-- Pencil Icon Column -->
+          <div
+            class="first-column first-column-header"
+            [style.min-width]="
+              'calc(160px * ' +
+              (varientsFormFields['headers']?.length || 1) +
+              ' + 5px * (' +
+              ((varientsFormFields['headers']?.length || 1) - 1) +
+              '))'
+            "
+            [style.grid-template-columns]="
+              'repeat(' +
+              (varientsFormFields['headers']?.length || 1) +
+              ', 160px)'
+            "
+          >
+            @for (header of varientsFormFields["headers"]; track header) {
+              <span class="bg-violet-200 border-violet-600 rounded">
+                {{ header }}
+              </span>
+            }
+          </div>
+          <div class="column-header">Seller SKU</div>
+          @if (!isGtinExemptionApproved) {
+            <div class="column-header">External Product ID</div>
+          }
+          @if (!isGtinExemptionApproved) {
+            <div class="column-header">External Product Type</div>
+          }
+          <div class="column-header">Images</div>
+          <!-- <div class="column-header">Offering Condition Type</div> -->
+          <div class="column-header">Your Price</div>
+          <div class="column-header">Quantity</div>
+        </div>
+
+        <!-- DATA ROW -->
+        @for (
+          elements of existingVarientsValus;
+          track elements;
+          let i = $index
+        ) {
+          <div
+            class="grid-row px-3"
+            [formGroup]="variantUpdateFormGroups.controls[i]"
+          >
+            <!-- Edit Button -->
+            <div class="column grid grid-cols-2">
+              <button type="button" mat-icon-button (click)="editVariant(i)">
+                <mat-icon
+                  class="icon-size-6 text-green-800"
+                  svgIcon="feather:edit"
+                  title="edit"
+                ></mat-icon>
+              </button>
+              <button type="button" mat-icon-button (click)="deleteVariant(i)">
+                <mat-icon
+                  class="icon-size-6 text-red-600"
+                  [svgIcon]="'heroicons_solid:trash'"
+                  title="Delete"
+                ></mat-icon>
+              </button>
+            </div>
+            <!-- Dynamic First Column -->
+            <div
+              class="first-column"
+              [style.min-width]="
+                'calc(160px * ' +
+                (varientsFormFields['headers']?.length || 1) +
+                ' + 5px * (' +
+                ((varientsFormFields['headers']?.length || 1) - 1) +
+                '))'
+              "
+              [style.grid-template-columns]="
+                'repeat(' +
+                (varientsFormFields['headers']?.length || 1) +
+                ', 160px)'
+              "
+            >
+              @for (header of varientsFormFields["headers"]; track header) {
+                <span
+                  class="bg-violet-300/50 border-violet-600 text-lg rounded"
+                >
+                  {{ elements[header] || "-" }}
+                  <!-- Show '-' if value is missing -->
+                </span>
+              }
+            </div>
+            <!-- Seller SKU -->
+            <div class="column">
+              <mat-form-field class="w-full" appearance="fill">
+                <input matInput formControlName="sku" placeholder="Enter SKU" />
+              </mat-form-field>
+            </div>
+            <!-- External Product ID -->
+            @if (!isGtinExemptionApproved) {
+              <div class="column">
+                <mat-form-field class="w-full" appearance="fill">
+                  <input
+                    matInput
+                    formControlName="externally_assigned_product_identifier___value"
+                    placeholder="Enter Product ID"
+                  />
+                </mat-form-field>
+              </div>
+            }
+            <!-- External Product Type with Refresh -->
+            @if (!isGtinExemptionApproved) {
+              <div class="column">
+                <mat-form-field class="w-full" appearance="fill">
+                  <mat-select
+                    placeholder="Enter Product Type"
+                    formControlName="externally_assigned_product_identifier___type"
+                    (openedChange)="
+                      onVariantDropdownOpenedChange(
+                        $event,
+                        'externally_assigned_product_identifier___type'
+                      )
+                    "
+                  >
+                    @if (
+                      varientsFormFields["controls"][
+                        "externally_assigned_product_identifier___type"
+                      ]?.enum
+                    ) {
+                      <mat-option>
+                        <ngx-mat-select-search
+                          [preventHomeEndKeyPropagation]="true"
+                          placeholderLabel="Search Product Type"
+                          (keyup)="
+                            filterVariantFieldOptions(
+                              'externally_assigned_product_identifier___type',
+                              $event.target.value
+                            )
+                          "
+                          noEntriesFoundLabel="'No options found'"
+                        >
+                        </ngx-mat-select-search>
+                      </mat-option>
+                      @for (
+                        options of varientsFormFields["controls"][
+                          "externally_assigned_product_identifier___type"
+                        ]?.enum;
+                        track options;
+                        let optIdx = $index
+                      ) {
+                        <mat-option [value]="options">
+                          {{
+                            varientsFormFields["controls"][
+                              "externally_assigned_product_identifier___type"
+                            ]?.enumNames[optIdx]
+                          }}
+                        </mat-option>
+                      }
+                    }
+                  </mat-select>
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matSuffix
+                    (click)="
+                      variantUpdateFormGroups.controls[i]
+                        ?.get('externally_assigned_product_identifier___type')
+                        ?.setValue(null)
+                    "
+                    [disabled]="
+                      variantUpdateFormGroups.controls[i]?.get(
+                        'externally_assigned_product_identifier___type'
+                      )?.disabled
+                    "
+                  >
+                    <mat-icon>refresh</mat-icon>
+                  </button>
+                </mat-form-field>
+              </div>
+            }
+            <!-- Image Upload with Preview -->
+            <div class="column grid" style="grid-template-columns: 3fr 1fr">
+              <mat-form-field
+                style="width: 80%"
+                class="w-full"
+                appearance="fill"
+              >
+                <button
+                  type="button"
+                  mat-icon-button
+                  matPrefix
+                  [disabled]="
+                    variantUpdateFormGroups.controls[i]?.get(
+                      'main_product_image_locator___media_location'
+                    )?.disabled
+                  "
+                >
+                  <mat-icon>attach_file</mat-icon>
+                </button>
+                <input
+                  type="text"
+                  matInput
+                  formControlName="main_product_image_locator___media_location"
+                  placeholder="Enter product image"
+                  [value]="
+                    getUpdateFromFileName(
+                      'main_product_image_locator___media_location',
+                      i
+                    )
+                  "
+                  [disabled]="
+                    variantUpdateFormGroups?.controls[i]?.get(
+                      'main_product_image_locator___media_location'
+                    )?.disabled
+                  "
+                />
+                <!-- <input type="file" hidden #f_input (change)="
+                                handleUploadFileInputChange(
+                                    f_input.files,
+                                    'main_product_image_locator___media_location',
+                                    i
+                                )
+                            " accept=".jpeg,.jpg,.webp,.gif,.png" [disabled]="
+                                variantUpdateFormGroups?.controls[i]?.get(
+                                    'main_product_image_locator___media_location'
+                                )?.disabled
+                            " /> -->
+                <!-- <button mat-icon-button matSuffix (click)="
+                                variantUpdateFormGroups.controls[i]
+                                    ?.get(
+                                        'main_product_image_locator___media_location'
+                                    )
+                                    ?.setValue(null)
+                            " [disabled]="
+                                variantUpdateFormGroups.controls[i]?.get(
+                                    'main_product_image_locator___media_location'
+                                )?.disabled
+                            ">
+              <mat-icon>refresh</mat-icon>
+            </button> -->
+                <mat-error>this field is required</mat-error>
+              </mat-form-field>
+              @if (
+                variantUpdateFormGroups.controls[i]?.get(
+                  "main_product_image_locator___media_location"
+                )?.value
+              ) {
+                <div class="mx-3">
+                  <img
+                    [src]="getImageSrc(i)"
+                    alt="Product Image"
+                    style="
+                      max-width: 80px;
+                      max-height: 50px;
+                      border-radius: 5px;
+                    "
+                  />
+                </div>
+              }
+            </div>
+            <!-- Price Input -->
+            <div class="column">
+              <mat-form-field class="w-full" appearance="fill">
+                <input
+                  matInput
+                  formControlName="purchasable_offer___our_price___schedule___value_with_tax"
+                  type="number"
+                  placeholder="Enter Price"
+                  [min]="1"
+                />
+              </mat-form-field>
+              @if (
+                hasError(
+                  "purchasable_offer___our_price___schedule___value_with_tax",
+                  i,
+                  "min"
+                )
+              ) {
+                <mat-error class="">
+                  Value of price must be greater than 1
+                </mat-error>
+              }
+            </div>
+            <!-- Quantity Input -->
+            <div class="column">
+              <mat-form-field class="w-full" appearance="fill">
+                <input
+                  matInput
+                  type="number"
+                  formControlName="fulfillment_availability___quantity"
+                  placeholder="Enter Quantity"
+                  [min]="0"
+                  [max]="100000"
+                />
+              </mat-form-field>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+</ng-template>
+
+<!-- Form Group Skeleton Loader Template -->
+<ng-template #formGroupSkeletonLoader>
+  <div
+    class="p-6 bg-white dark:bg-card rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm animate-pulse space-y-6 w-full"
+  >
+    <!-- Header skeleton -->
+    <div
+      class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4"
+    >
+      <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded-md w-60"></div>
+      <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-24"></div>
+    </div>
+
+    <!-- Main Grid Form Fields Skeleton (Label + Input box) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; track $index) {
+        <div class="space-y-2">
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+          <div
+            class="h-11 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"
+          ></div>
+        </div>
+      }
+    </div>
+
+    <!-- Textarea / Large input skeleton -->
+    <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+      <div class="space-y-2">
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+        <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"></div>
+      </div>
+      <div class="space-y-2">
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+        <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"></div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Variation Grid Skeleton Loader Template -->
+<ng-template #varientGridSkeletonLoader>
+  <div
+    class="p-4 bg-white dark:bg-card rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm animate-pulse space-y-4 w-full"
+  >
+    <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-2"></div>
+    <div
+      class="border rounded-lg overflow-hidden border-slate-200 dark:border-slate-700"
+    >
+      <!-- Skeleton Header -->
+      <div
+        class="grid grid-cols-6 gap-4 bg-slate-100 dark:bg-slate-800 p-3 border-b border-slate-200 dark:border-slate-700"
+      >
+        <div class="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+        <div class="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+        <div class="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+        <div class="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+        <div class="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+        <div class="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+      </div>
+      <!-- Skeleton Rows -->
+      @for (row of [1, 2, 3, 4]; track $index) {
+        <div
+          class="grid grid-cols-6 gap-4 p-3 border-b border-slate-100 dark:border-slate-800 items-center"
+        >
+          <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<!-- White-label version history (inline tab panel) -->
+<ng-template #versionHistoryPanel>
+  <div class="flex flex-col">
+    @if (isVariantEditMode) {
+      <span
+        class="inline-flex items-center gap-1.5 mb-3 px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-violet-50 text-violet-800 border-violet-300 w-fit"
+      >
+        <mat-icon class="icon-size-4">call_split</mat-icon>
+        {{ editContextLabel }}
+      </span>
+    }
+
+    @if (selectedVersionNo !== null || isVersionTableCollapsed) {
+      <div class="flex items-center justify-between mb-2">
+        <button
+          mat-stroked-button
+          type="button"
+          class="text-xs bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 shadow-sm flex items-center"
+          (click)="toggleVersionTable()"
+        >
+          <mat-icon class="icon-size-4 mr-1">
+            {{ isVersionTableCollapsed ? "expand_more" : "expand_less" }}
+          </mat-icon>
+          <span>{{
+            isVersionTableCollapsed
+              ? "Expand version list table"
+              : "Collapse version list table"
+          }}</span>
+        </button>
+      </div>
+    }
+
+    <div [hidden]="isVersionTableCollapsed">
+      <mat-tab-group class="version-history-subtabs">
+        <mat-tab label="White label data">
+          <div class="pt-3">
+            @if (versionsLoading) {
+              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            } @else if (whiteLabelVersions.length === 0) {
+              <p class="text-sm text-gray-500 py-6 text-center">
+                No white-label product versions yet.
+              </p>
+            } @else {
+              <ng-container
+                *ngTemplateOutlet="
+                  versionTable;
+                  context: {
+                    $implicit: whiteLabelVersions,
+                    kind: 'amz_white_label',
+                    accent: 'amber',
+                  }
+                "
+              ></ng-container>
+            }
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Update attributes">
+          <div class="pt-3">
+            @if (versionsLoading) {
+              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            } @else if (updateAttrVersions.length === 0) {
+              <p class="text-sm text-gray-500 py-6 text-center">
+                No update-attribute versions yet.
+              </p>
+            } @else {
+              <ng-container
+                *ngTemplateOutlet="
+                  versionTable;
+                  context: {
+                    $implicit: updateAttrVersions,
+                    kind: 'amz_wl_update_attrs',
+                    accent: 'indigo',
+                  }
+                "
+              ></ng-container>
+            }
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+
+    @if (versionDiffLoading) {
+      <mat-progress-bar mode="indeterminate" class="mt-4"></mat-progress-bar>
+    }
+
+    @if (versionDiff && selectedVersionNo !== null) {
+      <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/80">
+        <div
+          class="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-3 sticky top-0 bg-slate-50/95 pb-2 z-10"
+        >
+          <div class="flex-1 min-w-0">
+            <h3 class="text-sm font-bold text-slate-800">
+              Preview: v{{ selectedVersionNo }} compared to
+              {{ versionDiffBaselineLabel() }}
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              {{
+                versionDiffKind === "amz_white_label"
+                  ? "White label data"
+                  : "Update attributes"
+              }}
+              — baseline is what you have now; version column is the saved
+              snapshot (what would change if you reverted).
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              mat-stroked-button
+              type="button"
+              class="text-xs !px-2 sm:!px-3"
+              [class.!bg-indigo-100]="versionDiffAgainst === 'head'"
+              [class.!border-indigo-400]="versionDiffAgainst === 'head'"
+              (click)="setVersionDiffAgainst('head')"
+            >
+              vs Current
+            </button>
+            <button
+              mat-stroked-button
+              type="button"
+              class="text-xs !px-2 sm:!px-3"
+              [class.!bg-indigo-100]="versionDiffAgainst === 'original'"
+              [class.!border-indigo-400]="versionDiffAgainst === 'original'"
+              (click)="setVersionDiffAgainst('original')"
+            >
+              vs Original (v1)
+            </button>
+            <button
+              mat-stroked-button
+              type="button"
+              class="text-xs !px-2 sm:!px-3"
+              (click)="loadVersionHistory()"
+              matTooltip="Refresh version history"
+            >
+              <mat-icon class="icon-size-4 sm:mr-1">refresh</mat-icon>
+              <span class="hidden sm:inline">Refresh</span>
+            </button>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="clearVersionDiff()"
+              matTooltip="Close preview"
+            >
+              <mat-icon class="icon-size-5">close</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        @if (versionDiff.identical) {
+          <p
+            class="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2"
+          >
+            No differences — this version matches
+            {{ versionDiffBaselineLabel() }}.
+          </p>
+          @if (versionDiff.hint) {
+            <p
+              class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2"
+            >
+              {{ versionDiff.hint }}
+            </p>
+          }
+        } @else {
+          <div class="flex flex-wrap gap-2 mb-3 text-xs">
+            <span
+              class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-medium"
+              >{{ versionDiff.summary.modified }} modified</span
+            >
+            <span
+              class="px-2 py-0.5 rounded bg-green-100 text-green-900 font-medium"
+              >{{ versionDiff.summary.added }} added in version</span
+            >
+            <span
+              class="px-2 py-0.5 rounded bg-red-100 text-red-900 font-medium"
+              >{{ versionDiff.summary.removed }} removed in version</span
+            >
+            @if (versionDiff.truncated) {
+              <span class="text-slate-500">Showing first 150 changes</span>
+            }
+          </div>
+
+          <div
+            class="overflow-x-auto max-h-[600px] overflow-y-auto border border-slate-200 rounded-lg bg-white shadow-sm"
+          >
+            <div class="min-w-[800px] w-full">
+              <!-- Sticky Grid Header -->
+              <div
+                class="version-diff-grid sticky top-0 z-10 bg-slate-100 font-semibold text-slate-700 text-xs py-2.5 px-3 border-b border-slate-200 select-none"
+              >
+                <div>FIELD</div>
+                <div>{{ versionDiffBaselineLabel() }}</div>
+                <div>v{{ selectedVersionNo }}</div>
+                <div>CHANGE</div>
+              </div>
+
+              <!-- Grid Rows -->
+              <div>
+                @for (row of versionDiffRows(); track row.path) {
+                  <div
+                    class="version-diff-grid border-b text-xs py-2 px-3 align-top transition-colors"
+                    [class.bg-amber-50]="row.type === 'modified'"
+                    [class.bg-green-50]="row.type === 'added'"
+                    [class.bg-red-50]="row.type === 'removed'"
+                  >
+                    <div class="font-medium text-slate-800 break-words">
+                      {{ row.label }}
+                      <div
+                        class="text-[10px] text-slate-400 font-mono mt-0.5 break-all"
+                      >
+                        {{ row.path }}
+                      </div>
+                    </div>
+                    <div class="text-slate-700 break-words">
+                      {{ row.baseline ?? "—" }}
+                    </div>
+                    <div class="text-slate-700 break-words">
+                      {{ row.version ?? "—" }}
+                    </div>
+                    <div class="whitespace-nowrap font-medium">
+                      {{ changeTypeLabel(row.type) }}
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ng-template>
+
+<ng-template #versionTable let-versions let-kind="kind" let-accent="accent">
+  <div
+    class="overflow-x-auto max-h-[300px] overflow-y-auto border border-slate-200 rounded-lg"
+  >
+    <table class="w-full text-sm text-left border-collapse">
+      <thead class="sticky top-0 z-10">
+        <tr
+          class="border-b"
+          [class.bg-amber-50]="accent === 'amber'"
+          [class.text-amber-900]="accent === 'amber'"
+          [class.bg-indigo-50]="accent === 'indigo'"
+          [class.text-indigo-900]="accent === 'indigo'"
+        >
+          <th class="py-2 px-3 font-semibold">Ver.</th>
+          <th class="py-2 px-3 font-semibold">Created</th>
+          <th class="py-2 px-3 font-semibold">Size</th>
+          <th class="py-2 px-3 font-semibold">SHA256</th>
+          <th class="py-2 px-3 font-semibold">Status</th>
+          <th class="py-2 px-3 font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (v of versions; track v.version_no) {
+          <tr
+            class="border-b hover:bg-gray-50"
+            [class.bg-green-50]="v.is_head"
+            [class.!bg-indigo-50]="
+              selectedVersionNo === v.version_no && versionDiffKind === kind
+            "
+          >
+            <td class="py-2 px-3 font-mono">v{{ v.version_no }}</td>
+            <td class="py-2 px-3 whitespace-nowrap">
+              {{ v.created_at | date: "medium" }}
+            </td>
+            <td class="py-2 px-3 whitespace-nowrap">
+              @if (v.storage_mode === "delta" && v.version_no > 1) {
+                {{ formatBlobSize(v.stored_size) }}
+                <span class="text-indigo-600 text-xs font-medium">patch</span>
+                @if (v.head_stored_size) {
+                  <span class="text-gray-400 text-xs block">
+                    head {{ formatBlobSize(v.head_stored_size) }}
+                  </span>
+                }
+              } @else {
+                {{ formatBlobSize(v.stored_size) }}
+              }
+              <span class="text-gray-400 text-xs"
+                >({{ formatBlobSize(v.original_size) }} raw)</span
+              >
+            </td>
+            <td class="py-2 px-3 font-mono text-xs" [matTooltip]="v.sha256">
+              {{ shortSha256(v.sha256) }}
+            </td>
+            <td class="py-2 px-3">
+              @if (v.is_head) {
+                <span
+                  class="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded"
+                  >Current</span
+                >
+              } @else if (v.same_content_as_head) {
+                <span
+                  class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded"
+                  >Same as current</span
+                >
+              } @else {
+                <span class="text-xs text-gray-400">Archived</span>
+              }
+            </td>
+            <td class="py-2 px-3 text-right">
+              <button
+                mat-stroked-button
+                type="button"
+                class="text-xs min-h-8"
+                (click)="previewVersionDiff(v.version_no, kind)"
+              >
+                <mat-icon class="icon-size-4 mr-1">compare</mat-icon>
+                Preview diff
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</ng-template>

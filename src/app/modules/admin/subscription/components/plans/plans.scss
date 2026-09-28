@@ -1,0 +1,92 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.pricing-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 1.25rem; /* rounded-2xl */
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow:
+      0 20px 30px -10px rgba(0, 0, 0, 0.1),
+      0 10px 15px -5px rgba(0, 0, 0, 0.04);
+  }
+}
+
+.pricing-card-standard {
+  @apply bg-white dark:bg-gray-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm;
+
+  &:hover {
+    @apply border-[#3C9AC4]/60 dark:border-[#3C9AC4]/60;
+  }
+}
+
+.pricing-card-popular {
+  @apply bg-white dark:bg-gray-900 border border-transparent shadow-md;
+  background-clip: padding-box;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(135deg, #3c9ac4 0%, #13355a 100%);
+
+    /* Keep gradient only on the border */
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow:
+      0 20px 35px -10px rgba(19, 53, 90, 0.18),
+      0 10px 15px -5px rgba(60, 154, 196, 0.1);
+  }
+}
+
+.pricing-card-active {
+  @apply bg-emerald-50/20 dark:bg-emerald-950/20 border-2 border-emerald-500 shadow-md;
+
+  &:hover {
+    @apply border-emerald-600;
+    box-shadow:
+      0 20px 30px -10px rgba(16, 185, 129, 0.18),
+      0 10px 15px -5px rgba(16, 185, 129, 0.08);
+  }
+}
+
+.feature-divider {
+  @apply border-t border-slate-100 dark:border-slate-800/80 my-3 mx-5;
+}
+
+.plan-icon-wrapper {
+  @apply w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-all duration-300;
+}
+
+.plan-icon-standard {
+  @apply bg-slate-100 dark:bg-slate-800 text-[#13355A] dark:text-slate-300;
+}
+
+.plan-icon-popular {
+  @apply bg-gradient-to-br from-[#3C9AC4] to-[#13355A] text-white shadow-md shadow-cyan-500/20;
+}
+
+.plan-icon-active {
+  @apply bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 shadow-md shadow-emerald-500/10;
+}

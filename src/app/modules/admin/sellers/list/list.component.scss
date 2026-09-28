@@ -1,0 +1,91 @@
+contacts-list {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+:host ::ng-deep .seller-list-paginator {
+  width: 100%;
+  background-color: var(--color-gray-100) !important;
+
+  .mat-mdc-paginator-container {
+    width: 100%;
+    justify-content: space-between;
+    background-color: transparent !important;
+  }
+}
+
+.seller-grid {
+  display: grid;
+  grid-template-columns: 30px 300px 250px 160px 110px auto 100px 180px;
+  padding-inline: 15px;
+  padding-block: 5px;
+
+  @screen sm {
+    grid-template-columns: 24px 200px 180px 120px 90px auto 80px 180px;
+  }
+
+  @screen md {
+    grid-template-columns: 28px 260px 220px 140px 100px auto 90px 180px;
+  }
+
+  @screen lg {
+    grid-template-columns: 30px 300px 250px 160px 110px auto 100px 180px;
+  }
+}
+
+.seller-no-update-control {
+  display: grid;
+  grid-template-columns: 30px 300px 250px 160px 110px auto 180px;
+  padding-inline: 15px;
+  padding-block: 5px;
+
+  @screen sm {
+    grid-template-columns: 24px 200px 180px 120px 90px auto 180px;
+  }
+
+  @screen md {
+    grid-template-columns: 28px 260px 220px 140px 100px auto 180px;
+  }
+
+  @screen lg {
+    grid-template-columns: 30px 300px 250px 160px 110px auto 180px;
+  }
+}
+
+mat-form-field.mat-mdc-form-field.ng-star-inserted
+  > div.mat-mdc-form-field-subscript-wrapper.mat-mdc-form-field-bottom-align {
+  display: none !important;
+}
+
+/* ── Queue drag-and-drop ────────────────────────────────────────────── */
+.queue-drag-preview {
+  padding: 6px 12px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+}
+
+.queue-drag-placeholder {
+  min-height: 48px;
+  border: 2px dashed #94a3b8;
+  border-radius: 8px;
+  background: rgba(148, 163, 184, 0.08);
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .queue-drag-placeholder {
+  opacity: 0.4;
+}
+
+[cdkDragDisabled] {
+  cursor: default;
+}

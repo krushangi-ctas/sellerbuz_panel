@@ -1,0 +1,635 @@
+<div
+  class="flex flex-col w-full h-full min-h-full flex-auto bg-white dark:bg-gray-900"
+>
+  @if (isLoading || countriesLoading) {
+    <!-- SKELETON LOADER FOR SELLER DETAILS -->
+    <div class="p-6 space-y-6 animate-pulse w-full max-w-3xl mx-auto">
+      <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </div>
+      <div class="h-24 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+      <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+    </div>
+  } @else if (!editMode) {
+    <!-- Header -->
+    <div
+      class="flex items-center justify-between w-full px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+    >
+      <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+        {{
+          seller?.first_name
+            ? seller.first_name + " " + (seller?.last_name || "")
+            : "Seller Details"
+        }}
+      </h2>
+      <button
+        type="button"
+        mat-icon-button
+        [matTooltip]="'Close'"
+        [routerLink]="['../']"
+        (click)="closeDrawer()"
+      >
+        <mat-icon
+          class="text-gray-500 hover:text-gray-700 dark:text-gray-400"
+          [svgIcon]="'heroicons_outline:x'"
+        ></mat-icon>
+      </button>
+    </div>
+
+    <!-- seller -->
+    <div
+      class="relative flex flex-col flex-auto items-center p-4 pt-0 sm:p-8 sm:pt-0"
+    >
+      <div class="w-full max-w-3xl">
+        <!-- Avatar and actions -->
+        <div class="flex flex-auto items-end mt-2">
+          <!-- Avatar -->
+          <!-- <div class="flex items-center justify-center w-32 h-32 rounded-full overflow-hidden ring-4 ring-bg-card">
+          @if (seller?.avatar || seller?.profileImgUrl) {
+          <img [src]="
+                  selectedAvatar ||
+                  seller?.profileImgUrl ||
+                  imgPath + seller?.avatar
+                " class="w-full h-full object-cover" alt="Avatar" />
+          }
+          @if (!seller?.avatar && !seller?.profileImgUrl) {
+          <mat-icon class="icon-size-12 text-gray-400" svgIcon="heroicons_outline:user"></mat-icon>
+          }
+        </div> -->
+          <!-- Actions -->
+          @if (canUpdate) {
+            <div class="flex items-center ml-auto mb-1">
+              <button
+                type="button"
+                mat-stroked-button
+                (click)="toggleEditMode(true)"
+              >
+                <mat-icon
+                  class="icon-size-5"
+                  [svgIcon]="'heroicons_solid:pencil-alt'"
+                ></mat-icon>
+                <span class="ml-2">Edit</span>
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- Name -->
+        <div class="mt-5 text-4xl font-bold truncate">
+          {{ seller?.first_name + " " + seller?.last_name }}
+        </div>
+        <div class="flex flex-col mt-4 pt-6 border-t space-y-8">
+          <!-- Emails -->
+          @if (seller?.email) {
+            <div class="flex">
+              <mat-icon [svgIcon]="'heroicons_outline:mail'"></mat-icon>
+              <div class="min-w-0 ml-6 space-y-1">
+                <div class="flex items-center leading-6">
+                  <a
+                    class="hover:underline text-primary-500"
+                    [href]="'mailto:' + seller.email"
+                    target="_blank"
+                  >
+                    {{ seller.email }}
+                  </a>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Address -->
+          @if (seller?.business_address) {
+            <div class="flex sm:items-center">
+              <mat-icon
+                [svgIcon]="'heroicons_outline:location-marker'"
+              ></mat-icon>
+              <div class="ml-6 leading-6">{{ seller.business_address }}</div>
+            </div>
+          }
+          <!-- contact_no -->
+          @if (seller?.contact_no) {
+            <div class="flex sm:items-center">
+              <mat-icon [svgIcon]="'heroicons_outline:phone'"></mat-icon>
+              <div class="ml-6 leading-6">{{ seller.contact_no }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Header -->
+    <div
+      class="flex items-center justify-between w-full px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+    >
+      <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+        {{ isAdd ? "Add Seller" : editMode ? "Edit Seller" : "Seller Details" }}
+      </h2>
+      <button
+        type="button"
+        mat-icon-button
+        [matTooltip]="'Close'"
+        [routerLink]="['/master/seller']"
+        (click)="closeDrawer()"
+      >
+        <mat-icon
+          class="text-gray-500 hover:text-gray-700 dark:text-gray-400"
+          [svgIcon]="'heroicons_outline:x'"
+        ></mat-icon>
+      </button>
+    </div>
+
+    <!-- seller form -->
+    <div class="relative flex flex-col flex-auto items-center px-6 sm:px-12">
+      <div class="w-full max-w-3xl">
+        <form [formGroup]="sellerForm">
+          <!-- Avatar -->
+          <!-- @if (!isAdd) {
+            <div class="flex flex-auto items-end -mt-16">
+              <div
+                class="relative flex items-center justify-center w-32 h-32 rounded-full overflow-hidden ring-4 ring-bg-card"
+              >
+                <div class="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
+                @if (seller.avatar) {
+                  <img
+                    class="object-cover w-full h-full"
+                    [src]="seller.avatar | mediaUrl:''"
+                  />
+                } @else {
+                  <img
+                    class="object-cover w-full h-full"
+                    [src]="seller.profileImgUrl"
+                    alt="Seller avatar"
+                  />
+                }
+              </div>
+            </div>
+          } -->
+
+          <!-- Name -->
+          <div class="mt-3">
+            <mat-form-field class="fuse-mat-no-subscript w-1/2">
+              <mat-label>First Name</mat-label>
+              <mat-icon
+                matPrefix
+                class="hidden sm:flex icon-size-5"
+                [svgIcon]="'heroicons_solid:user-circle'"
+              ></mat-icon>
+              <input
+                matInput
+                [formControlName]="'first_name'"
+                maxlength="20"
+                [placeholder]="'First Name'"
+                [spellcheck]="false"
+              />
+              @if (sellerForm.get("first_name").hasError("required")) {
+                <mat-error>First Name is required!</mat-error>
+              }
+              @if (sellerForm.get("first_name").hasError("maxlength")) {
+                <mat-error>First Name cannot exceed 20 characters!</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field class="fuse-mat-no-subscript w-1/2 pl-1">
+              <mat-label>Last Name</mat-label>
+              <mat-icon
+                matPrefix
+                class="hidden sm:flex icon-size-5"
+                [svgIcon]="'heroicons_solid:user-circle'"
+              ></mat-icon>
+              <input
+                matInput
+                [formControlName]="'last_name'"
+                maxlength="20"
+                [placeholder]="'Last Name'"
+                [spellcheck]="false"
+              />
+              @if (sellerForm.get("last_name").hasError("required")) {
+                <mat-error>Last Name is required!</mat-error>
+              }
+              @if (sellerForm.get("last_name").hasError("maxlength")) {
+                <mat-error>Last Name cannot exceed 20 characters!</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <!-- Email -->
+          <div class="mt-1">
+            <mat-form-field class="fuse-mat-no-subscript w-1/2">
+              <mat-label>Email</mat-label>
+              <mat-icon
+                matPrefix
+                class="hidden sm:flex icon-size-5"
+                [svgIcon]="'heroicons_solid:mail'"
+              ></mat-icon>
+              <input
+                matInput
+                [formControlName]="'email'"
+                maxlength="30"
+                [placeholder]="'Email address'"
+                [spellcheck]="false"
+              />
+              @if (sellerForm.get("email").hasError("required")) {
+                <mat-error> Email is Required! </mat-error>
+              }
+              @if (sellerForm.get("email").hasError("email")) {
+                <mat-error> Invalid Email Format! </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Phone numbers -->
+            <mat-form-field class="fuse-mat-no-subscript w-1/2 pl-1">
+              <mat-label>Contact No</mat-label>
+              <mat-icon
+                matPrefix
+                class="hidden sm:flex icon-size-5"
+                [svgIcon]="'heroicons_outline:phone'"
+              ></mat-icon>
+              <input
+                matInput
+                type="text"
+                maxlength="10"
+                [formControlName]="'contact_no'"
+                [placeholder]="'Contact No'"
+              />
+              @if (sellerForm.get("contact_no").hasError("required")) {
+                <mat-error> Please enter a contact number </mat-error>
+              }
+              @if (sellerForm.get("contact_no").hasError("pattern")) {
+                <mat-error>
+                  Please enter a valid 10 digit contact number
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <!-- Address -->
+          <div class="mt-1">
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+              <mat-label>Address</mat-label>
+              <mat-icon
+                matPrefix
+                class="hidden sm:flex icon-size-5"
+                [svgIcon]="'heroicons_solid:location-marker'"
+              ></mat-icon>
+              <textarea
+                matInput
+                [formControlName]="'business_address'"
+                [placeholder]="'Address'"
+              ></textarea>
+            </mat-form-field>
+          </div>
+
+          <!-- Country -->
+          <div class="mt-1">
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+              <mat-label>Country</mat-label>
+              <mat-icon
+                matPrefix
+                class="hidden sm:flex icon-size-5"
+                [svgIcon]="'heroicons_outline:globe-alt'"
+              ></mat-icon>
+              <mat-select
+                formControlName="currency_id"
+                (openedChange)="triggerCountryEvent()"
+              >
+                <mat-option>
+                  <ngx-mat-select-search
+                    [formControl]="countryFilterCtrl"
+                    [preventHomeEndKeyPropagation]="true"
+                    placeholderLabel="Search country"
+                    (keyup)="filterCountries($event.target.value)"
+                    noEntriesFoundLabel="'No country found'"
+                  >
+                  </ngx-mat-select-search>
+                </mat-option>
+                @if (countriesLoading) {
+                  <mat-option disabled>Loading countries...</mat-option>
+                } @else {
+                  <mat-option [value]="''">Select Country</mat-option>
+                  @for (
+                    currency of filteredCountries;
+                    track currency.id || currency._id
+                  ) {
+                    <mat-option [value]="currency.id">
+                      {{ currency.country || currency.currency }}
+                    </mat-option>
+                  }
+                }
+              </mat-select>
+              @if (sellerForm.get("currency_id")?.hasError("required")) {
+                <mat-error>Country is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="mt-1">
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+              <mat-label>Select Shop</mat-label>
+
+              <mat-icon
+                matPrefix
+                class="hidden sm:flex icon-size-5"
+                [svgIcon]="'heroicons_outline:shopping-bag'"
+              >
+              </mat-icon>
+
+              <mat-select
+                formControlName="portal_id"
+                (openedChange)="triggerShopEvent()"
+              >
+                <mat-option>
+                  <ngx-mat-select-search
+                    [formControl]="shopFilterCtrl"
+                    [preventHomeEndKeyPropagation]="true"
+                    placeholderLabel="Search shop"
+                    (keyup)="filterShops($event.target.value)"
+                    noEntriesFoundLabel="'No shop found'"
+                  >
+                  </ngx-mat-select-search>
+                </mat-option>
+                @for (portal of filteredPortalList; track portal) {
+                  <mat-option [value]="portal.id">
+                    {{ portal.portal_name }}
+                  </mat-option>
+                }
+              </mat-select>
+
+              @if (sellerForm.get("portal_id")?.hasError("required")) {
+                <mat-error> Shop is required </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <!-- Existing Plan Assignments -->
+          @if (seller?.subscriptions?.length) {
+            <div
+              class="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border space-y-3"
+            >
+              <h3
+                class="font-semibold text-slate-800 dark:text-white flex items-center gap-2"
+              >
+                <mat-icon
+                  class="icon-size-5 text-emerald-500"
+                  [svgIcon]="'heroicons_outline:credit-card'"
+                ></mat-icon>
+                Existing Plan Assignments
+              </h3>
+              <div class="space-y-2">
+                @for (sub of seller.subscriptions; track sub._id || $index) {
+                  @if (sub.status === "active" || sub.status === "future") {
+                    <div
+                      class="flex items-center justify-between p-2.5 bg-white dark:bg-gray-900 border rounded-lg"
+                    >
+                      <div class="flex flex-col">
+                        <div class="flex items-center gap-2">
+                          <span
+                            class="text-sm font-semibold text-slate-700 dark:text-slate-200"
+                          >
+                            {{ sub.plan_name }}
+                          </span>
+                          <span
+                            class="text-[10px] font-semibold px-2 py-0.5 rounded"
+                            [ngClass]="{
+                              'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400':
+                                sub.status === 'active',
+                              'bg-blue-50 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400':
+                                sub.status === 'future',
+                            }"
+                          >
+                            {{ sub.status | uppercase }}
+                          </span>
+                        </div>
+                        <span class="text-xs text-slate-500 mt-1">
+                          Billing: {{ sub.billing_cycle | titlecase }} ·
+                          Started: {{ sub.started_at | date: "mediumDate" }}
+                          @if (sub.expired_at) {
+                            · Expires: {{ sub.expired_at | date: "mediumDate" }}
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Assign Plan Checkbox -->
+          <div class="mt-4">
+            <mat-checkbox color="primary" formControlName="assign_plan">
+              {{
+                seller?.subscriptions?.length
+                  ? "Assign New/Additional Plan"
+                  : "Assign Plan"
+              }}
+            </mat-checkbox>
+          </div>
+
+          <!-- Subscription Details (only when "Assign Plan" is checked) -->
+          @if (sellerForm.get("assign_plan")?.value) {
+            <div
+              class="mt-4 p-4 bg-slate-50/70 dark:bg-slate-800/30 border rounded-xl space-y-4"
+            >
+              <h3 class="font-semibold text-slate-800 dark:text-white">
+                Subscription Details
+              </h3>
+
+              <!-- Plan Selection -->
+              <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Plan</mat-label>
+                <mat-icon
+                  matPrefix
+                  class="hidden sm:flex icon-size-5"
+                  [svgIcon]="'heroicons_outline:credit-card'"
+                ></mat-icon>
+                <mat-select
+                  formControlName="plan_id"
+                  (openedChange)="triggerPlanEvent()"
+                >
+                  <mat-option>
+                    <ngx-mat-select-search
+                      [formControl]="planFilterCtrl"
+                      [preventHomeEndKeyPropagation]="true"
+                      placeholderLabel="Search plan"
+                      (keyup)="filterPlans($event.target.value)"
+                      noEntriesFoundLabel="'No plan found'"
+                    >
+                    </ngx-mat-select-search>
+                  </mat-option>
+                  <mat-option [value]="''">Select a plan</mat-option>
+                  @for (plan of filteredPlanList; track plan._id) {
+                    <mat-option [value]="plan._id">
+                      {{ plan.name }} - {{ fromCent(plan.price) }}
+                      {{ plan.currency | uppercase }}
+                    </mat-option>
+                  }
+                </mat-select>
+                @if (sellerForm.get("plan_id")?.hasError("required")) {
+                  <mat-error> Plan is required </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Selected Plan Details (read-only, from the Plan API) -->
+              @if (selectedPlan) {
+                <div
+                  class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
+                >
+                  <div class="flex items-start gap-2">
+                    <mat-icon
+                      class="icon-size-5 text-blue-600 dark:text-blue-400 mt-0.5"
+                      [svgIcon]="'heroicons_outline:information-circle'"
+                    ></mat-icon>
+                    <div class="flex-1">
+                      <h4 class="font-medium text-blue-900 dark:text-blue-100">
+                        Selected Plan: {{ selectedPlan.name }}
+                      </h4>
+                      <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                        {{ getSelectedPlanPrice() }}
+                      </p>
+                      @if (getSelectedPlanFeatures().length) {
+                        <ul
+                          class="mt-2 space-y-1 text-sm text-blue-700 dark:text-blue-300"
+                        >
+                          @for (
+                            feature of getSelectedPlanFeatures();
+                            track feature
+                          ) {
+                            <li class="flex items-start gap-1.5">
+                              <mat-icon
+                                class="icon-size-4 mt-0.5 flex-shrink-0"
+                                [svgIcon]="'heroicons_outline:check'"
+                              ></mat-icon>
+                              <span>{{ feature }}</span>
+                            </li>
+                          }
+                        </ul>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- Billing Cycle -->
+              <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Billing Cycle</mat-label>
+                <mat-icon
+                  matPrefix
+                  class="hidden sm:flex icon-size-5"
+                  [svgIcon]="'heroicons_outline:calendar'"
+                ></mat-icon>
+                <mat-select formControlName="billing_cycle">
+                  @for (cycle of billingCycleOptions; track cycle) {
+                    <mat-option [value]="cycle">
+                      {{ cycle === "quarterly" ? "Quarterly" : "Monthly" }}
+                    </mat-option>
+                  }
+                </mat-select>
+                @if (sellerForm.get("billing_cycle")?.hasError("required")) {
+                  <mat-error> Billing Cycle is required </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Payment Method -->
+              <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Payment Method</mat-label>
+                <mat-select formControlName="payment_method">
+                  <mat-option value="stripe">Stripe</mat-option>
+                  <mat-option value="razorpay">Razorpay</mat-option>
+                  <mat-option value="manual">Manual</mat-option>
+                </mat-select>
+                @if (sellerForm.get("payment_method")?.hasError("required")) {
+                  <mat-error> Payment Method is required </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Start Date -->
+              <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Start Date</mat-label>
+                <mat-icon
+                  matPrefix
+                  class="hidden sm:flex icon-size-5"
+                  [svgIcon]="'heroicons_outline:calendar'"
+                ></mat-icon>
+                <input
+                  matInput
+                  [formControlName]="'start_date'"
+                  [matDatepicker]="startDatePicker"
+                />
+                <mat-datepicker-toggle
+                  matSuffix
+                  [for]="startDatePicker"
+                ></mat-datepicker-toggle>
+                <mat-datepicker #startDatePicker></mat-datepicker>
+              </mat-form-field>
+            </div>
+          }
+
+          <!-- Actions -->
+          <div
+            class="flex items-center justify-end gap-3 mt-10 -mx-6 sm:-mx-12 py-4 px-6 sm:px-12 border-t bg-gray-50 dark:bg-transparent"
+          >
+            <!-- Cancel -->
+            @if (!isAdd) {
+              <button
+                type="button"
+                class="btn-cancel"
+                [matTooltip]="'Cancel'"
+                (click)="toggleEditMode(false)"
+              >
+                Cancel
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="btn-cancel"
+                [matTooltip]="'Cancel'"
+                [routerLink]="['../']"
+                (click)="closeDrawer()"
+              >
+                Cancel
+              </button>
+            }
+            <!-- Save -->
+            @if (!isAdd && canUpdate) {
+              <button
+                type="button"
+                class="btn-primary"
+                [disabled]="sellerForm.invalid || btnDisable"
+                (click)="addUpdateSelectedUser(seller._id)"
+              >
+                <span class="inline-flex items-center">
+                  <span>Update</span>
+                  <mat-icon
+                    class="ml-1.5 icon-size-5"
+                    [svgIcon]="'heroicons_solid:arrow-sm-right'"
+                  ></mat-icon>
+                </span>
+              </button>
+            }
+            @if (isAdd && canAdd) {
+              <button
+                type="button"
+                class="btn-primary"
+                [disabled]="sellerForm.invalid || btnDisable"
+                (click)="addUpdateSelectedUser('')"
+              >
+                <span class="inline-flex items-center">
+                  <span>Add</span>
+                  <mat-icon
+                    class="ml-1.5 icon-size-5"
+                    [svgIcon]="'heroicons_solid:arrow-sm-right'"
+                  ></mat-icon>
+                </span>
+              </button>
+            }
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

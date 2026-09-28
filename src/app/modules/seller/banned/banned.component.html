@@ -1,0 +1,1097 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white"
+>
+  <!-- Header -->
+  <div
+    class="page-header !py-1 !pb-0 px-4 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+  >
+    <div class="flex items-center gap-3 py-1">
+      <a
+        (click)="$event.preventDefault()"
+        mat-icon-button
+        [matTooltip]="tooltip"
+      >
+        <mat-icon
+          class="icon-size-7 mb-0 mr-1 text-white"
+          [svgIcon]="'mat_solid:verified'"
+        ></mat-icon>
+      </a>
+      <span class="text-2xl font-bold tracking-tight text-white"
+        >Amazon Compliance Settings</span
+      >
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="-mb-6">
+      <mat-tab-group
+        [(selectedIndex)]="selectedTabIndex"
+        (selectedIndexChange)="onTabChange($event)"
+        animationDuration="0ms"
+        class="fuse-mat-tabs-dense"
+      >
+        <mat-tab label="ASIN"></mat-tab>
+        <mat-tab label="Keyword"></mat-tab>
+        <mat-tab label="Brand"></mat-tab>
+      </mat-tab-group>
+    </div>
+  </div>
+
+  @if (isSuperAdmin || permission?.view) {
+    <div class="flex flex-auto flex-col md:flex-row overflow-hidden">
+      <!-- ASIN Column -->
+      @if (selectedTabIndex === 0) {
+        <div
+          class="relative flex min-w-0 flex-col flex-auto overflow-hidden border border-b-0 w-full md:border-b"
+        >
+          <div
+            class="p-2 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          >
+            <h2 class="text-lg font-bold text-slate-800">ASIN</h2>
+            <div class="flex items-center gap-2">
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-44 scale-95 -mb-5"
+              >
+                <mat-icon
+                  class="icon-size-4 text-gray-400"
+                  matPrefix
+                  [svgIcon]="'heroicons_solid:search'"
+                ></mat-icon>
+                <input
+                  matInput
+                  [formControl]="searchInputControl"
+                  [autocomplete]="'off'"
+                  [placeholder]="'Search ASIN...'"
+                />
+              </mat-form-field>
+              <!-- Refresh Button -->
+              <button
+                type="button"
+                class="btn-secondary-action"
+                (click)="refresh('asin')"
+                matTooltip="Refresh"
+              >
+                <mat-icon
+                  class="icon-size-5"
+                  svgIcon="mat_outline:refresh"
+                ></mat-icon>
+              </button>
+              @if (isSuperAdmin || permission?.add) {
+                <button
+                  type="button"
+                  class="btn-primary-action"
+                  mat-flat-button
+                  (click)="addUpdateAsin('')"
+                >
+                  <mat-icon
+                    class="icon-size-4 text-white"
+                    [svgIcon]="'heroicons_outline:plus'"
+                  ></mat-icon>
+                  <span>Add</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-auto pb-20">
+            <!-- Header Matrix -->
+            <div
+              class="banned-asin-grid table-header-row min-w-[420px]"
+              matSort
+              matSortDisableClear
+              (matSortChange)="sortData($event, 'asin')"
+            >
+              <div [mat-sort-header]="'asin'">Asin</div>
+              <div [mat-sort-header]="'comment'">Comment</div>
+              <div [mat-sort-header]="'createdAt'">Created At</div>
+              <div>Action</div>
+            </div>
+
+            <!-- SKELETON LOADER STATE (10 Rows) -->
+            @if (isLoading) {
+              @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                <div
+                  class="banned-asin-grid table-data-row min-w-[420px] animate-pulse"
+                >
+                  <div>
+                    <div
+                      class="h-7 bg-gray-200 dark:bg-gray-700 rounded w-28 my-1 mx-auto"
+                    ></div>
+                  </div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"
+                  ></div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                  ></div>
+                  <div class="flex items-center gap-2">
+                    @if (isSuperAdmin || permission?.update) {
+                      <div
+                        class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full ml-1.5"
+                      ></div>
+                    }
+                    @if (isSuperAdmin || permission?.delete) {
+                      <div
+                        class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full ml-1.5"
+                      ></div>
+                    }
+                  </div>
+                </div>
+              }
+            } @else {
+              <!-- ACTUAL DATA STATE -->
+              @if (asin_list | async; as asin_list) {
+                @if (asin_list.length > 0) {
+                  @for (list of asin_list; track list.asin || $index) {
+                    <div class="banned-asin-grid table-data-row min-w-[420px]">
+                      <!-- ASIN -->
+                      <div
+                        class="truncate text-slate-800 font-semibold flex items-center gap-1.5"
+                        [matTooltip]="list.asin"
+                      >
+                        <span>{{ list.asin || "-" }}</span>
+                        @if (list.asin) {
+                          <button
+                            type="button"
+                            [cdkCopyToClipboard]="list.asin"
+                            class="table-action-btn !p-0.5"
+                            matTooltip="Copy ASIN"
+                          >
+                            <mat-icon
+                              svgIcon="mat_outline:content_copy"
+                              class="icon-size-3 text-slate-800"
+                            >
+                            </mat-icon>
+                          </button>
+                        }
+                      </div>
+                      <!-- Name -->
+                      <div
+                        class="truncate text-slate-700 font-semibold"
+                        [matTooltip]="list.comment"
+                      >
+                        {{ list.comment || "-" }}
+                      </div>
+                      <div
+                        class="text-xs font-semibold text-slate-500"
+                        [matTooltip]="list.createdAt | date: 'dd/MM/yyyy HH:mm'"
+                      >
+                        {{ list.createdAt | date: "dd/MM/yyyy HH:mm" }}
+                      </div>
+                      <div class="flex items-center gap-1">
+                        @if (isSuperAdmin || permission?.update) {
+                          <button
+                            type="button"
+                            class="table-action-btn"
+                            (click)="addUpdateAsin(list._id)"
+                            matTooltip="Edit"
+                          >
+                            <mat-icon
+                              class="icon-size-4"
+                              svgIcon="feather:edit"
+                            ></mat-icon>
+                          </button>
+                        }
+                        @if (isSuperAdmin || permission?.delete) {
+                          <button
+                            type="button"
+                            class="table-action-btn danger"
+                            (click)="deleteAsin(list._id)"
+                            matTooltip="Delete"
+                          >
+                            <mat-icon
+                              class="icon-size-4 text-red-600"
+                              [svgIcon]="'heroicons_solid:trash'"
+                            ></mat-icon>
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <!-- Fallback Empty State View UI -->
+                  <div class="page-empty-state">
+                    <div class="icon-wrapper">
+                      <mat-icon
+                        class="icon-size-10"
+                        [svgIcon]="'heroicons_outline:ban'"
+                      ></mat-icon>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">
+                      No Banned ASINs
+                    </h3>
+                    <p class="text-slate-500 max-w-sm font-medium">
+                      There are currently no banned ASINs configured in the
+                      database.
+                    </p>
+                  </div>
+                }
+              }
+            }
+          </div>
+
+          @if (asin_list | async; as asin_list) {
+            @if (asin_list?.length) {
+              <div class="pagination-bar">
+                <mat-paginator
+                  #_paginatorAsin="matPaginator"
+                  [ngClass]="{ 'pointer-events-none': isLoading }"
+                  [length]="
+                    ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                    (asin_list?.length || 0) +
+                    (pagination?.hasNextPage ? 1 : 0)
+                  "
+                  [pageSize]="pagination?.size || 100"
+                  [pageSizeOptions]="[5, 25, 50, 100]"
+                  [pageIndex]="(pagination?.page || 1) - 1"
+                  [showFirstLastButtons]="false"
+                  (page)="pageChangeEvent($event, 'asin')"
+                ></mat-paginator>
+              </div>
+            }
+          }
+        </div>
+      }
+
+      <!-- Keyword Column -->
+      @if (selectedTabIndex === 1) {
+        <div
+          class="relative flex min-w-0 flex-col flex-auto overflow-hidden border w-full"
+        >
+          <div
+            class="p-2 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          >
+            <h2 class="text-lg font-bold text-slate-800">Keyword</h2>
+            <div class="flex items-center gap-2">
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-44 scale-95 -mb-5"
+              >
+                <mat-icon
+                  class="icon-size-4 text-gray-400"
+                  matPrefix
+                  [svgIcon]="'heroicons_solid:search'"
+                ></mat-icon>
+                <input
+                  matInput
+                  [formControl]="searchInput1Control"
+                  [autocomplete]="'off'"
+                  [placeholder]="'Search Keyword...'"
+                />
+              </mat-form-field>
+              <!-- <button class="ml-4" mat-flat-button [color]="'warn'" (click)="downloadFile()">
+              <mat-icon [svgIcon]="'heroicons_outline:arrow-sm-up'"></mat-icon>
+              <span class="ml-2 mr-1">Download Sample File</span>
+              </button>
+            <button class="ml-4" mat-flat-button [color]="'accent'" (click)="selectFile.click()">
+              <mat-icon [svgIcon]="'heroicons_outline:arrow-sm-down'"></mat-icon>
+              <span class="ml-2 mr-1">Import</span>
+              <router-outlet></router-outlet>
+            </button>
+            <input class="upload" name="image" type="file" hidden #selectFile
+              (change)="onFileUpload($event)" /> -->
+              <!-- Refresh Button -->
+              <button
+                type="button"
+                class="btn-secondary-action"
+                (click)="refresh('keyword')"
+                matTooltip="Refresh"
+              >
+                <mat-icon
+                  class="icon-size-5"
+                  svgIcon="mat_outline:refresh"
+                ></mat-icon>
+              </button>
+              @if (isSuperAdmin || permission?.add) {
+                <button
+                  type="button"
+                  class="btn-primary-action"
+                  mat-flat-button
+                  (click)="addUpdateKeyword('')"
+                >
+                  <mat-icon
+                    class="icon-size-4 text-white"
+                    [svgIcon]="'heroicons_outline:plus'"
+                  ></mat-icon>
+                  <span>Add</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-auto pb-20">
+            <!-- Header Matrix -->
+            <div
+              class="banned-keyword-grid table-header-row min-w-[420px]"
+              matSort
+              matSortDisableClear
+              (matSortChange)="sortData($event, 'keyword')"
+            >
+              <div [mat-sort-header]="'asin'">Keywords</div>
+              <div [mat-sort-header]="'comment'">Comment</div>
+              <div [mat-sort-header]="'createdAt'">Created At</div>
+              <div>Action</div>
+            </div>
+
+            <!-- SKELETON LOADER STATE (10 Rows) -->
+            @if (isLoading1) {
+              @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                <div
+                  class="banned-keyword-grid table-data-row min-w-[420px] animate-pulse"
+                >
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"
+                  ></div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"
+                  ></div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                  ></div>
+                  <div class="flex items-center gap-2">
+                    @if (isSuperAdmin || permission?.update) {
+                      <div
+                        class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full ml-1.5"
+                      ></div>
+                    }
+                    @if (isSuperAdmin || permission?.delete) {
+                      <div
+                        class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full ml-1.5"
+                      ></div>
+                    }
+                  </div>
+                </div>
+              }
+            } @else {
+              <!-- ACTUAL DATA STATE -->
+              @if (keyword_list | async; as keywords) {
+                @if (keywords.length > 0) {
+                  @for (keyword of keywords; track keyword.keyword || $index) {
+                    <div
+                      class="banned-keyword-grid table-data-row min-w-[420px]"
+                    >
+                      <div
+                        class="truncate text-slate-800 font-semibold"
+                        [matTooltip]="keyword.keyword"
+                      >
+                        {{ keyword.keyword }}
+                      </div>
+                      <div
+                        class="truncate text-slate-600 font-semibold"
+                        [matTooltip]="keyword.comment"
+                      >
+                        {{ keyword.comment }}
+                      </div>
+                      <div
+                        class="text-xs font-semibold text-slate-500"
+                        [matTooltip]="
+                          keyword.createdAt | date: 'dd/MM/yyyy HH:mm'
+                        "
+                      >
+                        {{ keyword.createdAt | date: "dd/MM/yyyy HH:mm" }}
+                      </div>
+                      <div class="flex items-center gap-1">
+                        @if (isSuperAdmin || permission?.update) {
+                          <button
+                            type="button"
+                            class="table-action-btn"
+                            (click)="addUpdateKeyword(keyword._id)"
+                            matTooltip="Edit"
+                          >
+                            <mat-icon
+                              class="icon-size-4"
+                              svgIcon="feather:edit"
+                            ></mat-icon>
+                          </button>
+                        }
+                        @if (isSuperAdmin || permission?.delete) {
+                          <button
+                            type="button"
+                            class="table-action-btn danger"
+                            (click)="deleteKeyword(keyword._id)"
+                            matTooltip="Delete"
+                          >
+                            <mat-icon
+                              class="icon-size-4 text-red-600"
+                              [svgIcon]="'heroicons_solid:trash'"
+                            ></mat-icon>
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <!-- Fallback Empty State View UI -->
+                  <div class="page-empty-state">
+                    <div class="icon-wrapper">
+                      <mat-icon
+                        class="icon-size-10"
+                        [svgIcon]="'heroicons_outline:tag'"
+                      ></mat-icon>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">
+                      No Keywords
+                    </h3>
+                    <p class="text-slate-500 max-w-sm font-medium">
+                      There are currently no compliance keywords configured in
+                      the database.
+                    </p>
+                  </div>
+                }
+              }
+            }
+          </div>
+
+          @if (keyword_list | async; as productList) {
+            @if (productList?.length) {
+              <div class="pagination-bar">
+                <mat-paginator
+                  #_paginatorOld="matPaginator"
+                  [ngClass]="{ 'pointer-events-none': isLoading1 }"
+                  [length]="
+                    ((keywordPagination?.page || 1) - 1) *
+                      (keywordPagination?.size || 100) +
+                    (productList?.length || 0) +
+                    (keywordPagination?.hasNextPage ? 1 : 0)
+                  "
+                  [pageSize]="keywordPagination?.size || 100"
+                  [pageSizeOptions]="[5, 25, 50, 100]"
+                  [pageIndex]="(keywordPagination?.page || 1) - 1"
+                  [showFirstLastButtons]="false"
+                  (page)="pageChangeEvent($event, 'keyword')"
+                ></mat-paginator>
+              </div>
+            }
+          }
+        </div>
+      }
+
+      <!-- Brand Column -->
+      @if (selectedTabIndex === 2) {
+        <div
+          class="relative flex min-w-0 flex-col flex-auto overflow-hidden border w-full"
+        >
+          <div
+            class="p-2 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          >
+            <h2 class="text-lg font-bold text-slate-800">Brand</h2>
+            <div class="flex items-center gap-2">
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-44 scale-95 -mb-5"
+              >
+                <mat-icon
+                  class="icon-size-4 text-gray-400"
+                  matPrefix
+                  [svgIcon]="'heroicons_solid:search'"
+                ></mat-icon>
+                <input
+                  matInput
+                  [formControl]="searchInput2Control"
+                  [autocomplete]="'off'"
+                  [placeholder]="'Search Brand...'"
+                />
+              </mat-form-field>
+              <!-- Refresh Button -->
+              <button
+                type="button"
+                class="btn-secondary-action"
+                (click)="refresh('brand')"
+                matTooltip="Refresh"
+              >
+                <mat-icon
+                  class="icon-size-5"
+                  svgIcon="mat_outline:refresh"
+                ></mat-icon>
+              </button>
+              @if (isSuperAdmin || permission?.add) {
+                <button
+                  type="button"
+                  class="btn-primary-action"
+                  mat-flat-button
+                  (click)="addUpdateBrand('')"
+                >
+                  <mat-icon
+                    class="icon-size-4 text-white"
+                    [svgIcon]="'heroicons_outline:plus'"
+                  ></mat-icon>
+                  <span>Add</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-auto pb-20">
+            <!-- Header Matrix -->
+            <div
+              class="banned-brand-grid table-header-row min-w-[420px]"
+              matSort
+              matSortDisableClear
+              (matSortChange)="sortData($event, 'brand')"
+            >
+              <div [mat-sort-header]="'brand_name'">Brand Name</div>
+              <div [mat-sort-header]="'comment'">Comment</div>
+              <div [mat-sort-header]="'createdAt'">Created At</div>
+              <div>Action</div>
+            </div>
+
+            <!-- SKELETON LOADER STATE (10 Rows) -->
+            @if (isLoading2) {
+              @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                <div
+                  class="banned-brand-grid table-data-row min-w-[420px] animate-pulse"
+                >
+                  <div>
+                    <div
+                      class="h-7 bg-gray-200 dark:bg-gray-700 rounded w-28 my-1 mx-auto"
+                    ></div>
+                  </div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"
+                  ></div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                  ></div>
+                  <div class="flex items-center gap-2">
+                    @if (isSuperAdmin || permission?.update) {
+                      <div
+                        class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full ml-1.5"
+                      ></div>
+                    }
+                    @if (isSuperAdmin || permission?.delete) {
+                      <div
+                        class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full ml-1.5"
+                      ></div>
+                    }
+                  </div>
+                </div>
+              }
+            } @else {
+              <!-- ACTUAL DATA STATE -->
+              @if (brand_list | async; as brandList) {
+                @if (brandList.length > 0) {
+                  @for (list of brandList; track list.brand_name || $index) {
+                    <div class="banned-brand-grid table-data-row min-w-[420px]">
+                      <!-- Brand Name -->
+                      <div
+                        class="truncate text-slate-800 font-semibold"
+                        [matTooltip]="list.brand_name"
+                      >
+                        {{ list.brand_name || "-" }}
+                      </div>
+                      <!-- Comment -->
+                      <div
+                        class="truncate text-slate-700 font-semibold"
+                        [matTooltip]="list.comment"
+                      >
+                        {{ list.comment || "-" }}
+                      </div>
+                      <div
+                        class="text-xs font-semibold text-slate-500"
+                        [matTooltip]="list.createdAt | date: 'dd/MM/yyyy HH:mm'"
+                      >
+                        {{ list.createdAt | date: "dd/MM/yyyy HH:mm" }}
+                      </div>
+                      <div class="flex items-center gap-1">
+                        @if (isSuperAdmin || permission?.update) {
+                          <button
+                            type="button"
+                            class="table-action-btn"
+                            (click)="addUpdateBrand(list._id)"
+                            matTooltip="Edit"
+                          >
+                            <mat-icon
+                              class="icon-size-4"
+                              svgIcon="feather:edit"
+                            ></mat-icon>
+                          </button>
+                        }
+                        @if (isSuperAdmin || permission?.delete) {
+                          <button
+                            type="button"
+                            class="table-action-btn danger"
+                            (click)="deleteBrand(list._id)"
+                            matTooltip="Delete"
+                          >
+                            <mat-icon
+                              class="icon-size-4 text-red-600"
+                              [svgIcon]="'heroicons_solid:trash'"
+                            ></mat-icon>
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <!-- Fallback Empty State View UI -->
+                  <div class="page-empty-state">
+                    <div class="icon-wrapper">
+                      <mat-icon
+                        class="icon-size-10"
+                        [svgIcon]="'heroicons_outline:ban'"
+                      ></mat-icon>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">
+                      No Banned Brands
+                    </h3>
+                    <p class="text-slate-500 max-w-sm font-medium">
+                      There are currently no banned brands configured in the
+                      database.
+                    </p>
+                  </div>
+                }
+              }
+            }
+          </div>
+
+          @if (brand_list | async; as brandList) {
+            @if (brandList?.length) {
+              <div class="pagination-bar">
+                <mat-paginator
+                  #_paginatorBrand="matPaginator"
+                  [ngClass]="{ 'pointer-events-none': isLoading2 }"
+                  [length]="
+                    ((brandPagination?.page || 1) - 1) *
+                      (brandPagination?.size || 100) +
+                    (brandList?.length || 0) +
+                    (brandPagination?.hasNextPage ? 1 : 0)
+                  "
+                  [pageSize]="brandPagination?.size || 100"
+                  [pageSizeOptions]="[5, 25, 50, 100]"
+                  [pageIndex]="(brandPagination?.page || 1) - 1"
+                  [showFirstLastButtons]="false"
+                  (page)="pageChangeEvent($event, 'brand')"
+                ></mat-paginator>
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="page-empty-state">
+      <div class="icon-wrapper bg-amber-50 border-amber-200">
+        <mat-icon
+          class="icon-size-10 text-amber-600"
+          [svgIcon]="'heroicons_outline:lock-closed'"
+        ></mat-icon>
+      </div>
+      <h3 class="text-xl font-bold text-slate-800 mb-2">
+        No permission to view amazon compliance
+      </h3>
+      <p class="text-slate-500 max-w-sm font-medium">
+        This seller role does not have view access for the amazon compliance
+        section.
+      </p>
+    </div>
+  }
+</div>
+
+<ng-template #asinTemplate>
+  <div class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-160">
+    <!-- Header Section -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon
+          class="icon-size-5 text-white"
+          svgIcon="mat_solid:verified"
+        ></mat-icon>
+        <span class="text-lg font-semibold text-white"
+          >{{ !selectedAsinId ? "Add" : "Update" }} ASIN</span
+        >
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeDialog()"
+        [tabIndex]="-1"
+        class="text-white"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+      </button>
+    </div>
+
+    <!-- Area Update form -->
+    <form
+      class="flex flex-col flex-auto p-6 overflow-y-auto space-y-4"
+      [formGroup]="asinForm"
+    >
+      @if (selectedAsinId) {
+        <div
+          class="px-3 py-2 bg-slate-100 rounded-lg font-mono font-bold text-slate-800 text-sm"
+        >
+          {{ asinForm.get("asin").value }}
+        </div>
+      }
+
+      <div
+        class="flex items-start bg-yellow-50 border border-yellow-100 text-yellow-900 p-4 rounded-lg text-xs font-semibold gap-2.5"
+      >
+        <mat-icon class="text-yellow-600 icon-size-5 mt-0.5">warning</mat-icon>
+        <div>
+          <p class="font-bold text-sm">Please Note</p>
+          <p class="mt-0.5">
+            Once you add the ASIN, all associated products will stop selling.
+            Please proceed with caution.
+          </p>
+        </div>
+      </div>
+
+      <mat-form-field class="w-full">
+        <mat-label>Marketplace</mat-label>
+        <mat-select
+          formControlName="marketplace_id"
+          placeholder="Select Marketplace"
+          (openedChange)="triggerMarketplaceEvent()"
+          required
+        >
+          <mat-option>
+            <ngx-mat-select-search
+              placeholderLabel="Search marketplace"
+              (keyup)="filterMarketplaceData($event.target.value)"
+              noEntriesFoundLabel="'No marketplace found'"
+            >
+            </ngx-mat-select-search>
+          </mat-option>
+          @for (mp of filteredMarketplaces; track mp.id) {
+            <mat-option [value]="mp.id">
+              {{ mp.countryName }} ({{ mp.countryCode }})
+            </mat-option>
+          }
+        </mat-select>
+        @if (asinForm.get("marketplace_id")?.hasError("required")) {
+          <mat-error>Marketplace is required</mat-error>
+        }
+      </mat-form-field>
+
+      @if (!selectedAsinId) {
+        <mat-form-field class="w-full">
+          <mat-label>ASIN</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="asin"
+            placeholder="EX: B00000J1EE"
+          />
+          @if (asinForm.get("asin")?.hasError("required")) {
+            <mat-error>ASIN is required</mat-error>
+          }
+          @if (asinForm.get("asin")?.hasError("pattern")) {
+            <mat-error
+              >ASIN must be exactly 10 alphanumeric characters or
+              digits</mat-error
+            >
+          }
+        </mat-form-field>
+      }
+
+      <mat-form-field class="w-full">
+        <mat-label>Comment</mat-label>
+        <textarea
+          matInput
+          formControlName="comment"
+          placeholder="Comment"
+          rows="3"
+        ></textarea>
+        @if (asinForm.get("comment")?.hasError("required")) {
+          <mat-error>Comment is required</mat-error>
+        }
+        @if (asinForm.get("comment")?.hasError("maxlength")) {
+          <mat-error>Comment cannot exceed 200 characters</mat-error>
+        }
+      </mat-form-field>
+    </form>
+
+    <!-- Action Buttons -->
+    <div
+      class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50"
+    >
+      <button type="button" class="btn-cancel" (click)="closeDialog()">
+        Cancel
+      </button>
+      @if ((isSuperAdmin || permission?.add) && !selectedAsinId) {
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="asinForm.invalid || isSubmitting"
+          (click)="createAsin()"
+        >
+          Add
+        </button>
+      }
+      @if ((isSuperAdmin || permission?.update) && selectedAsinId) {
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="asinForm.invalid || isSubmitting"
+          (click)="updateAsin()"
+        >
+          Update
+        </button>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #keywordTemplate>
+  <div class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-160">
+    <!-- Header Section -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon
+          class="icon-size-5 text-white"
+          svgIcon="mat_solid:verified"
+        ></mat-icon>
+        <span class="text-lg font-semibold text-white"
+          >{{ !selectedKeywordId ? "Add" : "Update" }} Keyword</span
+        >
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeDialog()"
+        [tabIndex]="-1"
+        class="text-white"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+      </button>
+    </div>
+
+    <!-- Area Update form -->
+    <form
+      class="flex flex-col flex-auto p-6 overflow-y-auto space-y-4"
+      [formGroup]="keywordForm"
+    >
+      @if (selectedKeywordId) {
+        <div
+          class="px-3 py-2 bg-slate-100 rounded-lg font-bold text-slate-800 text-sm"
+        >
+          {{ keywordForm.get("keyword").value }}
+        </div>
+      }
+
+      <mat-form-field class="w-full">
+        <mat-label>Marketplace</mat-label>
+        <mat-select
+          formControlName="marketplace_id"
+          placeholder="Select Marketplace"
+          (openedChange)="triggerMarketplaceEvent()"
+          required
+        >
+          <mat-option>
+            <ngx-mat-select-search
+              placeholderLabel="Search marketplace"
+              (keyup)="filterMarketplaceData($event.target.value)"
+              noEntriesFoundLabel="'No marketplace found'"
+            >
+            </ngx-mat-select-search>
+          </mat-option>
+          @for (mp of filteredMarketplaces; track mp.id) {
+            <mat-option [value]="mp.id">
+              {{ mp.countryName }} ({{ mp.countryCode }})
+            </mat-option>
+          }
+        </mat-select>
+        @if (keywordForm.get("marketplace_id")?.hasError("required")) {
+          <mat-error>Marketplace is required</mat-error>
+        }
+      </mat-form-field>
+
+      @if (!selectedKeywordId) {
+        <mat-form-field class="w-full">
+          <mat-label>Keyword</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="keyword"
+            placeholder="Keyword"
+          />
+          @if (keywordForm.get("keyword")?.hasError("required")) {
+            <mat-error>Keyword is required</mat-error>
+          }
+          @if (keywordForm.get("keyword")?.hasError("maxlength")) {
+            <mat-error>Keyword cannot exceed 20 characters</mat-error>
+          }
+        </mat-form-field>
+      }
+
+      <mat-form-field class="w-full">
+        <mat-label>Comment</mat-label>
+        <textarea
+          matInput
+          formControlName="comment"
+          placeholder="Comment"
+          rows="3"
+        ></textarea>
+        @if (keywordForm.get("comment")?.hasError("required")) {
+          <mat-error>Comment is required</mat-error>
+        }
+        @if (keywordForm.get("comment")?.hasError("maxlength")) {
+          <mat-error>Comment cannot exceed 200 characters</mat-error>
+        }
+      </mat-form-field>
+    </form>
+
+    <!-- Action Buttons -->
+    <div
+      class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50"
+    >
+      <button type="button" class="btn-cancel" (click)="closeDialog()">
+        Cancel
+      </button>
+      @if ((isSuperAdmin || permission?.add) && !selectedKeywordId) {
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="keywordForm.invalid || isSubmitting"
+          (click)="createKeyword()"
+        >
+          Add
+        </button>
+      }
+      @if ((isSuperAdmin || permission?.update) && selectedKeywordId) {
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="keywordForm.invalid || isSubmitting"
+          (click)="updateKeyword()"
+        >
+          Update
+        </button>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #brandTemplate>
+  <div class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-160">
+    <!-- Header Section -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon
+          class="icon-size-5 text-white"
+          svgIcon="mat_solid:verified"
+        ></mat-icon>
+        <span class="text-lg font-semibold text-white"
+          >{{ !selectedBrandId ? "Add" : "Update" }} Brand</span
+        >
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeDialog()"
+        [tabIndex]="-1"
+        class="text-white"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+      </button>
+    </div>
+
+    <!-- Area Update form -->
+    <form
+      class="flex flex-col flex-auto p-6 overflow-y-auto space-y-4"
+      [formGroup]="brandForm"
+    >
+      @if (selectedBrandId) {
+        <div
+          class="px-3 py-2 bg-slate-100 rounded-lg font-bold text-slate-800 text-sm"
+        >
+          {{ brandForm.get("brand_name").value }}
+        </div>
+      }
+
+      <mat-form-field class="w-full">
+        <mat-label>Marketplace</mat-label>
+        <mat-select
+          formControlName="marketplace_id"
+          placeholder="Select Marketplace"
+          (openedChange)="triggerMarketplaceEvent()"
+          required
+        >
+          <mat-option>
+            <ngx-mat-select-search
+              placeholderLabel="Search marketplace"
+              (keyup)="filterMarketplaceData($event.target.value)"
+              noEntriesFoundLabel="'No marketplace found'"
+            >
+            </ngx-mat-select-search>
+          </mat-option>
+          @for (mp of filteredMarketplaces; track mp.id) {
+            <mat-option [value]="mp.id">
+              {{ mp.countryName }} ({{ mp.countryCode }})
+            </mat-option>
+          }
+        </mat-select>
+        @if (brandForm.get("marketplace_id")?.hasError("required")) {
+          <mat-error>Marketplace is required</mat-error>
+        }
+      </mat-form-field>
+
+      @if (!selectedBrandId) {
+        <mat-form-field class="w-full">
+          <mat-label>Brand Name</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="brand_name"
+            placeholder="Brand Name"
+          />
+          @if (brandForm.get("brand_name")?.hasError("required")) {
+            <mat-error>Brand Name is required</mat-error>
+          }
+          @if (brandForm.get("brand_name")?.hasError("maxlength")) {
+            <mat-error>Brand Name cannot exceed 100 characters</mat-error>
+          }
+        </mat-form-field>
+      }
+
+      <mat-form-field class="w-full">
+        <mat-label>Comment</mat-label>
+        <textarea
+          matInput
+          formControlName="comment"
+          placeholder="Comment"
+          rows="3"
+        ></textarea>
+        @if (brandForm.get("comment")?.hasError("required")) {
+          <mat-error>Comment is required</mat-error>
+        }
+        @if (brandForm.get("comment")?.hasError("maxlength")) {
+          <mat-error>Comment cannot exceed 200 characters</mat-error>
+        }
+      </mat-form-field>
+    </form>
+
+    <!-- Action Buttons -->
+    <div
+      class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50"
+    >
+      <button type="button" class="btn-cancel" (click)="closeDialog()">
+        Cancel
+      </button>
+      @if ((isSuperAdmin || permission?.add) && !selectedBrandId) {
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="brandForm.invalid || isSubmitting"
+          (click)="createBrand()"
+        >
+          Add
+        </button>
+      }
+      @if ((isSuperAdmin || permission?.update) && selectedBrandId) {
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="brandForm.invalid || isSubmitting"
+          (click)="updateBrand()"
+        >
+          Update
+        </button>
+      }
+    </div>
+  </div>
+</ng-template>

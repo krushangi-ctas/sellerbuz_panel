@@ -1,0 +1,31 @@
+:host ::ng-deep {
+  .page-header {
+    background-color: #0e3666;
+    padding: 10px 24px !important;
+  }
+
+  .fuse-mat-dense {
+    .mat-mdc-form-field-subscript-wrapper {
+      font-size: 11px;
+    }
+  }
+
+  .mat-mdc-form-field-outline {
+    background-color: #ffffff;
+  }
+
+  /* Style toggle switch primary color */
+  .mat-mdc-slide-toggle.mat-accent {
+    --mdc-switch-selected-focus-state-layer-color: #0e3666;
+    --mdc-switch-selected-handle-color: #0e3666;
+    --mdc-switch-selected-hover-state-layer-color: #0e3666;
+    --mdc-switch-selected-pressed-state-layer-color: #0e3666;
+    --mdc-switch-selected-focus-handle-color: #0e3666;
+    --mdc-switch-selected-hover-handle-color: #0e3666;
+    --mdc-switch-selected-pressed-handle-color: #0e3666;
+    --mdc-switch-selected-focus-track-color: #3b82f6;
+    --mdc-switch-selected-hover-track-color: #3b82f6;
+    --mdc-switch-selected-pressed-track-color: #3b82f6;
+    --mdc-switch-selected-track-color: #93c5fd;
+  }
+}

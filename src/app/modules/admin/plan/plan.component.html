@@ -1,0 +1,580 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden bg-white">
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_solid:credit-card'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">
+            Plan List
+          </h1>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <!-- Search -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="searchInputControl"
+            maxlength="50"
+            [autocomplete]="'off'"
+            [placeholder]="'Search plans...'"
+          />
+        </mat-form-field>
+        <!-- Status filter -->
+        <form [formGroup]="planSearchFromGroup" class="flex-shrink-0 -mb-5">
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-36">
+            <mat-icon
+              svgIcon="mat_outline:filter_alt"
+              class="icon-size-5 text-gray-400"
+              matPrefix
+            ></mat-icon>
+            <mat-select formControlName="status" placeholder="Status">
+              <mat-option [value]="">All</mat-option>
+              <mat-option [value]="1">Active</mat-option>
+              <mat-option [value]="0">Inactive</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </form>
+
+        <!-- Date Range filter -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-52 -mb-5"
+        >
+          <mat-icon
+            svgIcon="heroicons_outline:calendar"
+            class="icon-size-5 text-gray-400"
+            matPrefix
+          ></mat-icon>
+          <mat-date-range-input [rangePicker]="datePicker" [max]="maxDate">
+            <input
+              matStartDate
+              [formControl]="startDate"
+              [autocomplete]="'off'"
+              placeholder="Start"
+            />
+            <input
+              matEndDate
+              [formControl]="endDate"
+              [autocomplete]="'off'"
+              placeholder="End"
+              (dateChange)="onDateClickFilter()"
+            />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="datePicker"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #datePicker></mat-date-range-picker>
+          @if (isResetDate) {
+            <button mat-icon-button type="button" (click)="clearDate()">
+              <mat-icon class="icon-size-4">clear</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+
+        <!-- Refresh Button -->
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refresh()"
+          matTooltip="Refresh"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+
+        <!-- Add Plan Button -->
+        @if (isSuperAdmin || canAdd) {
+          <button
+            type="button"
+            class="btn-primary-action"
+            mat-flat-button
+            (click)="addPlan()"
+          >
+            <mat-icon
+              class="icon-size-5 text-white"
+              [svgIcon]="'heroicons_outline:plus'"
+            ></mat-icon>
+            <span>Add Plan</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div
+      class="flex flex-col flex-auto min-h-0 overflow-hidden"
+      matSort
+      matSortDisableClear
+    >
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+        @if (isLoading) {
+          <div class="grid mb-5">
+            <div
+              class="table-header-row"
+              [ngClass]="{
+                'role-grid': isSuperAdmin || canUpdate,
+                'role-restricted': !isSuperAdmin && !canUpdate && canDelete,
+                'role-no-control': !isSuperAdmin && !canUpdate && !canDelete,
+              }"
+            >
+              <div>Creation Date</div>
+              <div>Plan Name</div>
+              <div>Price (in cents)</div>
+              <div>Marketing Features</div>
+              <div>Features</div>
+              <div>Updated Date</div>
+              @if (isSuperAdmin || canUpdate) {
+                <div>Status</div>
+              }
+              @if (isSuperAdmin || canUpdate || canDelete) {
+                <div>Action</div>
+              }
+            </div>
+
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+              <div
+                class="table-data-row animate-pulse"
+                [ngClass]="{
+                  'role-grid': isSuperAdmin || canUpdate,
+                  'role-restricted': !isSuperAdmin && !canUpdate && canDelete,
+                  'role-no-control': !isSuperAdmin && !canUpdate && !canDelete,
+                }"
+              >
+                <!-- 1. Creation Date -->
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                ></div>
+
+                <!-- 2. Plan Name -->
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                ></div>
+
+                <!-- 3. Price -->
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"
+                ></div>
+
+                <!-- 4. Marketing Features -->
+                <div class="flex flex-row flex-wrap gap-1">
+                  <div
+                    class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-16"
+                  ></div>
+                  <div
+                    class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-14"
+                  ></div>
+                </div>
+
+                <!-- 5. Features Button -->
+                <div class="flex items-center">
+                  <div
+                    class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                  ></div>
+                </div>
+
+                <!-- 6. Updated Date -->
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                ></div>
+
+                <!-- 7. Status -->
+                @if (isSuperAdmin || canUpdate) {
+                  <div class="flex items-center">
+                    <div
+                      class="w-9 h-5 bg-gray-200 dark:bg-gray-700 rounded-full"
+                    ></div>
+                  </div>
+                }
+
+                <!-- 8. Actions -->
+                @if (isSuperAdmin || canUpdate || canDelete) {
+                  <div class="flex gap-1 justify-end items-center">
+                    @if (isSuperAdmin || canUpdate) {
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                    }
+                    @if (isSuperAdmin || canDelete) {
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          @if (planFormInput | async; as plans) {
+            @if (plans.length > 0) {
+              <div class="grid">
+                <div
+                  class="table-header-row"
+                  [ngClass]="{
+                    'role-grid': isSuperAdmin || canUpdate,
+                    'role-restricted': !isSuperAdmin && !canUpdate && canDelete,
+                    'role-no-control':
+                      !isSuperAdmin && !canUpdate && !canDelete,
+                  }"
+                >
+                  <div
+                    class="flex items-center"
+                    [mat-sort-header]="'createdAt'"
+                  >
+                    Creation Date
+                  </div>
+                  <div class="flex items-center" [mat-sort-header]="'name'">
+                    Plan Name
+                  </div>
+                  <div class="flex items-center">Price (in cents)</div>
+                  <div class="flex items-center">Marketing Features</div>
+                  <div class="flex items-center">Features</div>
+                  <div
+                    class="flex items-center"
+                    [mat-sort-header]="'updatedAt'"
+                  >
+                    Updated Date
+                  </div>
+                  @if (isSuperAdmin || canUpdate) {
+                    <div class="flex items-center" [mat-sort-header]="'status'">
+                      Status
+                    </div>
+                  }
+                  @if (isSuperAdmin || canUpdate || canDelete) {
+                    <div class="flex items-center justify-end">Action</div>
+                  }
+                </div>
+                @for (type of plans; track $index) {
+                  <div
+                    class="table-data-row"
+                    [ngClass]="{
+                      'role-grid': isSuperAdmin || canUpdate,
+                      'role-restricted':
+                        !isSuperAdmin && !canUpdate && canDelete,
+                      'role-no-control':
+                        !isSuperAdmin && !canUpdate && !canDelete,
+                    }"
+                  >
+                    <div class="font-semibold text-sm text-slate-600">
+                      {{ type.createdAt | date: "dd-MM-yyyy HH:mm" || "-" }}
+                    </div>
+                    <div
+                      class="truncate font-semibold text-slate-800"
+                      [matTooltip]="type.name"
+                    >
+                      {{ type.name | titlecase }}
+                    </div>
+
+                    <div class="flex flex-col">
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <span
+                          class="text-sm font-bold text-slate-800"
+                          *ngIf="
+                            type.interval === 'month' ||
+                            type.interval === 'both'
+                          "
+                        >
+                          {{ type.price }} {{ type.currency | uppercase }}/Month
+                        </span>
+
+                        <span
+                          class="text-sm font-bold text-gray-400"
+                          *ngIf="type.interval === 'both'"
+                        >
+                          |
+                        </span>
+
+                        <span
+                          class="text-sm font-bold text-slate-800"
+                          *ngIf="
+                            type.interval === 'quarterly' ||
+                            type.interval === 'both'
+                          "
+                        >
+                          {{
+                            type.price_quarterly ??
+                              (type.interval === "quarterly" ? type.price : "")
+                          }}
+                          {{ type.currency | uppercase }}/Quarter
+                        </span>
+                      </div>
+
+                      <span
+                        class="text-xs text-emerald-600 font-semibold"
+                        *ngIf="
+                          (type.interval === 'quarterly' ||
+                            type.interval === 'both') &&
+                          type.discount > 0
+                        "
+                      >
+                        ({{ type.discount }}% off)
+                      </span>
+
+                      <span
+                        class="text-sm font-bold text-slate-800"
+                        *ngIf="type.interval === 'year'"
+                      >
+                        {{ type.price }} {{ type.currency | uppercase }}/Year
+                      </span>
+                    </div>
+
+                    <div
+                      class="flex flex-wrap gap-1"
+                      *ngIf="type.marketing_features?.length; else noFeatures"
+                    >
+                      <span
+                        *ngFor="
+                          let feature of type.marketing_features | slice: 0 : 2
+                        "
+                        class="px-2 py-0.5 text-xs font-semibold rounded bg-blue-50 text-blue-700 border border-blue-100"
+                      >
+                        {{ feature || "-" }}
+                      </span>
+
+                      <span
+                        *ngIf="type.marketing_features.length > 2"
+                        class="px-2 py-0.5 text-xs font-semibold rounded bg-slate-100 text-slate-700 border border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors"
+                        (click)="openMarketingFeatures(type.marketing_features)"
+                      >
+                        +{{ type.marketing_features.length - 2 }} more
+                      </span>
+                    </div>
+
+                    <ng-template #noFeatures>
+                      <span class="text-slate-400">-</span>
+                    </ng-template>
+                    <div class="flex items-center">
+                      <button
+                        type="button"
+                        class="table-action-btn"
+                        (click)="CategoryDialogOpen(type?._id)"
+                        matTooltip="View features"
+                      >
+                        <mat-icon
+                          class="icon-size-5"
+                          [svgIcon]="'heroicons_outline:eye'"
+                        ></mat-icon>
+                      </button>
+                    </div>
+                    <div class="font-semibold text-sm text-slate-600">
+                      {{ type.updatedAt | date: "dd-MM-yyyy HH:mm" || "-" }}
+                    </div>
+                    @if (isSuperAdmin || canUpdate) {
+                      <div class="flex items-center">
+                        <mat-slide-toggle
+                          [checked]="type.status === 1"
+                          (change)="togglePlanStatus(type._id, $event)"
+                          [color]="'primary'"
+                          class="scale-75 -mr-1"
+                        >
+                        </mat-slide-toggle>
+                      </div>
+                    }
+                    @if (isSuperAdmin || canUpdate || canDelete) {
+                      <div class="flex items-center justify-end gap-1">
+                        @if (isSuperAdmin || canUpdate) {
+                          <button
+                            type="button"
+                            class="table-action-btn"
+                            [routerLink]="['./edit', type._id]"
+                            matTooltip="Edit plan"
+                          >
+                            <mat-icon
+                              class="icon-size-5"
+                              [svgIcon]="'heroicons_outline:pencil'"
+                            ></mat-icon>
+                          </button>
+                        }
+                        @if (isSuperAdmin || canDelete) {
+                          <button
+                            type="button"
+                            class="table-action-btn danger"
+                            (click)="deleteSelectedPlan(type._id)"
+                            matTooltip="Delete plan"
+                          >
+                            <mat-icon
+                              class="icon-size-5 text-red-700 hover:text-red-800"
+                              [svgIcon]="'heroicons_outline:trash'"
+                            ></mat-icon>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <ng-container [ngTemplateOutlet]="noRecord"></ng-container>
+            }
+          }
+        }
+      </div>
+
+      @if (planFormInput | async; as plans) {
+        @if (plans.length) {
+          <div class="pagination-bar">
+            <mat-paginator
+              [ngClass]="{ 'pointer-events-none': isLoading }"
+              [length]="
+                ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                (plans?.length || 0) +
+                (pagination?.hasNextPage ? 1 : 0)
+              "
+              [pageSize]="pagination?.size || 100"
+              [pageSizeOptions]="[5, 25, 50, 100]"
+              [pageIndex]="(pagination?.page || 1) - 1"
+              [showFirstLastButtons]="false"
+            ></mat-paginator>
+          </div>
+        }
+      }
+
+      <ng-template #noRecord>
+        <div class="page-empty-state">
+          <div class="icon-wrapper">
+            <mat-icon
+              class="icon-size-10"
+              [svgIcon]="'heroicons_outline:credit-card'"
+            ></mat-icon>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">No plans found</h3>
+          <p class="text-slate-500 max-w-sm">
+            Get started by adding your first plan to the system.
+          </p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+
+<ng-template #featurePopup>
+  <div class="w-full">
+    <div
+      class="flex items-center justify-between page-header text-white px-5 py-4"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-white">extension</mat-icon>
+        <h2 class="text-lg font-semibold m-0 text-white">Plan Features</h2>
+        <span class="px-2 py-0.5 text-xs rounded-full bg-white/20">
+          {{ selectedFeatures?.length || 0 }}
+        </span>
+      </div>
+      <button
+        mat-icon-button
+        type="button"
+        (click)="closeDialog()"
+        class="text-white"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-dialog-content class="p-0">
+      <div
+        *ngIf="selectedFeatures?.length; else noFeatures"
+        class="max-h-[450px] overflow-y-auto"
+      >
+        <div
+          class="sticky top-0 bg-slate-50 border-b px-4 py-2 flex justify-between font-semibold text-sm text-slate-700"
+        >
+          <span>Feature Name</span>
+          <span>Limit</span>
+        </div>
+
+        <div
+          *ngFor="let item of selectedFeatures; trackBy: trackByFn"
+          class="flex items-center justify-between px-4 py-2.5 border-b hover:bg-slate-50 transition-all"
+        >
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            <div
+              class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0"
+            >
+              <mat-icon class="text-blue-600 text-base">check_circle</mat-icon>
+            </div>
+            <span class="font-medium text-sm text-slate-700 truncate">
+              {{ item.feature_name }}
+            </span>
+          </div>
+          <div class="text-xs font-bold text-slate-800">
+            {{ item.usage_count }}
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noFeatures>
+        <div class="flex flex-col items-center justify-center py-10">
+          <mat-icon class="text-slate-300 !text-5xl">inventory_2</mat-icon>
+          <p class="mt-3 text-slate-500">No features assigned to this plan</p>
+        </div>
+      </ng-template>
+    </mat-dialog-content>
+
+    <mat-dialog-actions
+      align="end"
+      class="sticky bottom-0 bg-white border-t px-4 py-3"
+    >
+      <button class="btn-cancel" type="button" (click)="closeDialog()">
+        Close
+      </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>
+
+<ng-template #marketingFeaturePopup>
+  <div class="bg-white rounded-xl overflow-hidden">
+    <div
+      class="flex items-center justify-between page-header text-white px-5 py-4"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-white">campaign</mat-icon>
+        <h2 class="text-lg font-semibold m-0 text-white">Marketing Features</h2>
+      </div>
+      <button
+        mat-icon-button
+        type="button"
+        (click)="closeDialog()"
+        class="text-white"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="max-h-[450px] overflow-y-auto">
+      <div
+        *ngFor="let feature of marketingFeatures; let i = index"
+        class="flex items-center gap-3 px-5 py-3 border-b last:border-b-0 hover:bg-slate-50 transition-all"
+      >
+        <mat-icon class="text-blue-600 text-sm">check_circle</mat-icon>
+        <span class="text-sm font-medium text-slate-700">
+          {{ feature }}
+        </span>
+      </div>
+    </div>
+  </div>
+</ng-template>

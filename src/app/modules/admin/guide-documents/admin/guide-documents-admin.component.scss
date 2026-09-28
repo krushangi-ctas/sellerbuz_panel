@@ -1,0 +1,305 @@
+:host {
+  display: block;
+  background: #f9fafb;
+}
+
+/* ================= HEADER ================= */
+.guide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-inline: 1.5rem;
+  padding-block: 0.5rem;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+}
+
+/* ================= LAYOUT ================= */
+.guide-layout {
+  display: grid;
+  grid-template-columns: 410px 1fr;
+  gap: 16px;
+  align-items: stretch;
+  padding-inline: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+  .guide-layout {
+    grid-template-columns: 380px 1fr;
+  }
+}
+
+/* ================= CARDS ================= */
+.guide-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+}
+
+/* ================= CARD HEADER ================= */
+.card-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+/* ================= MODULE LIST ================= */
+.module-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Accordion cleanup */
+::ng-deep mat-expansion-panel {
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 8px;
+  overflow: visible !important;
+}
+
+::ng-deep mat-expansion-panel-header {
+  padding: 0 4px 0 8px !important;
+  min-height: 44px;
+  overflow: visible !important;
+
+  .mat-expansion-panel-header-title {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    margin-right: 4px !important;
+    overflow: hidden !important;
+  }
+
+  .mat-expansion-panel-header-description {
+    flex: 0 0 auto !important;
+    margin-right: 0 !important;
+    overflow: visible !important;
+  }
+
+  .mat-expansion-indicator {
+    margin-left: 2px !important;
+    margin-right: 2px !important;
+  }
+}
+
+::ng-deep mat-panel-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+::ng-deep mat-panel-description {
+  flex: 0 0 auto;
+  margin-right: 0;
+}
+
+/* Parent & Child actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+
+  button.mat-mdc-icon-button,
+  button.mat-icon-button {
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    padding: 0 !important;
+    line-height: 26px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    .mat-icon,
+    mat-icon {
+      font-size: 17px !important;
+      width: 17px !important;
+      height: 17px !important;
+      line-height: 17px !important;
+    }
+  }
+
+  button.btn-delete {
+    color: #dc2626 !important;
+
+    .mat-icon,
+    mat-icon {
+      color: #dc2626 !important;
+    }
+
+    &:hover {
+      background-color: #fee2e2 !important;
+    }
+  }
+
+  ::ng-deep .mat-mdc-slide-toggle,
+  ::ng-deep .mat-slide-toggle {
+    transform: scale(0.72);
+    margin: 0 -5px;
+
+    .mdc-switch {
+      padding: 0 !important;
+    }
+  }
+}
+
+/* Child list */
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+/* Child item */
+.step-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f9fafb;
+  }
+
+  &.active {
+    background: rgba(19, 53, 90, 0.08) !important;
+    border-color: var(--fuse-primary) !important;
+    box-shadow: inset 3px 0 0 var(--fuse-primary) !important;
+  }
+}
+
+.module-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  .name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #111827;
+  }
+}
+
+/* ================= CONTENT AREA ================= */
+.content-area {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Empty state */
+.empty-state {
+  padding: 64px 24px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* ================= STEP EDITOR ================= */
+.step-editor {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+
+  h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 10px;
+  }
+}
+
+.editor-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+/* Primary Button Override */
+.btn-primary-action {
+  background-color: var(--fuse-primary) !important;
+  color: #ffffff !important;
+}
+
+/* Editor buttons */
+.actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ================= STEPS LIST ================= */
+.steps-list[cdkDropList] {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.steps-list .step-card {
+  align-items: flex-start;
+}
+
+.step-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+/* Step image */
+.step-card img {
+  max-width: 480px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Step actions */
+.step-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: 12px;
+
+  button.mat-mdc-icon-button,
+  button.mat-icon-button {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    line-height: 32px !important;
+
+    .mat-icon,
+    mat-icon {
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+    }
+  }
+}

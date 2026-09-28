@@ -1,0 +1,49 @@
+/* ── Header tab bar scrollbar ──────────────────────────────────────────────── */
+.subscription-tab-bar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.35);
+    border-radius: 4px;
+
+    &:hover {
+      background: rgba(100, 116, 139, 0.6);
+    }
+  }
+}
+
+/* ── Tab content host sizing ─────────────────────────────────────────────── */
+app-subscription-overview,
+app-subscription-history,
+app-subscription-plans {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ── Timeline/Indicator style ────────────────────────────────────────────────── */
+.timeline-dot {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    top: 24px;
+    bottom: -24px;
+    left: 17px;
+    width: 2px;
+    background-color: var(--color-gray-200);
+  }
+  &:last-child::after {
+    display: none;
+  }
+}

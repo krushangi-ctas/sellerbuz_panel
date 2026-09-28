@@ -1,0 +1,335 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white"
+>
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_solid:chart-bar'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">
+            Feature Usage Meters
+          </h1>
+        </div>
+      </div>
+
+      <!-- Actions in Page Header -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="searchInputControl"
+            maxlength="80"
+            [autocomplete]="'off'"
+            [placeholder]="'Search path, method, mode...'"
+          />
+        </mat-form-field>
+
+        <form
+          [formGroup]="filterForm"
+          class="flex flex-wrap items-center gap-2 -mb-5"
+        >
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-36">
+            <mat-select formControlName="count_mode" placeholder="Count mode">
+              <mat-option [value]="">All modes</mat-option>
+              <mat-option value="per_request">per_request</mat-option>
+              <mat-option value="file_rows">file_rows</mat-option>
+              <mat-option value="body_array">body_array</mat-option>
+              <mat-option value="response_field">response_field</mat-option>
+              <mat-option value="resource_count">resource_count</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-28">
+            <mat-select formControlName="status" placeholder="Status">
+              <mat-option [value]="">All</mat-option>
+              <mat-option [value]="1">Active</mat-option>
+              <mat-option [value]="0">Inactive</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </form>
+
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refresh()"
+          matTooltip="Refresh"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+
+        <button
+          type="button"
+          class="btn-primary-action"
+          mat-flat-button
+          [routerLink]="['/master/feature-meter/add']"
+          (click)="addMapping()"
+        >
+          <mat-icon
+            class="icon-size-5"
+            [svgIcon]="'heroicons_outline:plus'"
+          ></mat-icon>
+          <span>Add Meter</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Feature Usage Meters Content -->
+    <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+      <!-- Window Settings Toggle -->
+      <div class="mx-4 sm:mx-6 mt-3">
+        <div
+          class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 cursor-pointer"
+          (click)="toggleWindowSettings()"
+        >
+          <div class="flex items-center gap-2 min-w-0">
+            <mat-icon
+              class="icon-size-5 text-slate-500 dark:text-slate-400 shrink-0"
+              [svgIcon]="'mat_outline:settings'"
+            ></mat-icon>
+            <span
+              class="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate"
+            >
+              Usage Window Settings
+            </span>
+            <span
+              class="text-xs text-slate-400 dark:text-slate-500 hidden sm:inline truncate"
+            >
+              Daily / rolling usage window enforcement
+            </span>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            @if (windowSettingsLoading) {
+              <span class="text-xs text-slate-400">Loading...</span>
+            }
+            <mat-icon
+              class="icon-size-5 text-slate-400"
+              [svgIcon]="
+                showWindowSettings
+                  ? 'heroicons_outline:chevron-up'
+                  : 'heroicons_outline:chevron-down'
+              "
+            ></mat-icon>
+          </div>
+        </div>
+
+        @if (showWindowSettings) {
+          <div
+            class="px-4 py-4 rounded-b-xl border border-t-0 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/30"
+          >
+            <form
+              [formGroup]="windowSettingsForm"
+              class="flex flex-wrap items-center gap-x-6 gap-y-4"
+            >
+              <div class="flex items-center gap-3">
+                <mat-slide-toggle formControlName="enabled" color="primary">
+                  Enabled
+                </mat-slide-toggle>
+              </div>
+
+              <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-40">
+                <mat-label>Window hours</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="window_hours"
+                  min="1"
+                  max="168"
+                  [autocomplete]="'off'"
+                />
+              </mat-form-field>
+
+              <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-48">
+                <mat-label>Alert threshold (%)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="alert_threshold_percent"
+                  min="1"
+                  max="100"
+                  [autocomplete]="'off'"
+                />
+              </mat-form-field>
+
+              <button
+                type="button"
+                class="btn-primary-action"
+                mat-flat-button
+                (click)="saveWindowSettings()"
+                [disabled]="windowSettingsSaving || windowSettingsLoading"
+              >
+                <mat-icon
+                  class="icon-size-5"
+                  [svgIcon]="'heroicons_outline:check'"
+                ></mat-icon>
+                <span>{{ windowSettingsSaving ? "Saving..." : "Save" }}</span>
+              </button>
+            </form>
+            <p
+              class="text-xs text-slate-400 dark:text-slate-500 mt-3 mb-0 leading-relaxed"
+            >
+              Applies to meters with
+              <code class="font-semibold">enforce_window</code> enabled. A
+              feature's daily limit is derived from its monthly limit over this
+              window; reaching it blocks requests until the window resets.
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Meters Table -->
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+        <div class="grid">
+          <div
+            class="table-header-row feature-meter-grid"
+            matSort
+            #metersSort="matSort"
+            matSortDisableClear
+          >
+            <div class="flex items-center" [mat-sort-header]="'method'">
+              Method
+            </div>
+            <div class="flex items-center" [mat-sort-header]="'path_pattern'">
+              Path pattern
+            </div>
+            <div class="flex items-center">Feature</div>
+            <div class="flex items-center" [mat-sort-header]="'count_mode'">
+              Count mode
+            </div>
+            <div class="flex items-center">Window</div>
+            <div class="flex items-center justify-end">Action</div>
+          </div>
+
+          @if (isLoading) {
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+              <div class="table-data-row animate-pulse feature-meter-grid">
+                <div class="h-4 bg-gray-200 rounded w-16"></div>
+                <div class="h-4 bg-gray-200 rounded w-48"></div>
+                <div class="h-4 bg-gray-200 rounded w-28"></div>
+                <div class="h-4 bg-gray-200 rounded w-20"></div>
+                <div class="h-4 bg-gray-200 rounded w-14"></div>
+                <div class="h-4 bg-gray-200 rounded w-20 ml-auto"></div>
+              </div>
+            }
+          } @else {
+            @for (row of mappings$ | async; track trackByFn($index, row)) {
+              <div class="table-data-row feature-meter-grid">
+                <div>
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 text-[11px] font-bold tracking-wide rounded bg-gray-100 text-gray-800"
+                    >{{ row.method }}</span
+                  >
+                </div>
+                <div
+                  class="font-mono text-sm overflow-hidden text-ellipsis whitespace-nowrap text-gray-700"
+                  [title]="row.path_pattern"
+                >
+                  {{ row.path_pattern }}
+                </div>
+                <div
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  {{ row.feature_name || "-" }}
+                </div>
+                <div>
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 text-[11px] font-mono font-semibold tracking-wide rounded bg-gray-100 text-gray-800"
+                    >{{ row.count_mode }}</span
+                  >
+                </div>
+                <div>
+                  @if (row.enforce_window) {
+                    <span
+                      class="inline-flex items-center px-2 py-0.5 text-[11px] font-bold tracking-wide rounded bg-blue-100 text-blue-700"
+                      matTooltip="Window limit enforced (auto-unblocks on reset)"
+                    >
+                      Yes
+                    </span>
+                  } @else {
+                    <span
+                      class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold tracking-wide rounded bg-gray-100 text-gray-400"
+                      >-</span
+                    >
+                  }
+                </div>
+                <div class="flex items-center justify-end gap-1">
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matTooltip="Edit"
+                    (click)="editMapping(row)"
+                  >
+                    <mat-icon
+                      class="icon-size-5"
+                      svgIcon="heroicons_outline:pencil"
+                    ></mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matTooltip="Delete"
+                    (click)="deleteMapping(row)"
+                  >
+                    <mat-icon
+                      class="icon-size-5 text-warn"
+                      svgIcon="heroicons_outline:trash"
+                    ></mat-icon>
+                  </button>
+                </div>
+              </div>
+            } @empty {
+              <div class="p-8 text-center text-secondary">
+                No feature usage meters configured yet.
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Meters Paginator -->
+      @if (mappings$ | async; as mappingsList) {
+        @if (mappingsList?.length) {
+          <div class="pagination-bar">
+            <mat-paginator
+              #metersPaginator
+              [ngClass]="{ 'pointer-events-none': isLoading }"
+              [length]="
+                ((pagination?.page || 1) - 1) *
+                  (pagination?.size || pageLimit) +
+                (mappingsList?.length || 0) +
+                (pagination?.hasNextPage ? 1 : 0)
+              "
+              [pageIndex]="(pagination?.page || 1) - 1"
+              [pageSize]="pagination?.size || pageLimit"
+              [pageSizeOptions]="pageOptions"
+              [showFirstLastButtons]="false"
+            ></mat-paginator>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>

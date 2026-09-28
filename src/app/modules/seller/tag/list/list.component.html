@@ -1,0 +1,357 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden">
+  <mat-drawer-container
+    class="flex-auto h-full bg-card dark:bg-transparent"
+    (backdropClick)="onBackdropClicked()"
+  >
+    <!-- Drawer -->
+    <mat-drawer
+      class="w-full sm:w-128 bg-white dark:bg-gray-900"
+      [mode]="drawerMode"
+      [opened]="false"
+      [position]="'end'"
+      [disableClose]="true"
+      #matDrawer
+    >
+      <router-outlet></router-outlet>
+    </mat-drawer>
+
+    <mat-drawer-content class="flex flex-col">
+      <!-- Main -->
+      <div class="flex flex-col flex-auto overflow-hidden">
+        <!-- Header -->
+        <div class="page-header">
+          <div class="flex items-center gap-3">
+            <div
+              class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+            >
+              <a
+                (click)="$event.preventDefault()"
+                mat-icon-button
+                [matTooltip]="tooltip"
+              >
+                <mat-icon
+                  class="icon-size-7 mb-0 mr-1 text-white"
+                  [svgIcon]="'heroicons_solid:tag'"
+                ></mat-icon>
+              </a>
+              <span class="text-2xl font-bold tracking-tight text-white"
+                >Tags</span
+              >
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+            <!-- Search -->
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+            >
+              <mat-icon
+                class="icon-size-5 text-gray-400"
+                matPrefix
+                [svgIcon]="'heroicons_solid:search'"
+              ></mat-icon>
+              <input
+                matInput
+                [formControl]="searchInputControl"
+                maxlength="50"
+                [autocomplete]="'off'"
+                [placeholder]="'Search tags...'"
+              />
+            </mat-form-field>
+
+            <!-- Status Filter -->
+            <form [formGroup]="tagStatusfromGroup">
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+              >
+                <mat-select [formControlName]="'status'" placeholder="Status">
+                  <mat-option [value]="">All</mat-option>
+                  <mat-option [value]="1">Activated</mat-option>
+                  <mat-option [value]="0">Deactivated</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </form>
+
+            <!-- Date Range filter -->
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript min-w-52 -mb-5"
+            >
+              <mat-icon
+                svgIcon="heroicons_outline:calendar"
+                class="icon-size-5 text-gray-400"
+                matPrefix
+              ></mat-icon>
+              <mat-date-range-input [rangePicker]="datePicker" [max]="maxDate">
+                <input
+                  matStartDate
+                  [formControl]="startDate"
+                  [autocomplete]="'off'"
+                  placeholder="Start"
+                />
+                <input
+                  matEndDate
+                  [formControl]="endDate"
+                  [autocomplete]="'off'"
+                  placeholder="End"
+                  (dateChange)="onDateClickFilter()"
+                />
+              </mat-date-range-input>
+              <mat-datepicker-toggle
+                matSuffix
+                [for]="datePicker"
+              ></mat-datepicker-toggle>
+              <mat-date-range-picker #datePicker></mat-date-range-picker>
+              @if (isResetDate) {
+                <button mat-icon-button type="button" (click)="clearDate()">
+                  <mat-icon class="icon-size-4">clear</mat-icon>
+                </button>
+              }
+            </mat-form-field>
+
+            <!-- Refresh Button -->
+            <button
+              type="button"
+              class="btn-secondary-action"
+              (click)="refresh()"
+              matTooltip="Refresh"
+            >
+              <mat-icon
+                class="icon-size-5"
+                svgIcon="mat_outline:refresh"
+              ></mat-icon>
+            </button>
+
+            <!-- Add Button -->
+            @if (isSuperAdmin || rolePermission?.add) {
+              <button
+                type="button"
+                class="btn-primary-action"
+                mat-flat-button
+                (click)="openDrawer('')"
+              >
+                <mat-icon
+                  class="text-white"
+                  svgIcon="heroicons_outline:plus"
+                ></mat-icon>
+                <span>Add Tag</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+          @if (isSuperAdmin || rolePermission?.view) {
+            <div
+              class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14"
+            >
+              <div class="grid">
+                <!-- Header Matrix -->
+                <div
+                  class="tag-setting-grid table-header-row"
+                  matSort
+                  matSortDisableClear
+                >
+                  @for (header of headers; track header) {
+                    <div [id]="header.key">
+                      @if (header.key !== "image") {
+                        <span [mat-sort-header]="header.sortKey || header.key">
+                          {{ header.label }}
+                        </span>
+                      }
+                      @if (header.key === "image") {
+                        <span>
+                          {{ header.label }}
+                        </span>
+                      }
+                    </div>
+                  }
+                  <div>Action</div>
+                </div>
+
+                <!-- SKELETON LOADER STATE -->
+                @if (isLoading) {
+                  @for (row of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                    <div class="tag-setting-grid table-data-row animate-pulse">
+                      @for (header of headers; track $index) {
+                        <div>
+                          <div
+                            class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5"
+                          ></div>
+                        </div>
+                      }
+                      <div class="flex items-center gap-2">
+                        @if (isSuperAdmin || rolePermission?.update) {
+                          <div
+                            class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded ml-1"
+                          ></div>
+                        }
+                        @if (isSuperAdmin || rolePermission?.delete) {
+                          <div
+                            class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded ml-1"
+                          ></div>
+                        }
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <!-- ACTUAL DATA STATE -->
+                  @if (tagFormInput | async; as tagList) {
+                    @if (tagList.length > 0) {
+                      @for (
+                        tags of tagList;
+                        track trackByFn(i, tags);
+                        let i = $index
+                      ) {
+                        <div class="tag-setting-grid table-data-row">
+                          <div class="font-semibold text-sm text-slate-600">
+                            {{
+                              tags.createdAt | date: "dd-MM-yyyy, HH:mm " || "-"
+                            }}
+                          </div>
+                          <div class="flex items-center gap-1 min-w-0">
+                            <span
+                              class="truncate font-semibold text-slate-800"
+                              [matTooltip]="tags.tag"
+                            >
+                              {{ tags.tag || "-" }}
+                            </span>
+                            @if (tags.tag) {
+                              <button
+                                type="button"
+                                [cdkCopyToClipboard]="tags.tag"
+                                class="text-slate-400 hover:text-slate-600 transition-colors flex items-center shrink-0"
+                                matTooltip="Copy Tag"
+                              >
+                                <mat-icon
+                                  svgIcon="mat_outline:content_copy"
+                                  class="icon-size-3"
+                                >
+                                </mat-icon>
+                              </button>
+                            }
+                          </div>
+                          <div
+                            class="truncate font-semibold text-slate-600"
+                            [matTooltip]="tags.description"
+                          >
+                            {{ tags.description || "-" }}
+                          </div>
+                          <div class="font-semibold text-sm text-slate-600">
+                            {{
+                              tags.updatedAt | date: "dd-MM-yyyy,HH:mm " || "-"
+                            }}
+                          </div>
+                          <div>
+                            @if (isSuperAdmin || rolePermission?.update) {
+                              <mat-slide-toggle
+                                [checked]="getStatus(tags.status)"
+                                (change)="toggleCompleted($event, tags.id)"
+                                [color]="'primary'"
+                                class="scale-75 -mr-1"
+                              >
+                              </mat-slide-toggle>
+                            }
+                          </div>
+                          <div class="flex items-center gap-2">
+                            @if (isSuperAdmin || rolePermission?.update) {
+                              <button
+                                type="button"
+                                class="table-action-btn"
+                                (click)="openDrawer(tags.id)"
+                                matTooltip="Edit tag"
+                              >
+                                <mat-icon
+                                  class="icon-size-5"
+                                  svgIcon="heroicons_outline:pencil"
+                                ></mat-icon>
+                              </button>
+                            }
+                            @if (isSuperAdmin || rolePermission?.delete) {
+                              <button
+                                type="button"
+                                class="table-action-btn danger"
+                                (click)="deleteSelectedTag(tags.id || tags._id)"
+                                matTooltip="Delete tag"
+                              >
+                                <mat-icon
+                                  class="icon-size-5 text-red-600 hover:text-red-700"
+                                  [svgIcon]="'heroicons_solid:trash'"
+                                ></mat-icon>
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
+                    } @else {
+                      <div class="page-empty-state">
+                        <div class="icon-wrapper">
+                          <mat-icon
+                            class="icon-size-10"
+                            [svgIcon]="'heroicons_outline:tag'"
+                          ></mat-icon>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">
+                          No Tags Found
+                        </h3>
+                        <p class="text-slate-500 max-w-sm font-medium">
+                          There are currently no tags available in the system.
+                        </p>
+                      </div>
+                    }
+                  }
+                }
+              </div>
+
+              <!-- Pagination Footer -->
+              @if (tagFormInput | async; as tagList) {
+                @if (tagList?.length) {
+                  <div class="overflow-auto">
+                    <div
+                      class="sm:absolute absolute inset-x-0 bottom-0 sm:inset-x-0 sm:bottom-0 flex flex-col sm:flex-row justify-between border-b sm:border-t sm:border-b-0 z-10 bg-gray-50 dark:bg-transparent"
+                    >
+                      <div
+                        class="flex flex-wrap sm:pr-3 sm:pl-2 items-center font-semibold text-secondary"
+                      >
+                        <mat-paginator
+                          [ngClass]="{ 'pointer-events-none': isLoading }"
+                          [length]="
+                            ((pagination?.page || 1) - 1) *
+                              (pagination?.size || 100) +
+                            (tagList?.length || 0) +
+                            (pagination?.hasNextPage ? 1 : 0)
+                          "
+                          [pageSize]="pagination?.size || 100"
+                          [pageSizeOptions]="[5, 25, 50, 100]"
+                          [pageIndex]="(pagination?.page || 1) - 1"
+                          [showFirstLastButtons]="false"
+                        ></mat-paginator>
+                      </div>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          } @else {
+            <div class="page-empty-state">
+              <div class="icon-wrapper bg-amber-50 border-amber-200">
+                <mat-icon
+                  class="icon-size-10 text-amber-600"
+                  [svgIcon]="'heroicons_outline:lock-closed'"
+                ></mat-icon>
+              </div>
+              <h3 class="text-xl font-bold text-slate-800 mb-2">
+                No permission to view tag setting
+              </h3>
+              <p class="text-slate-500 max-w-sm font-medium">
+                This seller role does not have view access for the tag setting
+                section.
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+    </mat-drawer-content>
+  </mat-drawer-container>
+</div>

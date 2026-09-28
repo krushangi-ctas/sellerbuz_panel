@@ -1,0 +1,180 @@
+<div
+  class="flex flex-col flex-auto w-full h-full min-h-full bg-white dark:bg-gray-900"
+>
+  <form
+    class="flex flex-col h-full"
+    [formGroup]="portalFormGroup"
+    (keydown)="onKeydown($event)"
+  >
+    <!-- Header -->
+    <div
+      class="flex items-center justify-between p-4 sm:p-6 page-header border-b border-gray-200"
+    >
+      <div class="flex items-center gap-3">
+        <div
+          class="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 text-white"
+        >
+          <mat-icon
+            class="icon-size-6 text-white"
+            [svgIcon]="
+              portalId !== 'add'
+                ? 'heroicons_outline:pencil'
+                : 'heroicons_outline:plus-circle'
+            "
+          >
+          </mat-icon>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-white">
+            {{ portalId !== "add" ? "Update" : "Add" }} Shop
+          </h2>
+          <p class="text-sm text-primary-100">
+            {{
+              portalId !== "add"
+                ? "Update existing shop details."
+                : "Create a new shop entry."
+            }}
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        [routerLink]="['../']"
+        (click)="closeDrawer()"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+      </button>
+    </div>
+
+    <!-- Form Fields -->
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+      @if (isLoading) {
+        <!-- SKELETON LOADER FOR PORTAL / SHOP -->
+        <div class="space-y-4 animate-pulse">
+          <div
+            class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"
+          ></div>
+          <div
+            class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"
+          ></div>
+          <div
+            class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"
+          ></div>
+        </div>
+      } @else {
+        <form [formGroup]="portalFormGroup">
+          <mat-form-field class="w-full fuse-mat-dense" [floatLabel]="'always'">
+            <mat-label class="font-medium">Shop Name</mat-label>
+            <input
+              type="text"
+              matInput
+              [formControlName]="'portal_name'"
+              maxlength="20"
+              placeholder="Enter shop name"
+            />
+            @if (portalFormGroup.get("portal_name").hasError("required")) {
+              <mat-error class="text-red-500">Shop Name is required!</mat-error>
+            }
+            @if (portalFormGroup.get("portal_name").hasError("maxlength")) {
+              <mat-error class="text-red-500"
+                >Shop Name cannot exceed 20 characters!</mat-error
+              >
+            }
+            <mat-icon matSuffix class="text-gray-400">edit</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field class="w-full fuse-mat-dense" [floatLabel]="'always'">
+            <mat-label class="font-medium">Image URL</mat-label>
+            <input
+              type="text"
+              matInput
+              [formControlName]="'image_url'"
+              placeholder="https://example.com/image.png"
+              maxlength="200"
+            />
+            @if (portalFormGroup.get("image_url").hasError("required")) {
+              <mat-error class="text-red-500">Image URL is required</mat-error>
+            }
+            @if (
+              portalFormGroup.get("image_url").hasError("invalidUrl") &&
+              !portalFormGroup.get("image_url").hasError("required")
+            ) {
+              <mat-error class="text-red-500"
+                >Enter a valid URL, e.g., https://example.com</mat-error
+              >
+            }
+            @if (portalFormGroup.get("image_url").hasError("maxlength")) {
+              <mat-error class="text-red-500"
+                >Image URL cannot exceed 200 characters!</mat-error
+              >
+            }
+            <mat-icon matSuffix class="text-gray-400">link</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field class="w-full fuse-mat-dense" [floatLabel]="'always'">
+            <mat-label class="font-medium">Shop Number</mat-label>
+            <input
+              type="number"
+              matInput
+              min="1"
+              [formControlName]="'portal_number'"
+              placeholder="Enter shop number"
+              (wheel)="stopScrollingWheel($event)"
+              (input)="onPortalNumberInput($event)"
+            />
+            @if (portalFormGroup.get("portal_number").hasError("required")) {
+              <mat-error class="text-red-500"
+                >Shop Number is required</mat-error
+              >
+            }
+            @if (portalFormGroup.get("portal_number").hasError("min")) {
+              <mat-error class="text-red-500"
+                >Shop Number cannot be less than 0</mat-error
+              >
+            }
+            @if (portalFormGroup.get("portal_number").hasError("maxlength")) {
+              <mat-error class="text-red-500"
+                >Shop Number cannot exceed 10 digits!</mat-error
+              >
+            }
+            <mat-icon matSuffix class="text-gray-400">tag</mat-icon>
+          </mat-form-field>
+        </form>
+      }
+    </div>
+
+    <!-- Save Button -->
+    <div
+      class="flex justify-end gap-3 p-4 sm:p-6 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
+    >
+      <button
+        type="button"
+        class="btn-cancel px-4 py-2"
+        [routerLink]="['../']"
+        (click)="closeDrawer()"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="btn-primary px-6 py-2 font-medium shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        (click)="addUpdatePortal()"
+        [disabled]="btnDisabled"
+      >
+        <div class="flex items-center gap-2">
+          <mat-icon
+            class="icon-size-5"
+            [svgIcon]="
+              portalId !== 'add'
+                ? 'heroicons_outline:check'
+                : 'heroicons_outline:plus'
+            "
+          ></mat-icon>
+          <span>{{ portalId !== "add" ? "Update" : "Save" }}</span>
+        </div>
+      </button>
+    </div>
+  </form>
+</div>

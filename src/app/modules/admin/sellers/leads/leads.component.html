@@ -1,0 +1,365 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden">
+  <mat-drawer-container class="flex-auto h-full bg-card dark:bg-transparent">
+    <mat-drawer-content class="flex flex-col">
+      <div class="flex flex-col flex-auto overflow-hidden">
+        <!-- ============================================================ -->
+        <!-- HEADER BAR                                                     -->
+        <!-- ============================================================ -->
+        <div class="page-header">
+          <div class="flex items-center gap-3">
+            <a
+              (click)="$event.preventDefault()"
+              mat-icon-button
+              [matTooltip]="tooltip"
+            >
+              <mat-icon
+                class="icon-size-7 mb-0 mr-1 text-white"
+                [svgIcon]="'heroicons_solid:chart-bar'"
+              ></mat-icon>
+            </a>
+            <h1 class="text-2xl font-bold tracking-tight text-white">Leads</h1>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+            <!-- Search -->
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript min-w-48 -mb-5"
+            >
+              <mat-icon
+                class="icon-size-5 text-gray-400"
+                matPrefix
+                [svgIcon]="'heroicons_solid:search'"
+              ></mat-icon>
+              <input
+                matInput
+                [formControl]="searchControl"
+                [autocomplete]="'off'"
+                placeholder="Search leads..."
+              />
+            </mat-form-field>
+
+            <!-- Filter: Lead Status -->
+            <form [formGroup]="filterForm" class="flex-shrink-0 -mb-5">
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-36"
+              >
+                <mat-icon
+                  svgIcon="mat_outline:filter_alt"
+                  class="icon-size-5 text-gray-400"
+                  matPrefix
+                ></mat-icon>
+                <mat-select formControlName="status" placeholder="Lead Status">
+                  <mat-option value="">All</mat-option>
+                  <mat-option value="pending">Pending</mat-option>
+                  <mat-option value="initiated">Initiated</mat-option>
+                  <mat-option value="success">Success</mat-option>
+                  <mat-option value="failed">Failed</mat-option>
+                  <mat-option value="cancelled">Cancelled</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </form>
+
+            <!-- Filter: Billing Cycle -->
+            <form [formGroup]="filterForm" class="flex-shrink-0 -mb-5">
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-36"
+              >
+                <mat-icon
+                  svgIcon="mat_outline:date_range"
+                  class="icon-size-5 text-gray-400"
+                  matPrefix
+                ></mat-icon>
+                <mat-select
+                  formControlName="billing_cycle"
+                  placeholder="Billing Cycle"
+                >
+                  <mat-option value="">All</mat-option>
+                  <mat-option value="monthly">Monthly</mat-option>
+                  <mat-option value="quarterly">Quarterly</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </form>
+
+            <!-- Refresh -->
+            <button
+              type="button"
+              class="btn-secondary-action"
+              (click)="refresh()"
+              matTooltip="Refresh"
+            >
+              <mat-icon
+                class="icon-size-5"
+                svgIcon="mat_outline:refresh"
+              ></mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TABLE                                                          -->
+        <!-- ============================================================ -->
+        <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+          <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+            <div class="grid">
+              <!-- Table Header -->
+              <div
+                class="leads-grid table-header-row"
+                matSort
+                matSortDisableClear
+              >
+                @for (header of headers; track header) {
+                  @if (header?.sortBy) {
+                    <div
+                      class="flex items-center"
+                      [mat-sort-header]="header.sortBy"
+                    >
+                      {{ header.key }}
+                    </div>
+                  } @else {
+                    <div class="flex items-center">{{ header.key }}</div>
+                  }
+                }
+              </div>
+
+              <!-- Skeleton Loader -->
+              @if (isLoading) {
+                @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                  <div class="leads-grid table-data-row animate-pulse">
+                    <!-- 1. Name -->
+                    <div class="flex items-center min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                      ></div>
+                    </div>
+                    <!-- 2. Email -->
+                    <div class="flex items-center gap-2 min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-36 max-w-full"
+                      ></div>
+                      <div
+                        class="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded-full flex-shrink-0"
+                      ></div>
+                    </div>
+                    <!-- 3. Phone -->
+                    <div class="flex items-center gap-2 min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 max-w-full"
+                      ></div>
+                      <div
+                        class="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded-full flex-shrink-0"
+                      ></div>
+                    </div>
+                    <!-- 4. Selected Plan -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"
+                      ></div>
+                    </div>
+                    <!-- 5. Billing Cycle -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                      ></div>
+                    </div>
+                    <!-- 6. Lead Status -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"
+                      ></div>
+                    </div>
+                    <!-- 7. Created At -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                      ></div>
+                    </div>
+                    <!-- 8. Actions -->
+                    <div class="flex items-center justify-end">
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                    </div>
+                  </div>
+                }
+              } @else {
+                <!-- Data Rows -->
+                @if (leads.length) {
+                  @for (lead of leads; track trackByFn($index, lead)) {
+                    <div class="leads-grid table-data-row">
+                      <!-- Name -->
+                      <div class="flex items-center gap-3 min-w-0">
+                        <div
+                          class="min-w-0 cursor-pointer flex items-center gap-2 flex-wrap sm:flex-nowrap"
+                        >
+                          <div
+                            class="font-medium truncate"
+                            [matTooltip]="
+                              (lead?.first_name || lead?.name || '') +
+                              ' ' +
+                              (lead?.last_name || '')
+                            "
+                          >
+                            {{
+                              (lead?.first_name || lead?.name || "-") +
+                                " " +
+                                (lead?.last_name || "")
+                            }}
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Email -->
+                      <div class="flex items-center gap-1 min-w-0">
+                        <span
+                          class="text-sm text-gray-600 truncate"
+                          [matTooltip]="lead?.email"
+                          >{{ lead?.email || "-" }}</span
+                        >
+                        @if (lead?.email) {
+                          <button
+                            type="button"
+                            mat-icon-button
+                            class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-primary transition-colors"
+                            [cdkCopyToClipboard]="lead?.email"
+                            matTooltip="Copy email"
+                          >
+                            <mat-icon
+                              svgIcon="mat_outline:content_copy"
+                              class="icon-size-3"
+                            ></mat-icon>
+                          </button>
+                        }
+                      </div>
+                      <!-- Phone -->
+                      <div class="flex items-center gap-1 min-w-0">
+                        <span
+                          class="text-sm text-gray-600 truncate"
+                          [matTooltip]="
+                            lead?.contact_number || lead?.contact_no
+                          "
+                          >{{
+                            lead?.contact_number || lead?.contact_no || "-"
+                          }}</span
+                        >
+                        @if (lead?.contact_number || lead?.contact_no) {
+                          <button
+                            type="button"
+                            mat-icon-button
+                            class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-primary transition-colors"
+                            [cdkCopyToClipboard]="
+                              lead?.contact_number || lead?.contact_no
+                            "
+                            matTooltip="Copy phone"
+                          >
+                            <mat-icon
+                              svgIcon="mat_outline:content_copy"
+                              class="icon-size-3"
+                            ></mat-icon>
+                          </button>
+                        }
+                      </div>
+                      <!-- Selected Plan -->
+                      <div class="flex items-center">
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded bg-blue-50 text-blue-700 border border-blue-100"
+                        >
+                          {{
+                            lead?.plan?.name ||
+                              lead?.plan_name ||
+                              lead?.selected_plan ||
+                              "-"
+                          }}
+                        </span>
+                      </div>
+                      <!-- Billing Cycle -->
+                      <div class="flex items-center">
+                        <span class="text-sm capitalize">{{
+                          lead?.billing_cycle || "-"
+                        }}</span>
+                      </div>
+                      <!-- Lead Status -->
+                      <div class="flex items-center">
+                        <span
+                          class="lead-status-badge lead-status-badge--{{
+                            lead?.lead_status || lead?.status || '' | lowercase
+                          }} capitalize"
+                        >
+                          {{ lead?.lead_status || lead?.status || "-" }}
+                        </span>
+                      </div>
+                      <!-- Created At -->
+                      <div class="flex items-center">
+                        <span class="text-xs text-gray-600">{{
+                          lead?.createdAt | date: "mediumDate"
+                        }}</span>
+                      </div>
+                      <!-- Actions -->
+                      <div class="flex items-center gap-1">
+                        @if (lead?.email) {
+                          <a
+                            class="table-action-btn"
+                            [href]="'mailto:' + lead?.email"
+                            matTooltip="Send email"
+                            (click)="$event.stopPropagation()"
+                          >
+                            <mat-icon
+                              class="icon-size-5 text-primary"
+                              [svgIcon]="'heroicons_outline:mail'"
+                            ></mat-icon>
+                          </a>
+                        }
+                        <button
+                          type="button"
+                          class="table-action-btn"
+                          (click)="
+                            createSellerFromLead(lead); $event.stopPropagation()
+                          "
+                          matTooltip="Create Seller"
+                        >
+                          <mat-icon
+                            class="icon-size-5 text-green-600"
+                            [svgIcon]="'heroicons_outline:user-add'"
+                          ></mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <!-- Empty State -->
+                  <div class="page-empty-state">
+                    <div class="icon-wrapper">
+                      <mat-icon
+                        class="icon-size-10"
+                        [svgIcon]="'heroicons_outline:chart-bar'"
+                      ></mat-icon>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">
+                      No leads found
+                    </h3>
+                    <p class="text-slate-500 max-w-sm">
+                      No leads match the current search or filters.
+                    </p>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Paginator -->
+          @if (leads.length) {
+            <div class="pagination-bar">
+              <mat-paginator
+                class="leads-list-paginator"
+                [ngClass]="{ 'pointer-events-none': isLoading }"
+                [length]="totalCount"
+                [pageSize]="pageSize"
+                [pageSizeOptions]="pageSizeOptions"
+                [pageIndex]="page - 1"
+                [showFirstLastButtons]="false"
+              >
+              </mat-paginator>
+            </div>
+          }
+        </div>
+      </div>
+    </mat-drawer-content>
+  </mat-drawer-container>
+</div>

@@ -1,0 +1,155 @@
+<div
+  class="flex flex-col -m-6 bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-2xl"
+>
+  <!-- Dialog Header -->
+  <div
+    class="sticky top-0 z-10 flex items-center justify-between bg-primary text-white px-6 py-4 rounded-t-xl shadow-sm"
+  >
+    <div class="flex items-center gap-3">
+      <mat-icon
+        class="icon-size-6 text-white"
+        svgIcon="heroicons_outline:globe-alt"
+      ></mat-icon>
+      <div class="flex flex-col">
+        <span class="text-xl font-bold tracking-tight text-white leading-tight">
+          Marketplaces
+        </span>
+        <span class="text-xs text-white/80 mt-0.5">
+          Store:
+          <strong class="text-white font-semibold">{{
+            data.storeName || "-"
+          }}</strong>
+        </span>
+      </div>
+    </div>
+    <button
+      mat-icon-button
+      (click)="close()"
+      [tabIndex]="-1"
+      type="button"
+      class="text-white hover:bg-white/10 rounded-full transition-colors"
+    >
+      <mat-icon class="icon-size-5" svgIcon="heroicons_outline:x"></mat-icon>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="p-6 max-h-[75vh] overflow-y-auto space-y-5">
+    <!-- Store Inventory Totals Overview Banner -->
+    <div
+      class="grid grid-cols-3 gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60"
+    >
+      <div
+        class="flex flex-col items-center justify-center p-3 rounded-lg bg-white dark:bg-slate-800 shadow-2xs border border-slate-100 dark:border-slate-700"
+      >
+        <span class="text-xs font-medium text-slate-500 dark:text-slate-400"
+          >Total Inventory</span
+        >
+        <span
+          class="text-lg font-extrabold text-slate-800 dark:text-white mt-0.5"
+          >{{ data.totalInventory || 0 }}</span
+        >
+      </div>
+      <div
+        class="flex flex-col items-center justify-center p-3 rounded-lg bg-white dark:bg-slate-800 shadow-2xs border border-slate-100 dark:border-slate-700"
+      >
+        <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400"
+          >Total Retail</span
+        >
+        <span
+          class="text-lg font-extrabold text-emerald-700 dark:text-emerald-300 mt-0.5"
+          >{{ data.totalRetail || 0 }}</span
+        >
+      </div>
+      <div
+        class="flex flex-col items-center justify-center p-3 rounded-lg bg-white dark:bg-slate-800 shadow-2xs border border-slate-100 dark:border-slate-700"
+      >
+        <span class="text-xs font-medium text-blue-600 dark:text-blue-400"
+          >Total Whitelabel</span
+        >
+        <span
+          class="text-lg font-extrabold text-blue-700 dark:text-blue-300 mt-0.5"
+          >{{ data.totalWhitelabel || 0 }}</span
+        >
+      </div>
+    </div>
+
+    <!-- Marketplace Breakdown Cards -->
+    <div class="space-y-3">
+      <h3
+        class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500"
+      >
+        All Marketplaces ({{ data.marketplaces?.length || 0 }})
+      </h3>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        @for (mp of data.marketplaces; track mp.code) {
+          <div
+            class="flex flex-col p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-2xs"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <mat-icon
+                  class="icon-size-4 text-slate-400 dark:text-slate-500"
+                  svgIcon="heroicons_solid:globe-alt"
+                ></mat-icon>
+                <span
+                  class="font-bold text-sm text-slate-800 dark:text-white"
+                  >{{ mp.name }}</span
+                >
+              </div>
+              <span
+                class="px-2.5 py-0.5 text-xs font-extrabold rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200"
+              >
+                Total: {{ mp.total }}
+              </span>
+            </div>
+
+            <div
+              class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-700/60 text-xs"
+            >
+              <div
+                class="flex items-center justify-between px-2 py-1 rounded bg-slate-50 dark:bg-slate-800/50"
+              >
+                <span class="text-slate-500 dark:text-slate-400 font-medium"
+                  >Retail:</span
+                >
+                <span class="font-bold text-slate-700 dark:text-slate-200">{{
+                  mp.retail
+                }}</span>
+              </div>
+              <div
+                class="flex items-center justify-between px-2 py-1 rounded bg-slate-50 dark:bg-slate-800/50"
+              >
+                <span class="text-slate-500 dark:text-slate-400 font-medium"
+                  >Whitelabel:</span
+                >
+                <span class="font-bold text-slate-700 dark:text-slate-200">{{
+                  mp.whiteLabel
+                }}</span>
+              </div>
+            </div>
+          </div>
+        } @empty {
+          <div class="col-span-2 p-6 text-center text-slate-400 text-sm">
+            No marketplaces found for this store.
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialog Footer -->
+  <div
+    class="flex items-center justify-end px-6 py-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 rounded-b-xl"
+  >
+    <button
+      mat-button
+      type="button"
+      (click)="close()"
+      class="text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700"
+    >
+      Close
+    </button>
+  </div>
+</div>

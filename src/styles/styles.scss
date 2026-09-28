@@ -1,0 +1,1232 @@
+/* ----------------------------------------------------------------------------------------------------- */
+/*  @ Import/write your custom styles here.
+/*  @ Styles from this file will override 'vendors.scss' and Fuse's base styles.
+/* ----------------------------------------------------------------------------------------------------- */
+
+:root {
+  /* Primary Navy Scale (Base #13355A = 500) */
+  --color-primary-100: #e7ecf2;
+  --color-primary-200: #c3d1e0;
+  --color-primary-300: #8fa7c2;
+  --color-primary-400: #4b6e94;
+  --color-primary-500: #13355a;
+  --color-primary-600: #0e2947;
+  --color-primary-700: #091c33;
+
+  /* Accent Blue Scale (Base #3C9AC4 = 500) */
+  --color-accent-100: #ebf5fa;
+  --color-accent-200: #c3e5f3;
+  --color-accent-300: #95d1e8;
+  --color-accent-400: #61b5d8;
+  --color-accent-500: #3c9ac4;
+  --color-accent-600: #2b7ca1;
+  --color-accent-700: #1c5c7a;
+
+  /* Gray Scale (Light Gray #F5F7FA = 100, Dark Gray #334155 = 600) */
+  --color-gray-100: #f5f7fa;
+  --color-gray-200: #e2e8f0;
+  --color-gray-300: #cbd5e1;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #64748b;
+  --color-gray-600: #334155;
+  --color-gray-700: #1e293b;
+
+  /* White Scale (Base #FCFCFC = 500) */
+  --color-white-100: #ffffff;
+  --color-white-200: #fefefe;
+  --color-white-300: #fdfdfd;
+  --color-white-400: #fbfbfb;
+  --color-white-500: #fcfcfc;
+  --color-white-600: #f0f2f5;
+  --color-white-700: #e4e7eb;
+
+  /* Brand & Fuse Aliases */
+  /* Fuse primary fallback */
+  --fuse-primary: var(--color-primary-500);
+}
+
+/* Global mat-error text color */
+mat-error,
+.mat-mdc-form-field-error,
+.mat-error {
+  color: #ef4444 !important;
+}
+
+/* Global checkbox theme */
+.mat-mdc-checkbox {
+  --mdc-checkbox-selected-checkmark-color: #ffffff !important;
+  --mdc-checkbox-selected-focus-icon-color: var(
+    --brand-primary,
+    #040446
+  ) !important;
+  --mdc-checkbox-selected-hover-icon-color: var(
+    --brand-primary,
+    #040446
+  ) !important;
+  --mdc-checkbox-selected-icon-color: var(--brand-primary, #040446) !important;
+  --mdc-checkbox-selected-pressed-icon-color: var(
+    --brand-primary,
+    #040446
+  ) !important;
+  --mdc-checkbox-unselected-focus-icon-color: #475569 !important;
+  --mdc-checkbox-unselected-hover-icon-color: #475569 !important;
+  --mdc-checkbox-unselected-icon-color: #475569 !important;
+  --mdc-checkbox-unselected-pressed-icon-color: #475569 !important;
+}
+
+/* Explicit fallback overrides for checked state */
+.mat-mdc-checkbox.mat-mdc-checkbox-checked,
+.mat-mdc-checkbox.mat-mdc-checkbox-indeterminate {
+  .mdc-checkbox__background {
+    border-color: var(--brand-primary, #040446) !important;
+    background-color: var(--brand-primary, #040446) !important;
+  }
+
+  .mdc-checkbox__checkmark {
+    stroke: #ffffff !important;
+  }
+
+  .mdc-checkbox__checkmark-path {
+    stroke: #ffffff !important;
+  }
+}
+
+/* Shared navigation dropdown / flyout panels */
+.fuse-horizontal-navigation-menu-panel {
+  background: #fff !important;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px !important;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.14) !important;
+
+  .mat-mdc-menu-content {
+    padding: 0.4rem;
+  }
+
+  .fuse-horizontal-navigation-item-wrapper {
+    border-radius: 8px;
+  }
+
+  .fuse-horizontal-navigation-item {
+    color: #0f172a !important;
+
+    .fuse-horizontal-navigation-item-icon,
+    .fuse-horizontal-navigation-item-arrow,
+    .fuse-horizontal-navigation-item-title,
+    .fuse-horizontal-navigation-item-subtitle {
+      color: inherit !important;
+    }
+  }
+
+  .fuse-horizontal-navigation-item-active,
+  .fuse-horizontal-navigation-item-active-forced,
+  .fuse-horizontal-navigation-menu-active,
+  .fuse-horizontal-navigation-menu-active-forced,
+  .fuse-horizontal-navigation-item:hover {
+    background: rgba(var(--fuse-primary-rgb), 0.08) !important;
+  }
+
+  .fuse-horizontal-navigation-item-active,
+  .fuse-horizontal-navigation-item-active-forced {
+    .fuse-horizontal-navigation-item-icon,
+    .fuse-horizontal-navigation-item-title,
+    .fuse-horizontal-navigation-item-subtitle,
+    .fuse-horizontal-navigation-item-arrow {
+      color: var(--fuse-primary) !important;
+    }
+  }
+}
+
+fuse-vertical-navigation {
+  .fuse-vertical-navigation-aside-wrapper {
+    background: #fff !important;
+    color: #0f172a !important;
+    border-left: 1px solid #dbe4f0;
+    box-shadow: 14px 0 36px rgba(15, 23, 42, 0.12);
+  }
+
+  .fuse-vertical-navigation-aside-wrapper .fuse-vertical-navigation-item {
+    color: #0f172a !important;
+  }
+
+  .fuse-vertical-navigation-aside-wrapper .fuse-vertical-navigation-item-icon,
+  .fuse-vertical-navigation-aside-wrapper .fuse-vertical-navigation-item-title,
+  .fuse-vertical-navigation-aside-wrapper
+    .fuse-vertical-navigation-item-subtitle,
+  .fuse-vertical-navigation-aside-wrapper .fuse-vertical-navigation-item-arrow,
+  .fuse-vertical-navigation-aside-wrapper
+    .fuse-vertical-navigation-item-badge-content {
+    color: inherit !important;
+  }
+
+  .fuse-vertical-navigation-aside-wrapper .fuse-vertical-navigation-item:hover,
+  .fuse-vertical-navigation-aside-wrapper .fuse-vertical-navigation-item-active,
+  .fuse-vertical-navigation-aside-wrapper
+    .fuse-vertical-navigation-item-active-forced {
+    background: rgba(var(--fuse-primary-rgb), 0.08) !important;
+  }
+
+  .fuse-vertical-navigation-aside-wrapper .fuse-vertical-navigation-item-active,
+  .fuse-vertical-navigation-aside-wrapper
+    .fuse-vertical-navigation-item-active-forced {
+    box-shadow: inset 3px 0 0 var(--fuse-primary) !important;
+    color: var(--fuse-primary) !important;
+  }
+}
+
+/* Common Primary Button */
+.btn-primary {
+  background-color: var(--fuse-primary) !important;
+  color: var(--color-white-100) !important;
+  @apply inline-flex items-center justify-center font-semibold px-5 py-3 rounded-lg shadow-lg transition hover:brightness-110;
+}
+
+/* Common Secondary Button */
+.btn-secondary {
+  background-color: var(--color-accent-500) !important;
+  color: var(--color-white-100) !important;
+  @apply inline-flex items-center justify-center font-semibold px-5 py-3 rounded-lg shadow-lg transition hover:brightness-110;
+}
+
+/* Optional full width */
+.btn-full {
+  @apply w-full;
+}
+
+/* Optional equal width in flex */
+.btn-flex {
+  @apply flex-1;
+}
+
+/* Common Primary Delete Button */
+.cancel-btn-primary {
+  @apply inline-flex items-center justify-center bg-red-700 text-white font-semibold px-5 py-3 rounded-lg shadow-lg shadow-primary-200 transition hover:brightness-110;
+}
+
+/* Optional full width */
+.cancel-btn-full {
+  @apply w-full;
+}
+
+/* Optional equal width in flex */
+.cancel-btn-flex {
+  @apply flex-1;
+}
+
+/* Global Date Picker styling - Ensure white background */
+.mat-datepicker-content {
+  background-color: white !important;
+}
+
+.mat-calendar {
+  background-color: white !important;
+}
+
+.mat-calendar-body-cell {
+  background-color: white !important;
+}
+
+.mat-datepicker-toggle-default {
+  background-color: transparent;
+}
+
+/* Global mat-menu styling - white background */
+.mat-mdc-menu-panel {
+  background-color: white !important;
+}
+
+/* Lightbox styles specific to shop/portal image preview */
+.shop-lightbox-panel {
+  gallery,
+  gallery-core,
+  lightbox {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+
+  .g-btn-close svg {
+    filter: none !important;
+    opacity: 0.8 !important;
+  }
+
+  .g-btn-close svg:hover {
+    opacity: 1 !important;
+  }
+
+  .g-btn-close svg path {
+    fill: #000000 !important;
+  }
+}
+
+/* ── Modern Table and Listing Redesigns ── */
+table,
+.recent-table,
+.db-table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border: 1px solid #f1f5f9 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+
+  th {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    font-size: 11px !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 12px 16px !important;
+  }
+
+  td {
+    padding: 12px 16px !important;
+    font-size: 13px !important;
+    color: #334155 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+  }
+
+  tr:last-child td {
+    border-bottom: none !important;
+  }
+
+  tbody tr {
+    transition: background-color 0.15s ease-in-out !important;
+
+    &:hover {
+      background-color: rgba(248, 250, 252, 0.8) !important;
+    }
+  }
+}
+
+/* ── Custom inventory listing grids styling ── */
+.inventory-grid {
+  transition: all 0.15s ease-in-out;
+
+  &.bg-gray-100 {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    font-size: 11px !important;
+    letter-spacing: 0.05em !important;
+    border-radius: 6px !important;
+  }
+
+  &.border-b {
+    border-bottom: 1px solid #dee0e4 !important;
+
+    &:hover {
+      background-color: #f8fafc !important;
+    }
+  }
+
+  /* ASIN Tag style */
+  .text-yellow-600.bg-yellow-100 {
+    background-color: #fef9c3 !important;
+    /* soft yellow */
+    color: #854d0e !important;
+    padding: 2px 8px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    border: 1px solid #fef08a !important;
+    display: inline-block;
+  }
+
+  /* SKU Tag style */
+  .text-lime-900.bg-lime-100 {
+    background-color: #f0fdf4 !important;
+    /* soft green */
+    color: #166534 !important;
+    padding: 2px 8px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    border: 1px solid #dcfce7 !important;
+    display: inline-block;
+  }
+
+  /* Brand / Product Type custom badges */
+  span.bg-\[\#BBE3CD\] {
+    background-color: #e2f5ea !important;
+    color: #15803d !important;
+    font-weight: 600 !important;
+    border: 1px solid #bbf7d0 !important;
+  }
+
+  span.bg-custom {
+    background-color: rgba(4, 4, 70, 0.08) !important;
+    color: #040446 !important;
+    font-weight: 600 !important;
+    border: 1px solid rgba(4, 4, 70, 0.15) !important;
+  }
+
+  /* Fulfillment tag */
+  span.bg-pink-200 {
+    background-color: #fdf2f8 !important;
+    color: #c01574 !important;
+    padding: 2px 8px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    border: 1px solid #fce7f3 !important;
+  }
+
+  button[cdkCopyToClipboard] {
+    color: #94a3b8 !important;
+    transition: color 0.15s ease-in-out !important;
+
+    &:hover {
+      color: #040446 !important;
+    }
+  }
+}
+
+/* ── Premium Form Inputs & Selects in Grids ── */
+.inventory-grid,
+table,
+.recent-table,
+.db-table {
+  input[type="text"],
+  input[type="number"],
+  input:not([type]) {
+    height: 32px !important;
+
+    border: 1px solid #cbd5e1 !important;
+    background-color: #ffffff !important;
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+    color: #0f172a !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    transition: all 0.15s ease-in-out !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+
+    &:focus {
+      outline: none !important;
+      border-color: #040446 !important;
+      box-shadow: 0 0 0 3px rgba(4, 4, 70, 0.15) !important;
+    }
+
+    &:disabled {
+      background-color: #f1f5f9 !important;
+      color: #94a3b8 !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: none !important;
+    }
+  }
+
+  mat-form-field {
+    .mat-mdc-text-field-wrapper {
+      background-color: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 6px !important;
+      padding: 0 6px !important;
+      transition: all 0.15s ease-in-out !important;
+
+      &:hover {
+        border-color: #94a3b8 !important;
+      }
+    }
+
+    &.mat-focused .mat-mdc-text-field-wrapper {
+      border-color: #040446 !important;
+      box-shadow: 0 0 0 3px rgba(4, 4, 70, 0.15) !important;
+    }
+
+    .mat-mdc-form-field-flex {
+      height: 32px !important;
+      align-items: center !important;
+    }
+
+    .mat-mdc-form-field-infix {
+      padding: 0 !important;
+      min-height: auto !important;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input:not([type]),
+    input.mat-mdc-input-element {
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      text-align: center !important;
+      color: #0f172a !important;
+      border: none !important;
+      background-color: transparent !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      height: auto !important;
+    }
+  }
+}
+
+/* ── Sleek Top Headers Redesign ── */
+.bg-card.rounded-md.shadow-md,
+.bg-card.rounded-lg {
+  border: 1px solid #e2e8f0 !important;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.05),
+    0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+  border-radius: 12px !important;
+}
+
+form.custom-field-mb {
+  background-color: #f8fafc !important;
+  border-radius: 10px !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 8px !important;
+  margin-bottom: 12px !important;
+}
+
+/* ── Stepper & Marketplace flags inside stepper ── */
+.popCountry {
+  margin: 10px !important;
+  padding: 8px !important;
+  border-radius: 10px !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  transition: all 0.15s ease-in-out !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+
+  &:hover {
+    transform: translateY(-2px) !important;
+    border-color: #cbd5e1 !important;
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.05),
+      0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+  }
+
+  .AllCountry {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  img.image {
+    width: 44px !important;
+    height: 44px !important;
+    border: 2px solid #f1f5f9 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  }
+}
+
+/* ── Alert/Warning notices ── */
+.notice.bg-white,
+div.bg-gray-50.border-dashed {
+  background-color: #fffbeb !important;
+  /* amber-50 */
+  border: 1px solid #fde68a !important;
+  /* amber-200 */
+  color: #92400e !important;
+  /* amber-800 */
+  border-radius: 10px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+
+  h4,
+  span.font-bold {
+    color: #b45309 !important;
+    /* amber-700 */
+  }
+
+  p,
+  div {
+    color: #92400e !important;
+  }
+}
+
+/* ── Primary Action Buttons (Add / Submit / Confirm / Save) ── */
+button.bg-primary:not(.btn-primary-action),
+button.btn-primary:not(.btn-primary-action),
+.btn-primary:not(.btn-primary-action),
+button[type="submit"]:not([mat-stroked-button]):not([mat-button]):not(
+    .btn-primary-action
+  ) {
+  background-color: var(--fuse-primary) !important;
+  color: var(--color-white-100) !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  padding: 0 1.25rem !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  border: 1px solid var(--fuse-primary) !important;
+  transition: all 0.15s ease-in-out !important;
+
+  .mat-icon,
+  svg,
+  span {
+    color: var(--color-white-100) !important;
+  }
+
+  &:hover:not([disabled]) {
+    background-color: var(--fuse-primary-600, var(--fuse-primary)) !important;
+    border-color: var(--fuse-primary-600, var(--fuse-primary)) !important;
+    filter: brightness(0.95) !important;
+  }
+
+  &:disabled,
+  &[disabled] {
+    background-color: var(--color-gray-200) !important;
+    color: var(--color-gray-400) !important;
+    border-color: var(--color-gray-200) !important;
+    box-shadow: none !important;
+    opacity: 0.75 !important;
+    cursor: not-allowed !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+
+    .mat-icon,
+    svg,
+    span {
+      color: var(--color-gray-400) !important;
+    }
+  }
+}
+
+/* ── Cancel / Back / Secondary Buttons ── */
+button.btn-cancel,
+.btn-cancel,
+button.btn-secondary,
+button.btn-secondary-action,
+button.btn-back,
+button[mat-dialog-close],
+button[mat-stroked-button],
+.mat-mdc-dialog-actions button:first-child:not(.btn-primary),
+button.border-black,
+button.border-slate-200,
+button.border-gray-200,
+button.border-gray-300 {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  padding: 0 1.25rem !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  transition: all 0.15s ease-in-out !important;
+
+  .mat-icon,
+  svg,
+  span,
+  .mdc-button__label {
+    color: #000000 !important;
+  }
+
+  &:hover:not([disabled]) {
+    background-color: #f1f5f9 !important;
+    color: #000000 !important;
+    border-color: #94a3b8 !important;
+  }
+
+  &:disabled,
+  &[disabled] {
+    background-color: #f8fafc !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+  }
+}
+
+/* ── Modern SaaS/ERP Inspired Global Theme ── */
+
+/* Page Header (Top bar of every listing & detail page) */
+.page-header,
+div.page-header,
+header.page-header {
+  @apply relative flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between px-3 py-2 sm:px-6 text-white shadow-sm transition-all duration-200;
+
+  background-color: var(--fuse-primary) !important;
+  overflow: visible !important;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p {
+    color: var(--color-white-100) !important;
+    @apply tracking-tight font-semibold;
+
+    .mat-icon {
+      color: var(--color-white-100) !important;
+    }
+  }
+
+  .search-bar-btn {
+    @apply border border-blue-400 bg-blue-700/50 text-white hover:bg-blue-700 transition-colors shadow-sm;
+  }
+
+  /* Compact form fields in header */
+  .fuse-mat-dense {
+    .mat-mdc-text-field-wrapper {
+      @apply bg-white text-slate-800 transition-all rounded-lg border border-slate-200 h-9 p-0 flex items-center !important;
+
+      &:hover {
+        @apply border-blue-300;
+      }
+    }
+
+    .mat-mdc-form-field-flex {
+      @apply h-9 items-center !important;
+    }
+
+    .mat-mdc-form-field-infix {
+      @apply py-0 min-h-0 flex items-center !important;
+    }
+
+    .mat-mdc-form-field-prefix,
+    .mat-mdc-form-field-suffix,
+    [matPrefix],
+    [matSuffix] {
+      @apply flex items-center justify-center !important;
+
+      .mat-icon,
+      svg {
+        color: #64748b !important;
+      }
+    }
+
+    .mat-icon {
+      color: #64748b !important;
+    }
+
+    input.mat-mdc-input-element {
+      @apply text-slate-800 text-sm px-1.5 !important;
+
+      &::placeholder {
+        @apply text-slate-400;
+      }
+    }
+
+    .mat-select-value {
+      @apply text-slate-800 text-sm px-2 !important;
+    }
+
+    .mat-select-arrow {
+      @apply text-slate-400;
+    }
+  }
+
+  /* Force search icons and prefixes inside page header inputs to be visible dark gray */
+  .mat-mdc-form-field,
+  .fuse-mat-dense,
+  mat-form-field {
+    .mat-icon,
+    [matPrefix],
+    [matSuffix],
+    svg {
+      color: #64748b !important;
+    }
+  }
+}
+
+/* Primary Action Button (Header 'Add' / 'Export' buttons across all listing pages) */
+.btn-primary-action,
+button.btn-primary-action,
+button[class*="btn-primary-action"],
+button.mat-mdc-unelevated-button.btn-primary-action,
+button.mat-mdc-raised-button.btn-primary-action,
+button.mat-mdc-button-base.btn-primary-action,
+.page-header .btn-primary-action,
+.page-header button.btn-primary-action,
+.page-header button.btn-primary,
+.page-header button.bg-primary {
+  background-color: var(--fuse-primary) !important;
+  color: #ffffff !important;
+  border-style: solid !important;
+  border-width: 1.5px !important;
+  border-color: #ffffff !important;
+  border: 1.5px solid #ffffff !important;
+  outline: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  @apply flex items-center justify-center gap-1.5 px-4 font-semibold rounded-lg hover:brightness-110 transition-all duration-150 text-sm h-9 !important;
+
+  .mat-icon,
+  span {
+    color: #ffffff !important;
+    @apply m-0 p-0;
+  }
+}
+
+/* Secondary / Refresh Action Button */
+.btn-secondary-action {
+  background-color: var(--color-white-100) !important;
+  color: var(--color-gray-700) !important;
+  border: 1px solid var(--color-gray-300) !important;
+  @apply rounded-lg min-w-9 min-h-9 w-9 h-9 flex items-center justify-center hover:bg-slate-100 focus:ring-2 transition-all duration-150 shadow-sm !important;
+
+  .mat-icon {
+    color: var(--color-gray-700) !important;
+    @apply m-0 p-0;
+  }
+}
+
+/* Danger / Delete Action Button */
+.btn-danger-action {
+  @apply flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-sm hover:bg-red-700 transition-all duration-150 text-sm;
+}
+
+/* Global Table / Listing Wrapper */
+.listing-wrapper {
+  @apply flex flex-col flex-auto min-h-0 overflow-hidden bg-[#F8FAFC];
+}
+
+/* Table Header Row */
+.table-header-row {
+  @apply z-10 sticky top-0 grid gap-4 py-2 px-2 sm:px-4 text-[12px] font-bold tracking-wider uppercase text-slate-700 bg-slate-100 border-b border-slate-200 shadow-sm;
+
+  > div {
+    @apply flex items-center;
+  }
+
+  .mat-sort-header-container {
+    @apply hover:text-[#040446] transition-colors cursor-pointer;
+  }
+
+  .mat-sort-header-arrow {
+    @apply text-slate-400;
+  }
+}
+
+/* Table Data Rows */
+.table-data-row {
+  @apply grid items-center gap-4 py-1 px-2 sm:px-4 bg-white border-b border-[#E5E7EB] transition-colors duration-150;
+
+  &:hover {
+    @apply bg-[#EFF6FF];
+  }
+
+  &.selected {
+    @apply bg-blue-50/50 border-blue-100;
+  }
+
+  .text-secondary {
+    @apply text-slate-500 text-[13px];
+  }
+
+  .font-medium {
+    @apply text-slate-900;
+  }
+}
+
+/* Action Icons inside Table */
+.table-action-btn {
+  @apply w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:text-[#040446] hover:bg-[#EFF6FF] transition-all duration-150;
+
+  &.danger {
+    @apply hover:text-red-600 hover:bg-red-50;
+  }
+
+  &.success {
+    @apply hover:text-emerald-600 hover:bg-emerald-50;
+  }
+
+  &.warning {
+    @apply hover:text-amber-600 hover:bg-amber-50;
+  }
+}
+
+/* Status Badges */
+.status-badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold tracking-wide border shadow-sm;
+
+  &--active {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-200;
+  }
+
+  &--inactive {
+    @apply bg-slate-100 text-slate-600 border-slate-200;
+  }
+
+  &--expired {
+    @apply bg-amber-50 text-amber-700 border-amber-200;
+  }
+
+  &--revoked {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+
+  &--pending {
+    @apply bg-blue-50 text-blue-700 border-blue-200;
+  }
+}
+
+/* Number / Count Badges */
+.count-badge {
+  @apply inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full text-[11px] font-bold;
+
+  &--high {
+    @apply bg-blue-100 text-blue-700;
+  }
+
+  &--low {
+    @apply bg-amber-100 text-amber-700;
+  }
+
+  &--zero {
+    @apply bg-slate-100 text-slate-500;
+  }
+}
+
+/* Modal / Popup Header */
+.modal-header {
+  @apply flex items-center justify-between text-white px-6 py-4 rounded-t-xl shadow-md;
+  background-color: var(--fuse-primary) !important;
+  background: var(--fuse-primary) !important;
+
+  h1,
+  h2,
+  h3 {
+    @apply m-0 text-lg font-semibold tracking-tight text-white;
+  }
+
+  .mat-icon {
+    @apply text-white;
+  }
+
+  .close-btn {
+    @apply text-blue-100 hover:text-white hover:bg-white/10 rounded-full w-8 h-8 flex items-center justify-center transition-colors;
+  }
+}
+
+/* Empty State Styling */
+.page-empty-state {
+  @apply flex flex-col items-center justify-center p-12 sm:p-20 text-center bg-white rounded-2xl border border-slate-200 border-dashed m-6 shadow-sm;
+
+  .icon-wrapper {
+    @apply w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center mb-6 ring-8 ring-blue-50/50;
+
+    .mat-icon {
+      @apply text-primary-700;
+    }
+  }
+
+  h3 {
+    @apply text-xl font-bold text-slate-800 mb-2 tracking-tight;
+  }
+
+  p {
+    @apply text-slate-500 max-w-md text-sm leading-relaxed;
+  }
+}
+
+/* Pagination Bar */
+.pagination-bar {
+  @apply sm:absolute sm:inset-x-0 sm:bottom-0 border-t border-slate-200 z-10 bg-white shadow-md;
+}
+
+/* ── Global Material Dialog/Popup Overrides ── */
+.cdk-overlay-pane,
+.mat-mdc-dialog-container,
+.mat-dialog-container {
+  // Overriding any header container within a dialog popup
+  .modal-header,
+  .mat-mdc-dialog-title,
+  .mat-dialog-title,
+  div[class*="header"][class*="bg-slate-800"],
+  div[class*="header"][class*="bg-[#040446]"],
+  div[class*="header"][class*="bg-[#13355A]"],
+  div[class*="header"][class*="bg-blue-600"],
+  div.sticky.top-0[class*="bg-slate-800"],
+  div.sticky.top-0[class*="bg-[#040446]"],
+  div.sticky.top-0[class*="bg-[#13355A]"],
+  div.sticky.top-0[class*="bg-blue-600"],
+  div.bg-slate-800[class*="text-white"].rounded-t-xl,
+  div.bg-slate-800[class*="text-white"].px-5.py-4,
+  div.bg-slate-800[class*="text-white"].px-4.py-3 {
+    background-color: var(--fuse-primary) !important;
+    background: var(--fuse-primary) !important;
+    color: var(--color-white-100) !important;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    span,
+    .mat-icon,
+    .close-btn,
+    button {
+      color: var(--color-white-100) !important;
+    }
+  }
+
+  // Target primary action buttons inside dialogs (Add / Save / Confirm / Submit)
+  mat-dialog-actions,
+  .mat-mdc-dialog-actions,
+  .mat-dialog-actions,
+  div[class*="justify-end"] {
+    button.btn-primary,
+    button.bg-primary,
+    button[type="submit"]:not(.btn-cancel):not([mat-stroked-button]),
+    button.bg-slate-800,
+    button.bg-\[\#040446\],
+    button.bg-\[\#13355A\],
+    button.bg-blue-600 {
+      background-color: var(--fuse-primary) !important;
+      background: var(--fuse-primary) !important;
+      color: var(--color-white-100) !important;
+
+      &:hover:not([disabled]) {
+        background-color: var(
+          --fuse-primary-600,
+          var(--fuse-primary)
+        ) !important;
+        filter: brightness(0.9) !important;
+      }
+
+      &:disabled,
+      &[disabled] {
+        background-color: var(--color-gray-200) !important;
+        color: var(--color-gray-400) !important;
+        border-color: var(--color-gray-200) !important;
+        filter: none !important;
+        opacity: 0.75 !important;
+
+        .mat-icon,
+        svg,
+        span {
+          color: var(--color-gray-400) !important;
+        }
+      }
+
+      .mat-icon {
+        color: var(--color-white-100) !important;
+      }
+    }
+
+    // Explicitly enforce White background and Black text for all Cancel buttons in dialogs
+    button.btn-cancel,
+    .btn-cancel,
+    button.btn-secondary,
+    button[mat-dialog-close],
+    button[mat-stroked-button] {
+      background-color: #ffffff !important;
+      background: #ffffff !important;
+      color: #000000 !important;
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 0.75rem !important;
+      font-weight: 600 !important;
+      font-size: 0.875rem !important;
+      height: 38px !important;
+      min-height: 38px !important;
+      max-height: 38px !important;
+      padding: 0 1.25rem !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      box-sizing: border-box !important;
+
+      .mat-icon,
+      svg,
+      span,
+      .mdc-button__label {
+        color: #000000 !important;
+      }
+
+      &:hover:not([disabled]) {
+        background-color: #f1f5f9 !important;
+        background: #f1f5f9 !important;
+        color: #000000 !important;
+        border-color: #94a3b8 !important;
+      }
+    }
+  }
+}
+
+/* ── Global Dropdown/Select & Option Style Fixes ── */
+body .mat-mdc-select-panel,
+body .mat-select-panel {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
+}
+
+body .mat-mdc-option,
+body .mat-option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  --mdc-list-list-item-label-text-color: #0f172a !important;
+  --mdc-list-list-item-supporting-text-color: #0f172a !important;
+  --mat-option-label-text-color: #0f172a !important;
+  --mat-mdc-option-label-text-color: #0f172a !important;
+
+  .mdc-list-item__primary-text,
+  .mat-option-text {
+    color: #0f172a !important;
+  }
+
+  // Hide checkbox by default (for single-select dropdowns)
+  .mat-pseudo-checkbox {
+    display: none !important;
+  }
+}
+
+// Show checkbox only for multi-select dropdowns
+body .mat-mdc-select-multiple .mat-mdc-option,
+body .mat-select-multiple .mat-option {
+  .mat-pseudo-checkbox {
+    display: inline-flex !important;
+    border-color: #475569 !important;
+  }
+}
+
+// Hover state for options (not selected)
+body .mat-mdc-option:hover:not(.mdc-list-item--selected),
+body .mat-option:hover:not(.mat-selected) {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  --mdc-list-list-item-label-text-color: #0f172a !important;
+  --mdc-list-list-item-supporting-text-color: #0f172a !important;
+  --mat-option-label-text-color: #0f172a !important;
+  --mat-mdc-option-label-text-color: #0f172a !important;
+
+  .mdc-list-item__primary-text,
+  .mat-option-text {
+    color: #0f172a !important;
+  }
+
+  .mat-pseudo-checkbox {
+    border-color: #475569 !important;
+  }
+}
+
+// Selected state for options (both single and multi-select)
+body .mat-mdc-option.mdc-list-item--selected,
+body .mat-mdc-option.mdc-list-item--activated,
+body .mat-mdc-option.mat-mdc-option-active,
+body .mat-option.mat-selected,
+body .mat-option.mat-active {
+  background-color: var(--brand-primary, #040446) !important;
+  color: #ffffff !important;
+  --mdc-list-list-item-label-text-color: #ffffff !important;
+  --mdc-list-list-item-supporting-text-color: #ffffff !important;
+  --mat-option-label-text-color: #ffffff !important;
+  --mat-mdc-option-label-text-color: #ffffff !important;
+
+  .mdc-list-item__primary-text,
+  .mat-option-text,
+  span,
+  .text-indigo-700,
+  .text-indigo-800,
+  .text-indigo-600 {
+    color: #ffffff !important;
+  }
+
+  // Selected checkbox styling: background is primary, border is white, checkmark is white
+  .mat-pseudo-checkbox-checked {
+    border-color: #ffffff !important;
+    background-color: var(--brand-primary, #040446) !important;
+
+    &::after {
+      border-color: #ffffff !important;
+    }
+  }
+}
+
+// Global Menu styling to prevent white-on-white text in dark mode
+body .mat-mdc-menu-panel,
+body .mat-menu-panel {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
+
+  .mat-mdc-menu-item,
+  .mat-menu-item {
+    color: #0f172a !important;
+
+    .mat-icon {
+      color: #0f172a !important;
+    }
+
+    &:hover {
+      background-color: #f8fafc !important;
+    }
+  }
+}
+
+/* ── Brand Specific Tags & Badges overrides ── */
+body {
+  // Override blue badges
+  .bg-blue-50,
+  .bg-blue-50\/80,
+  .bg-blue-50\/70,
+  .bg-blue-50\/50 {
+    background-color: rgba(4, 4, 70, 0.08) !important;
+    color: #040446 !important;
+    border-color: rgba(4, 4, 70, 0.15) !important;
+
+    &.text-blue-700,
+    &.text-blue-600 {
+      color: #040446 !important;
+    }
+  }
+
+  // Override indigo badges (e.g., EAN, SKU tags)
+  .bg-indigo-50 {
+    background-color: rgba(4, 4, 70, 0.08) !important;
+    color: #040446 !important;
+    border-color: rgba(4, 4, 70, 0.15) !important;
+
+    &.text-indigo-700,
+    &.text-indigo-600 {
+      color: #040446 !important;
+    }
+
+    .text-indigo-400 {
+      color: rgba(4, 4, 70, 0.6) !important;
+
+      &:hover {
+        color: #040446 !important;
+      }
+    }
+  }
+
+  // Direct class styling targets inside badges
+  .text-blue-700 {
+    &.bg-blue-50,
+    &.bg-blue-50\/80,
+    &.bg-blue-50\/70,
+    &.bg-blue-50\/50 {
+      color: #040446 !important;
+    }
+  }
+
+  .text-indigo-700 {
+    &.bg-indigo-50 {
+      color: #040446 !important;
+    }
+  }
+}
+
+/* Toast alerts above Material dialog backdrop (z-index ~1000). */
+fuse-alert:not(.fuse-alert-dismissed) {
+  position: fixed;
+  top: 4.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(640px, 92vw);
+  z-index: 1200;
+  pointer-events: auto;
+}

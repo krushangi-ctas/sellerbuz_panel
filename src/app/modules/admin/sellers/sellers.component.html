@@ -1,0 +1,50 @@
+<!-- ================================================================== -->
+<!-- SELLERS MODULE — TAB WRAPPER                                         -->
+<!-- ================================================================== -->
+<div class="flex flex-col w-full h-full min-w-0 overflow-hidden">
+  <!-- ================================================================ -->
+  <!-- TAB BAR                                                            -->
+  <!-- ================================================================ -->
+  <div class="flex-0 px-4 sm:px-6 pt-3 pb-2 bg-gray-50 dark:bg-gray-900/50">
+    <div
+      class="sellers-tab-bar bg-card rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-1.5 flex flex-wrap gap-1.5"
+    >
+      <button
+        type="button"
+        class="sellers-tab"
+        [class.sellers-tab--active]="activeTab === 'sellers'"
+        (click)="setTab('sellers')"
+      >
+        <mat-icon class="icon-size-4">people</mat-icon>
+        <span>Sellers</span>
+      </button>
+      <button
+        type="button"
+        class="sellers-tab"
+        [class.sellers-tab--active]="activeTab === 'subscriptions'"
+        (click)="setTab('subscriptions')"
+      >
+        <mat-icon class="icon-size-4">card_membership</mat-icon>
+        <span>Subscription Users</span>
+      </button>
+      <button
+        type="button"
+        class="sellers-tab"
+        [class.sellers-tab--active]="activeTab === 'leads'"
+        (click)="setTab('leads')"
+      >
+        <mat-icon class="icon-size-4">leaderboard</mat-icon>
+        <span>Leads</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- TAB CONTENT — single persistent router-outlet                      -->
+  <!-- The container is positioned so each tab component fills it with    -->
+  <!-- an absolute inset-0 root (same pattern as the user module).        -->
+  <!-- ================================================================ -->
+  <div class="sellers-tab-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

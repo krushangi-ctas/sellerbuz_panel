@@ -1,0 +1,68 @@
+.user-grid {
+  grid-template-columns: 140px 70px minmax(150px, 1fr) 120px 120px 70px 70px;
+
+  @screen sm {
+    grid-template-columns: 140px 70px minmax(150px, 1fr) 120px 120px 70px 70px;
+  }
+
+  @screen md {
+    grid-template-columns: 160px 80px minmax(200px, 1fr) 140px 120px 80px 80px;
+  }
+
+  @screen lg {
+    grid-template-columns: 160px 80px minmax(250px, 1fr) 140px 120px 80px 80px;
+  }
+}
+
+::ng-deep
+  .mat-form-field.mat-form-field-appearance-fill
+  .mat-form-field-wrapper
+  .mat-form-field-flex {
+  min-height: 38px;
+}
+
+::ng-deep
+  .custom-field-mb
+  .mat-form-field.mat-form-field-appearance-fill
+  .mat-form-field-wrapper {
+  margin-bottom: 0px;
+}
+
+::ng-deep .mat-button-toggle-checked {
+  background-color: var(--fuse-primary) !important;
+}
+
+::ng-deep
+  .mdc-switch--selected
+  .mdc-switch__handle-track
+  .mdc-switch__handle
+  .mdc-switch__icons {
+  background-color: var(--fuse-primary) !important;
+}
+
+::ng-deep .mdc-switch--selected .mdc-switch__track {
+  background-color: var(--fuse-primary) !important;
+  opacity: 0.5;
+}
+
+::ng-deep .mat-mdc-slide-toggle.mat-primary {
+  --mdc-switch-selected-track-color: var(--fuse-primary);
+  --mdc-switch-selected-handle-color: var(--fuse-primary);
+  --mdc-switch-selected-hover-track-color: var(--fuse-primary);
+  --mdc-switch-selected-hover-handle-color: var(--fuse-primary);
+  --mdc-switch-selected-focus-track-color: var(--fuse-primary);
+  --mdc-switch-selected-focus-handle-color: var(--fuse-primary);
+  --mdc-switch-selected-pressed-track-color: var(--fuse-primary);
+  --mdc-switch-selected-pressed-handle-color: var(--fuse-primary);
+}
+
+::ng-deep .mat-mdc-slide-toggle.mat-accent {
+  --mdc-switch-selected-track-color: var(--fuse-primary);
+  --mdc-switch-selected-handle-color: var(--fuse-primary);
+  --mdc-switch-selected-hover-track-color: var(--fuse-primary);
+  --mdc-switch-selected-hover-handle-color: var(--fuse-primary);
+  --mdc-switch-selected-focus-track-color: var(--fuse-primary);
+  --mdc-switch-selected-focus-handle-color: var(--fuse-primary);
+  --mdc-switch-selected-pressed-track-color: var(--fuse-primary);
+  --mdc-switch-selected-pressed-handle-color: var(--fuse-primary);
+}

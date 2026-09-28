@@ -1,0 +1,33 @@
+.close-button mat-icon {
+  color: var(--color-gray-500);
+  /* Default color (gray-600) */
+  transition: color 0.3s;
+}
+
+/* Change the background of the toggle bar */
+.custom-toggle .mat-slide-toggle-bar {
+  background-color: var(--color-accent-200) !important;
+  /* Background bar color */
+}
+
+/* Change the color of the thumb (round shape) */
+.custom-toggle .mat-slide-toggle-thumb {
+  background-color: var(--fuse-primary) !important;
+  /* Thumb color */
+}
+
+/* Ensure the color remains consistent when checked */
+.custom-toggle.mat-checked .mat-slide-toggle-bar {
+  background-color: var(--color-accent-200) !important;
+  /* Background bar color when checked */
+}
+
+.custom-toggle.mat-checked .mat-slide-toggle-thumb {
+  background-color: var(--fuse-primary) !important;
+  /* Thumb color when checked */
+}
+
+.custom-toggle ::ng-deep .mdc-switch__icons {
+  background-color: var(--fuse-primary) !important;
+  border-radius: 50%;
+}

@@ -1,0 +1,130 @@
+<div
+  class="sm:relative sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden overflow-auto"
+>
+  <!-- ===== HEADER ===================================================== -->
+  <div
+    class="page-header border-b border-gray-200 dark:border-gray-700 relative flex flex-col sm:flex-row sm:items-center sm:justify-start gap-4 flex-0 bg-card px-6 py-3 md:px-8"
+  >
+    <!-- Title -->
+    <div class="flex items-center gap-3 shrink-0">
+      <div
+        class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center gap-3"
+      >
+        <a
+          (click)="$event.preventDefault()"
+          mat-icon-button
+          [matTooltip]="tooltip"
+          class="!w-10 !h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0"
+        >
+          <mat-icon
+            class="icon-size-6 text-white"
+            [svgIcon]="'heroicons_outline:credit-card'"
+          ></mat-icon>
+        </a>
+        <span class="text-2xl font-bold tracking-tight text-white"
+          >Subscription</span
+        >
+      </div>
+    </div>
+
+    <div
+      class="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-2"
+    ></div>
+
+    <!-- Tab Bar -->
+    <div
+      class="flex flex-wrap items-center gap-2 max-w-full overflow-x-hidden subscription-tab-bar"
+    >
+      <!-- OVERVIEW TAB -->
+      <button
+        type="button"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 transition-all duration-200 cursor-pointer border border-transparent bg-gray-100 dark:bg-gray-800 flex-shrink-0 whitespace-nowrap select-none hover:bg-gray-200 dark:hover:bg-gray-700"
+        [class.bg-primary]="activeTab === 'overview'"
+        [class.text-white]="activeTab === 'overview'"
+        [class.shadow-md]="activeTab === 'overview'"
+        (click)="setTab('overview')"
+      >
+        <mat-icon class="icon-size-4">space_dashboard</mat-icon>
+        <span>Overview</span>
+      </button>
+
+      <!-- SUBSCRIPTION TAB -->
+      <button
+        type="button"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 transition-all duration-200 cursor-pointer border border-transparent bg-gray-100 dark:bg-gray-800 flex-shrink-0 whitespace-nowrap select-none hover:bg-gray-200 dark:hover:bg-gray-700"
+        [class.bg-primary]="activeTab === 'subscription'"
+        [class.text-white]="activeTab === 'subscription'"
+        [class.shadow-md]="activeTab === 'subscription'"
+        (click)="setTab('subscription')"
+      >
+        <mat-icon class="icon-size-4">card_membership</mat-icon>
+        <span>Subscription</span>
+      </button>
+
+      <!-- PLANS & BILLING TAB -->
+      <button
+        type="button"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 transition-all duration-200 cursor-pointer border border-transparent bg-gray-100 dark:bg-gray-800 flex-shrink-0 whitespace-nowrap select-none hover:bg-gray-200 dark:hover:bg-gray-700"
+        [class.bg-primary]="activeTab === 'plans'"
+        [class.text-white]="activeTab === 'plans'"
+        [class.shadow-md]="activeTab === 'plans'"
+        (click)="setTab('plans')"
+      >
+        <mat-icon class="icon-size-4">workspace_premium</mat-icon>
+        <span>Plans & Billing</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== MAIN CONTENT =============================================== -->
+  @if (isSuperAdmin || rolePermission?.view) {
+    <div class="flex-auto min-h-0 flex flex-col relative">
+      <!-- OVERVIEW -->
+      @if (activeTab === "overview") {
+        <app-subscription-overview
+          [isLoading]="isLoading"
+          [currentPlan]="currentPlan"
+          [allSubscriptions]="allSubscriptions"
+          [usages]="usages"
+          [usageTrendChartOptions]="usageTrendChartOptions"
+          (requestReload)="loadUsagesOnly()"
+        ></app-subscription-overview>
+      }
+
+      <!-- SUBSCRIPTION + PAYMENT (merged) -->
+      @if (activeTab === "subscription") {
+        <app-subscription-history
+          [isLoading]="isLoading"
+          [allSubscriptions]="allSubscriptions"
+          (downloadInvoice)="downloadInvoice($event)"
+        ></app-subscription-history>
+      }
+
+      <!-- PLANS & BILLING -->
+      @if (activeTab === "plans") {
+        <app-subscription-plans
+          [isLoading]="isLoading"
+          [currentPlan]="currentPlan"
+          [availablePlans]="availablePlans"
+          [sellerDetails]="sellerDetails"
+          [selectedBillingCycle]="selectedBillingCycle"
+          (billingCycleChange)="selectedBillingCycle = $event"
+        ></app-subscription-plans>
+      }
+    </div>
+  } @else {
+    <!-- Access Denied -->
+    <div class="max-w-7xl mx-auto p-12 text-center">
+      <div
+        class="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-5"
+      >
+        <mat-icon class="icon-size-12 text-red-600">lock</mat-icon>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900">Access Denied</h3>
+      <p class="text-sm text-gray-500">
+        You do not have the required permissions view subscription management
+        dashboard details.
+      </p>
+    </div>
+  }
+</div>

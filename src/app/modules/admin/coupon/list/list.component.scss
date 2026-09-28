@@ -1,0 +1,30 @@
+.coupon-grid {
+  grid-template-columns: 100px auto 120px 120px 130px 130px 120px 120px 120px 120px 120px;
+}
+
+@media (max-width: 1400px) {
+  .coupon-grid {
+    grid-template-columns: 100px auto 120px 120px 130px 130px 120px 120px 120px 120px 120px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .coupon-grid {
+    grid-template-columns: 100px auto 120px 120px 130px 130px 120px 120px 120px 120px 120px;
+  }
+}
+
+.search-bar-btn {
+  @apply bg-gray-100 hover:bg-gray-200 text-gray-600;
+}
+
+::ng-deep .btn-primary-action,
+::ng-deep button.btn-primary-action {
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.95)) !important;
+  box-shadow:
+    0 0 16px 3px rgba(255, 255, 255, 0.9),
+    0 0 6px 1px #ffffff !important;
+  -webkit-box-shadow:
+    0 0 16px 3px rgba(255, 255, 255, 0.9),
+    0 0 6px 1px #ffffff !important;
+}

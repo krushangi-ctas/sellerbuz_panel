@@ -1,0 +1,47 @@
+.role-grid {
+  grid-template-columns: 140px 150px 200px 140px 50px 60px;
+
+  @screen sm {
+    grid-template-columns: 140px 150px 200px 140px 50px 60px;
+  }
+
+  @screen md {
+    grid-template-columns: 140px 150px 200px 140px 50px 60px;
+  }
+
+  @screen lg {
+    grid-template-columns: 120px 150px auto 140px 50px 60px;
+  }
+}
+
+.role-restricted {
+  grid-template-columns: 140px 150px 200px 140px 60px;
+
+  @screen sm {
+    grid-template-columns: 140px 150px 200px 140px 60px;
+  }
+
+  @screen md {
+    grid-template-columns: 140px 150px 200px 140px 60px;
+  }
+
+  @screen lg {
+    grid-template-columns: 140px 150px auto 140px 60px;
+  }
+}
+
+.role-no-control {
+  grid-template-columns: 140px 150px 200px 140px;
+
+  @screen sm {
+    grid-template-columns: 140px 150px 200px 140px;
+  }
+
+  @screen md {
+    grid-template-columns: 140px 150px 200px 140px;
+  }
+
+  @screen lg {
+    grid-template-columns: 140px 150px auto 140px;
+  }
+}

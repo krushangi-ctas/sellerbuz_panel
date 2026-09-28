@@ -1,0 +1,380 @@
+<div
+  class="sm:absolute sm:inset-0 flex min-w-0 flex-auto flex-col overflow-auto bg-slate-50 dark:bg-gray-900"
+>
+  <!-- TOP BRAND HERO HEADER -->
+  <div
+    class="relative overflow-hidden bg-gradient-to-r from-[#13355a] via-[#113052] to-[#0f2b48] px-4 py-5 sm:px-8 shadow-md"
+  >
+    <div
+      class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/5 blur-2xl pointer-events-none"
+    ></div>
+    <div
+      class="absolute right-1/4 -bottom-12 h-36 w-36 rounded-full bg-sky-400/10 blur-xl pointer-events-none"
+    ></div>
+
+    <div
+      class="relative z-10 flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+    >
+      <div class="flex items-center gap-4">
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white backdrop-blur-md shadow-inner border border-white/20 shrink-0"
+        >
+          <mat-icon
+            svgIcon="heroicons_solid:user"
+            class="icon-size-6 text-sky-200"
+          ></mat-icon>
+        </div>
+
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-black tracking-tight text-white">
+              My Profile
+            </h1>
+            <span
+              class="inline-flex items-center rounded-full bg-sky-500/20 px-2.5 py-0.5 text-xs font-semibold text-sky-200 border border-sky-400/30"
+            >
+              Account Overview
+            </span>
+          </div>
+          <p class="mt-0.5 max-w-2xl text-xs sm:text-sm text-slate-300">
+            Manage your personal profile details, profile picture, and contact
+            information.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <div class="flex-auto overflow-auto p-3 sm:p-6">
+    <div class="mx-auto flex w-full max-w-5xl flex-col gap-4">
+      <button type="button" id="gotoTop" style="border: none"></button>
+
+      <form
+        [formGroup]="userProfileFormGroup"
+        class="overflow-hidden border border-slate-200/80 dark:border-gray-800 bg-card rounded-2xl shadow-sm hover:shadow-md transition-all duration-300"
+      >
+        <!-- CARD SUB HEADER -->
+        <div
+          class="border-b border-slate-100 dark:border-gray-800 bg-gradient-to-r from-primary-50/60 via-card to-card px-5 py-3.5"
+        >
+          <div
+            class="flex flex-col gap-0.5 lg:flex-row lg:items-center lg:justify-between"
+          >
+            <div class="flex items-center gap-2.5">
+              <div
+                class="h-2.5 w-2.5 rounded-full bg-primary-600 animate-pulse"
+              ></div>
+              <h2
+                class="text-base font-bold text-gray-900 dark:text-gray-100 tracking-tight"
+              >
+                Update Profile Information
+              </h2>
+            </div>
+            <span class="text-xs font-medium text-slate-500 dark:text-gray-400">
+              All changes sync instantly to your account
+            </span>
+          </div>
+        </div>
+
+        <div class="grid gap-6 p-4 sm:p-6 xl:grid-cols-[260px,minmax(0,1fr)]">
+          <!-- LEFT SIDE: AVATAR CARD -->
+          <div
+            class="rounded-2xl border border-slate-200/70 dark:border-gray-800 bg-gradient-to-b from-slate-50/80 via-card to-primary-50/10 p-5 shadow-xs flex flex-col items-center text-center justify-between"
+          >
+            <div class="flex flex-col items-center w-full">
+              <div
+                class="relative group cursor-pointer"
+                (click)="selectFile.click()"
+              >
+                <div
+                  class="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-4 border-white dark:border-gray-800 bg-primary-50 shadow-lg ring-4 ring-primary-500/20 group-hover:ring-primary-500/40 transition-all duration-300"
+                >
+                  @if (!imageError && selectedImage?.length > 0) {
+                    <img
+                      class="h-full w-full rounded-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      [src]="
+                        selectedImage.startsWith('http')
+                          ? selectedImage
+                          : imgPath + selectedImage
+                      "
+                      (error)="imageError = true"
+                      alt="User profile photo"
+                    />
+                  } @else {
+                    <div
+                      class="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary-600 to-primary-900 text-white text-3xl font-bold tracking-wider"
+                    >
+                      {{ getInitials() }}
+                    </div>
+                  }
+                </div>
+
+                <div
+                  class="absolute right-0 bottom-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white dark:border-gray-800 bg-primary-600 text-white shadow-md group-hover:scale-110 transition-transform duration-200"
+                >
+                  <mat-icon
+                    class="icon-size-4"
+                    [svgIcon]="'heroicons_solid:camera'"
+                  ></mat-icon>
+                </div>
+              </div>
+
+              <div class="mt-3.5 w-full">
+                <div
+                  class="text-base font-bold text-gray-900 dark:text-gray-100 leading-snug truncate max-w-[230px] mx-auto"
+                >
+                  {{ userProfileFormGroup.get("first_name")?.value || "Your" }}
+                  {{
+                    userProfileFormGroup.get("last_name")?.value || "Profile"
+                  }}
+                </div>
+                <div
+                  class="mt-0.5 text-xs font-medium text-slate-500 dark:text-gray-400 truncate max-w-[230px] mx-auto"
+                >
+                  {{
+                    userProfileFormGroup.get("email")?.value ||
+                      "Update your account details"
+                  }}
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex w-full gap-2">
+              <button
+                type="button"
+                mat-flat-button
+                class="!m-0 flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary-900 hover:bg-primary-800 px-3 py-2 text-xs font-bold text-white shadow-xs transition-all active:scale-[0.98]"
+                (click)="selectFile.click()"
+              >
+                <mat-icon
+                  class="icon-size-4"
+                  svgIcon="heroicons_outline:upload"
+                ></mat-icon>
+                {{ selectedImage ? "Change" : "Upload" }}
+              </button>
+
+              @if (selectedImage) {
+                <button
+                  type="button"
+                  mat-flat-button
+                  class="!m-0 flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 px-3 py-2 text-xs font-bold text-white shadow-xs transition-all active:scale-[0.98]"
+                  (click)="deleteImage()"
+                >
+                  <mat-icon
+                    class="icon-size-4"
+                    svgIcon="heroicons_solid:trash"
+                  ></mat-icon>
+                  Delete
+                </button>
+              }
+
+              <input
+                class="upload"
+                name="image"
+                type="file"
+                hidden
+                #selectFile
+                accept="image/*"
+                (change)="onFileUpload($event)"
+              />
+            </div>
+          </div>
+
+          <!-- RIGHT SIDE: FORM FIELDS -->
+          <div class="grid gap-4 lg:grid-cols-2">
+            <div
+              class="rounded-xl border border-slate-200/80 dark:border-gray-800 bg-slate-50/50 dark:bg-gray-800/40 p-3.5 shadow-2xs lg:col-span-2 flex items-center gap-3"
+            >
+              <div
+                class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shrink-0"
+              >
+                <mat-icon
+                  class="icon-size-5"
+                  [svgIcon]="'heroicons_solid:identification'"
+                ></mat-icon>
+              </div>
+              <div>
+                <div class="text-sm font-bold text-gray-900 dark:text-gray-100">
+                  Personal Details
+                </div>
+                <div class="text-xs text-slate-500 dark:text-gray-400">
+                  Keep your personal info updated across all platform services.
+                </div>
+              </div>
+            </div>
+
+            <mat-form-field
+              class="w-full fuse-mat-no-subscript"
+              [floatLabel]="'always'"
+            >
+              <mat-label>Email Address</mat-label>
+              <input matInput [formControlName]="'email'" maxlength="100" />
+              <mat-icon matSuffix class="icon-size-5 text-slate-400"
+                >email</mat-icon
+              >
+              @if (userProfileFormGroup.get("email").hasError("required")) {
+                <mat-error class="text-xs">Email is Required!</mat-error>
+              }
+              @if (userProfileFormGroup.get("email").hasError("email")) {
+                <mat-error class="text-xs">Invalid Email Format!</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field
+              class="w-full fuse-mat-no-subscript"
+              [floatLabel]="'always'"
+            >
+              <mat-label>Contact Number</mat-label>
+              <input
+                matInput
+                type="text"
+                [formControlName]="'contact_no'"
+                placeholder="Contact Number"
+                (wheel)="stopScrollingWheel($event)"
+                (input)="onPhoneNumberInput($event)"
+              />
+              <mat-icon matSuffix class="icon-size-5 text-slate-400"
+                >phone</mat-icon
+              >
+              @if (
+                userProfileFormGroup.get("contact_no").hasError("required")
+              ) {
+                <mat-error class="text-xs"
+                  >Contact Number is Required!</mat-error
+                >
+              }
+              @if (
+                userProfileFormGroup.get("contact_no")?.hasError("pattern") &&
+                !userProfileFormGroup.get("contact_no")?.hasError("required")
+              ) {
+                <mat-error class="text-xs">
+                  Contact Number must be exactly 10 digits.
+                </mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field
+              class="w-full fuse-mat-no-subscript"
+              [floatLabel]="'always'"
+            >
+              <mat-label>First Name</mat-label>
+              <input
+                matInput
+                [formControlName]="'first_name'"
+                placeholder="First name"
+                maxlength="30"
+              />
+              <mat-icon matSuffix class="icon-size-5 text-slate-400"
+                >person</mat-icon
+              >
+              @if (
+                userProfileFormGroup.get("first_name").hasError("required")
+              ) {
+                <mat-error class="text-xs">First Name is Required!</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field
+              class="w-full fuse-mat-no-subscript"
+              [floatLabel]="'always'"
+            >
+              <mat-label>Last Name</mat-label>
+              <input
+                matInput
+                [formControlName]="'last_name'"
+                placeholder="Last name"
+                maxlength="30"
+              />
+              <mat-icon matSuffix class="icon-size-5 text-slate-400"
+                >person</mat-icon
+              >
+              @if (userProfileFormGroup.get("last_name").hasError("required")) {
+                <mat-error class="text-xs">Last Name is Required!</mat-error>
+              }
+            </mat-form-field>
+            <!-- Country Dropdown -->
+            <mat-form-field
+              class="w-full fuse-mat-no-subscript self-start"
+              [floatLabel]="'always'"
+            >
+              <mat-label>Country</mat-label>
+              <mat-icon
+                matPrefix
+                class="hidden sm:flex icon-size-5"
+                [svgIcon]="'heroicons_outline:globe-alt'"
+              ></mat-icon>
+              <mat-select
+                formControlName="country_name"
+                [disabled]="countriesLoading"
+                placeholder="Select Country"
+              >
+                @if (countriesLoading) {
+                  <mat-option disabled>Loading countries...</mat-option>
+                } @else {
+                  <mat-option [value]="">Select Country</mat-option>
+                  @for (country of countries; track country.id || country._id) {
+                    <mat-option [value]="country.country || country.currency">
+                      {{ country.country || country.currency }}
+                    </mat-option>
+                  }
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Business Address -->
+            <mat-form-field
+              class="w-full fuse-mat-no-subscript"
+              [floatLabel]="'always'"
+            >
+              <mat-label>Business Address</mat-label>
+              <mat-icon
+                matPrefix
+                class="hidden sm:flex icon-size-5"
+                [svgIcon]="'heroicons_solid:location-marker'"
+              ></mat-icon>
+              <textarea
+                matInput
+                [formControlName]="'business_address'"
+                [placeholder]="'Business Address'"
+                rows="3"
+              ></textarea>
+            </mat-form-field>
+
+            <!-- SUBMIT BAR -->
+            <div
+              class="rounded-2xl border border-primary-100 dark:border-primary-900/50 bg-gradient-to-r from-primary-50/60 via-card to-primary-50/40 p-4 lg:col-span-2 shadow-xs"
+            >
+              <div
+                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  <div
+                    class="text-xs font-bold text-gray-900 dark:text-gray-100"
+                  >
+                    Ready to save changes?
+                  </div>
+                  <div class="text-[11px] text-slate-500 dark:text-gray-400">
+                    Your updated profile details will take effect immediately.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  mat-flat-button
+                  class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-primary-900 to-primary-800 hover:from-primary-800 hover:to-primary-900 px-6 py-2 text-xs font-bold text-white shadow-sm transition-all active:scale-[0.98] sm:w-auto w-full"
+                  [disabled]="userProfileFormGroup.invalid || isLoading"
+                  (click)="updateProfile()"
+                >
+                  <mat-icon
+                    class="icon-size-4 mr-1"
+                    svgIcon="heroicons_solid:check"
+                  ></mat-icon>
+                  Save Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

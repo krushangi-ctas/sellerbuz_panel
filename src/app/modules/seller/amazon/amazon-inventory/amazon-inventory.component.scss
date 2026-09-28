@@ -1,0 +1,282 @@
+.inventory-grid {
+  grid-template-columns:
+    10px 40px 60px 60px 200px 100px 120px 115px 105px 120px 100px 85px minmax(
+      250px,
+      auto
+    )
+    50px 50px 75px 80px 80px 50px;
+
+  @screen sm {
+    grid-template-columns:
+      10px 40px 60px 60px 200px 100px 120px 115px 105px 120px 100px 85px minmax(
+        250px,
+        auto
+      )
+      50px 50px 75px 80px 80px 50px;
+  }
+
+  @screen md {
+    grid-template-columns:
+      10px 40px 60px 60px 200px 100px 120px 115px 105px 120px 100px 85px minmax(
+        250px,
+        auto
+      )
+      50px 50px 75px 80px 80px 50px;
+  }
+
+  @screen lg {
+    grid-template-columns:
+      10px 40px 60px 60px 200px 100px 120px 115px 105px 120px 100px 85px minmax(
+        250px,
+        auto
+      )
+      50px 50px 75px 80px 80px 50px;
+  }
+}
+
+.inventory-grid-header {
+  align-items: center;
+  border-bottom: 1px solid var(--color-gray-200);
+
+  > * {
+    min-width: 0;
+    text-align: center;
+  }
+}
+
+.inventory-grid-row {
+  align-items: center;
+
+  > * {
+    min-width: 0;
+  }
+}
+
+.inventory-grid-row--variant {
+  background-color: var(--color-gray-100);
+  box-shadow: inset 3px 0 0 var(--color-gray-300);
+
+  .inventory-input-cell {
+    min-height: 38px !important;
+    padding: 4px 2px !important;
+  }
+
+  .inventory-identifier-cell {
+    gap: 2px !important;
+
+    .inventory-chip {
+      padding: 1px 4px !important;
+      font-size: 10px !important;
+    }
+  }
+
+  ::ng-deep .inventory-form-field {
+    .mat-mdc-form-field-infix {
+      padding-top: 2px !important;
+      padding-bottom: 2px !important;
+      min-height: 24px !important;
+    }
+
+    input.mat-mdc-input-element {
+      font-size: 12px !important;
+    }
+  }
+}
+
+.variant-rows {
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.inventory-input-cell {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  background-color: var(--color-gray-100) !important;
+}
+
+.inventory-identifier-cell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.inventory-chip {
+  max-width: 100%;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 4px;
+  padding: 2px 6px;
+  overflow: hidden;
+  color: var(--color-gray-600);
+  background-color: var(--color-gray-100);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+}
+
+.inventory-chip-asin {
+  border-color: #fde68a;
+  color: #92400e;
+  background-color: #fffbeb;
+}
+
+.inventory-chip-sku {
+  border-color: var(--color-gray-300);
+  color: var(--color-gray-600);
+  background-color: var(--color-gray-100);
+}
+
+::ng-deep .custom-field .mat-mdc-form-field-subscript-wrapper {
+  height: 0px;
+}
+
+::ng-deep .mat-sort-header-container {
+  justify-content: center;
+}
+
+.mat-mdc-tab-body-content {
+  padding: 24px;
+}
+
+.bg-custom {
+  background-color: rgb(8 78 62 / 89%);
+  /* Apply RGB with opacity 0.8 */
+  /* Apply RGB with opacity */
+}
+
+// // off switch thumb css
+// ::ng-deep [aria-checked="false"] .mdc-switch__icons {
+//     background-color: #ef4444 !important;
+//     border-radius: 50%;
+// }
+// // on switch thumb css
+// ::ng-deep [aria-checked="true"] .mdc-switch__icons {
+//     background-color: #3a7a60 !important;
+//     border-radius: 50%;
+// }
+// // off switch track css
+// ::ng-deep .mdc-switch:enabled .mdc-switch__track::before {
+//     background-color: #fabdbd !important;
+// }
+// // on switch track css
+// ::ng-deep .mdc-switch:enabled .mdc-switch__track::after {
+//     background-color: #c8ffc1 !important;
+// }
+.border-left {
+  border-left: 2px solid #d8d7d7;
+}
+
+.border-btm {
+  border-bottom: 2px solid #d8d7d7;
+}
+
+.border-top {
+  border-top: 2px solid #d8d7d7;
+}
+
+.border-right {
+  border-right: 2px solid #d8d7d7;
+}
+
+.itemAmz {
+  background-color: #f3e8ff;
+}
+
+.itemAbebooks {
+  background-color: #f8e1c0;
+}
+
+.itemKaufland {
+  background-color: #f3dde9;
+}
+
+.itemEbay {
+  background-color: #ccf3c9;
+}
+
+.itemWorten {
+  background-color: #f7977f;
+}
+
+::ng-deep
+  .custom-field-mb
+  .mat-form-field.mat-form-field-appearance-fill
+  .mat-form-field-wrapper {
+  margin-bottom: -1.25em !important;
+  height: 8px;
+}
+
+.mat-accordion .mat-expansion-panel {
+  margin-bottom: 10px;
+}
+
+// .custom-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
+//     border-radius: 0 !important;
+//     /* Removes border radius */
+//     padding: 0 !important;
+//     /* Removes padding */
+// }
+
+::ng-deep .custom-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  /* Optional: Removes default shadow */
+}
+
+::ng-deep .inventory-form-field {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  .mat-mdc-text-field-wrapper {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  .mat-mdc-form-field-infix {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+    min-height: 28px !important;
+  }
+
+  input.mat-mdc-input-element {
+    text-align: center !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none !important;
+      margin: 0 !important;
+    }
+    -moz-appearance: textfield !important;
+  }
+}
+
+.custom-header-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.6);
+    }
+  }
+}

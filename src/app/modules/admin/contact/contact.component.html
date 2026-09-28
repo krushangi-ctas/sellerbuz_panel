@@ -1,0 +1,497 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden bg-white">
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_solid:mail'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">
+            Contact Inquiries
+          </h1>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <!-- Search -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="searchInputControl"
+            maxlength="50"
+            [autocomplete]="'off'"
+            [placeholder]="'Search by name or email...'"
+          />
+        </mat-form-field>
+
+        <!-- Status filter -->
+        <form
+          [formGroup]="contactSearchFormGroup"
+          class="flex-shrink-0 flex gap-2 -mb-5"
+        >
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-36">
+            <mat-icon
+              svgIcon="mat_outline:filter_alt"
+              class="icon-size-5 text-gray-400"
+              matPrefix
+            ></mat-icon>
+            <mat-select formControlName="status" placeholder="Status">
+              <mat-option [value]="">All</mat-option>
+              <mat-option [value]="0">New</mat-option>
+              <mat-option [value]="1">Read</mat-option>
+              <mat-option [value]="2">Replied</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Inquiry Type filter -->
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-40">
+            <mat-icon
+              svgIcon="mat_outline:category"
+              class="icon-size-5 text-gray-400"
+              matPrefix
+            ></mat-icon>
+            <mat-select
+              formControlName="inquiry_type"
+              placeholder="Inquiry Type"
+            >
+              <mat-option [value]="">All Types</mat-option>
+              <mat-option value="sales">Sales</mat-option>
+              <mat-option value="support">Support</mat-option>
+              <mat-option value="partnership">Partnership</mat-option>
+              <mat-option value="general">General</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </form>
+
+        <!-- Refresh -->
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refresh()"
+          matTooltip="Refresh"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main list -->
+    <div
+      class="flex flex-col flex-auto min-h-0 overflow-hidden"
+      matSort
+      matSortDisableClear
+    >
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+        <!-- Loading skeleton -->
+        @if (isLoading) {
+          <div class="grid">
+            <div class="contact-grid table-header-row">
+              <div>Date</div>
+              <div>Name</div>
+              <div>Email</div>
+              <div>Type</div>
+              <div>Company</div>
+              <div>Status</div>
+              <div class="justify-end">Action</div>
+            </div>
+
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+              <div class="contact-grid table-data-row animate-pulse">
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-40"
+                ></div>
+                <div
+                  class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-20"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                ></div>
+                <div
+                  class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-16"
+                ></div>
+                <div
+                  class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full justify-self-end"
+                ></div>
+              </div>
+            }
+          </div>
+        } @else {
+          @if (contactFormInput | async; as contactList) {
+            @if (contactList.length > 0) {
+              <div class="grid">
+                <!-- Table header -->
+                <div class="contact-grid table-header-row">
+                  <div
+                    class="flex items-center"
+                    [mat-sort-header]="'createdAt'"
+                  >
+                    Date
+                  </div>
+                  <div
+                    class="flex items-center"
+                    [mat-sort-header]="'first_name'"
+                  >
+                    Name
+                  </div>
+                  <div class="flex items-center" [mat-sort-header]="'email'">
+                    Email
+                  </div>
+                  <div class="flex items-center">Type</div>
+                  <div class="flex items-center">Company</div>
+                  <div class="flex items-center" [mat-sort-header]="'status'">
+                    Status
+                  </div>
+                  <div class="flex items-center justify-end">Action</div>
+                </div>
+
+                @for (contact of contactList; track contact._id) {
+                  <div class="contact-grid table-data-row">
+                    <!-- Date -->
+                    <div class="font-semibold text-sm text-slate-600">
+                      {{ contact.createdAt | date: "dd-MM-yyyy HH:mm" || "-" }}
+                    </div>
+
+                    <!-- Name -->
+                    <div
+                      class="truncate font-semibold text-slate-800"
+                      [matTooltip]="
+                        contact.first_name + ' ' + contact.last_name
+                      "
+                    >
+                      @if (contact.status === 0) {
+                        <span
+                          class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1.5 align-middle"
+                          matTooltip="Unread"
+                        ></span>
+                      }
+                      {{ contact.first_name }} {{ contact.last_name }}
+                    </div>
+
+                    <!-- Email -->
+                    <div
+                      class="truncate text-sm text-slate-600"
+                      [matTooltip]="contact.email"
+                    >
+                      {{ contact.email }}
+                    </div>
+
+                    <!-- Inquiry Type badge -->
+                    <div class="flex items-center">
+                      <span
+                        class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded bg-blue-50 text-blue-700 border border-blue-100"
+                      >
+                        {{
+                          inquiryTypeMap[contact.inquiry_type]?.label ||
+                            contact.inquiry_type | titlecase
+                        }}
+                      </span>
+                    </div>
+
+                    <!-- Company -->
+                    <div
+                      class="truncate text-sm text-slate-600"
+                      [matTooltip]="contact.company"
+                    >
+                      {{ contact.company || "-" }}
+                    </div>
+
+                    <!-- Status badge -->
+                    <div class="flex items-center">
+                      <span
+                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border"
+                        [ngClass]="
+                          statusMap[contact.status]?.class ||
+                          'bg-slate-100 text-slate-600 border-slate-200'
+                        "
+                      >
+                        {{ statusMap[contact.status]?.label || "Unknown" }}
+                      </span>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center justify-end">
+                      <button
+                        type="button"
+                        class="table-action-btn"
+                        (click)="openMessage(contact)"
+                        matTooltip="View message"
+                      >
+                        <mat-icon
+                          class="icon-size-5"
+                          [svgIcon]="'heroicons_outline:eye'"
+                        ></mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <ng-container [ngTemplateOutlet]="noRecord"></ng-container>
+            }
+          }
+        }
+      </div>
+
+      <!-- Paginator -->
+      @if (contactFormInput | async; as contactList) {
+        @if (contactList.length) {
+          <div class="pagination-bar">
+            <mat-paginator
+              [ngClass]="{ 'pointer-events-none': isLoading }"
+              [length]="
+                ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                (contactList?.length || 0) +
+                (pagination?.hasNextPage ? 1 : 0)
+              "
+              [pageSize]="pagination?.size || 100"
+              [pageSizeOptions]="[5, 25, 50, 100]"
+              [pageIndex]="(pagination?.page || 1) - 1"
+              [showFirstLastButtons]="false"
+            ></mat-paginator>
+          </div>
+        }
+      }
+
+      <!-- No records -->
+      <ng-template #noRecord>
+        <div class="page-empty-state">
+          <div class="icon-wrapper">
+            <mat-icon
+              class="icon-size-10"
+              [svgIcon]="'heroicons_outline:mail'"
+            ></mat-icon>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">
+            No contact inquiries found
+          </h3>
+          <p class="text-slate-500 max-w-sm">
+            Contact inquiries submitted through the website will appear here.
+          </p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+
+<!-- Message detail dialog -->
+<ng-template #messagePopup>
+  <div class="w-full">
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-white">mail</mat-icon>
+        <h2 class="text-lg font-semibold m-0 text-white">Contact Inquiry</h2>
+        @if (selectedContact) {
+          <span
+            class="px-2.5 py-0.5 text-xs rounded-full font-semibold border bg-white/20 border-white/30 text-white"
+          >
+            {{ statusMap[selectedContact.status]?.label }}
+          </span>
+        }
+      </div>
+      <button
+        mat-icon-button
+        type="button"
+        (click)="closeDialog()"
+        class="text-white"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-dialog-content class="p-0">
+      @if (selectedContact) {
+        <!-- Customer Details -->
+        <div class="px-5 py-4 border-b border-slate-100">
+          <p
+            class="text-xs font-semibold uppercase text-slate-400 mb-3 tracking-wider"
+          >
+            Customer Details
+          </p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div>
+              <p class="text-xs text-slate-400 mb-0.5 font-medium">Name</p>
+              <p class="text-sm font-semibold text-slate-800">
+                {{ selectedContact.first_name }} {{ selectedContact.last_name }}
+              </p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-400 mb-0.5 font-medium">Email</p>
+              <p class="text-sm text-slate-700 font-semibold break-all">
+                {{ selectedContact.email }}
+              </p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-400 mb-0.5 font-medium">Company</p>
+              <p class="text-sm text-slate-700 font-semibold">
+                {{ selectedContact.company || "—" }}
+              </p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-400 mb-0.5 font-medium">
+                Inquiry Type
+              </p>
+              <span
+                class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded bg-blue-50 text-blue-700 border border-blue-100"
+              >
+                {{
+                  inquiryTypeMap[selectedContact.inquiry_type]?.label ||
+                    selectedContact.inquiry_type | titlecase
+                }}
+              </span>
+            </div>
+            <div>
+              <p class="text-xs text-slate-400 mb-0.5 font-medium">
+                Submitted Date
+              </p>
+              <p class="text-sm text-slate-700 font-semibold">
+                {{ selectedContact.createdAt | date: "dd MMM yyyy, HH:mm" }}
+              </p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-400 mb-0.5 font-medium">Status</p>
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border"
+                [ngClass]="statusMap[selectedContact.status]?.class"
+              >
+                {{ statusMap[selectedContact.status]?.label }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Original Message -->
+        <div class="px-5 py-4 border-b border-slate-100">
+          <p
+            class="text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider"
+          >
+            Original Message
+          </p>
+          <div
+            class="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed bg-slate-50 border border-slate-100 rounded-lg p-4 font-medium"
+          >
+            {{ selectedContact.message }}
+          </div>
+        </div>
+
+        <!-- Replies History -->
+        @if (selectedContact.replies?.length > 0) {
+          <div class="px-5 py-4 border-b border-slate-100">
+            <p
+              class="text-xs font-semibold uppercase text-slate-400 mb-3 tracking-wider"
+            >
+              Conversation History
+            </p>
+            <div class="space-y-3">
+              @for (reply of selectedContact.replies; track reply.sentAt) {
+                <div class="flex gap-3">
+                  <div
+                    class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100"
+                  >
+                    <mat-icon class="icon-size-4 text-blue-600">reply</mat-icon>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="text-sm font-semibold text-slate-800">
+                        {{ reply.sentBy }}
+                      </span>
+                      <span class="text-xs text-slate-400">
+                        {{ reply.sentAt | date: "dd MMM yyyy, HH:mm" }}
+                      </span>
+                    </div>
+                    <div
+                      class="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed bg-slate-50 border border-slate-100 rounded-lg p-3"
+                    >
+                      {{ reply.message }}
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+    </mat-dialog-content>
+
+    <!-- Send Message -->
+    <mat-dialog-actions
+      class="sticky bottom-0 bg-white border-t px-4 py-4 flex-col items-stretch gap-3"
+    >
+      <div class="w-full">
+        <p
+          class="text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider"
+        >
+          Send Message
+        </p>
+        <mat-form-field class="w-full fuse-mat-dense" appearance="outline">
+          <textarea
+            matInput
+            rows="3"
+            [(ngModel)]="replyMessage"
+            placeholder="Type your reply here..."
+            maxlength="5000"
+          ></textarea>
+        </mat-form-field>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button
+          mat-stroked-button
+          type="button"
+          class="font-medium rounded-lg px-4 py-2 border-slate-200 text-slate-700"
+          (click)="closeDialog()"
+        >
+          Cancel
+        </button>
+        <button
+          mat-flat-button
+          class="bg-slate-800 text-white font-medium rounded-lg px-4 py-2 hover:bg-slate-900 transition-colors min-w-32"
+          type="button"
+          [disabled]="!replyMessage?.trim() || isSending"
+          (click)="sendReply()"
+        >
+          @if (isSending) {
+            <mat-icon class="icon-size-5 animate-spin mr-1 text-white"
+              >refresh</mat-icon
+            >
+          }
+          <mat-icon
+            class="icon-size-5 mr-1 text-white"
+            [svgIcon]="'heroicons_outline:paper-airplane'"
+          ></mat-icon>
+          {{ isSending ? "Sending..." : "Send" }}
+        </button>
+      </div>
+    </mat-dialog-actions>
+  </div>
+</ng-template>

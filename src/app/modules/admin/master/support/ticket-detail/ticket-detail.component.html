@@ -1,0 +1,774 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-slate-100/60"
+  *ngIf="!isLoading; else loadingTpl"
+>
+  <!-- ══ Header Bar ═══════════════════════════════════════════════════════ -->
+  <div
+    class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 sm:px-5 py-2 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs flex-shrink-0 z-10"
+  >
+    <!-- Left Side: Back button + Title -->
+    <div class="flex items-center gap-2.5 min-w-0">
+      <button
+        type="button"
+        mat-icon-button
+        (click)="goBack()"
+        class="text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all active:scale-95 shrink-0"
+        id="ticket-back-btn"
+        matTooltip="Back to list"
+      >
+        <mat-icon class="icon-size-5">arrow_back</mat-icon>
+      </button>
+      <h2
+        class="text-sm sm:text-base font-bold text-slate-900 tracking-tight truncate"
+      >
+        {{ ticket?.subject }}
+      </h2>
+    </div>
+
+    <!-- Right Side: Ticket No, Status -->
+    <div class="flex items-center gap-2 shrink-0">
+      <!-- Ticket Code Badge -->
+      <span
+        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-primary/10 text-primary font-bold text-xs border border-primary/20 select-none"
+      >
+        <mat-icon class="icon-size-3.5 text-primary"
+          >confirmation_number</mat-icon
+        >
+        <span class="font-mono font-extrabold">#{{ ticket?.ticketNo }}</span>
+      </span>
+
+      <!-- Status Badge -->
+      <span
+        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-xs border border-emerald-200/80 uppercase tracking-wide select-none"
+      >
+        <span
+          class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
+        ></span>
+        {{ TICKET_STATUS_LABEL[ticket?.status] || "OPEN" }}
+      </span>
+    </div>
+  </div>
+
+  <!-- ══ Main Content Body (Full Width Container) ═════════════════════════ -->
+  <div class="flex-auto min-h-0 overflow-y-auto p-1 sm:p-2 space-y-2">
+    <!-- ── Top Banner Card (Ultra Compact & Slim) ────────────────────── -->
+    <div
+      class="bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-3.5 shadow-2xs flex flex-col gap-2"
+    >
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <!-- Compact Icon Box -->
+          <div
+            class="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 shadow-xs shadow-primary/20"
+          >
+            <mat-icon class="icon-size-4.5 text-white">inventory_2</mat-icon>
+          </div>
+          <!-- Title & Subtitle in single compact row or tight stack -->
+          <div class="min-w-0">
+            <h1
+              class="text-sm font-bold text-slate-900 tracking-tight leading-none truncate"
+            >
+              {{ ticket?.subject }}
+            </h1>
+            <p class="text-[11px] text-slate-500 font-normal mt-0.5 truncate">
+              {{
+                ticket?.lastMessage ||
+                  "Facing issue while adding new product. Please check and guide."
+              }}
+            </p>
+          </div>
+        </div>
+
+        <!-- More Actions Dropdown Button -->
+        <button
+          type="button"
+          [matMenuTriggerFor]="topActionsMenu"
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-all shadow-2xs cursor-pointer shrink-0"
+        >
+          <span>More actions</span>
+          <mat-icon class="icon-size-4 text-slate-400"
+            >keyboard_arrow_down</mat-icon
+          >
+        </button>
+      </div>
+
+      <!-- Divider line -->
+      <div class="h-px bg-slate-100 w-full"></div>
+
+      <!-- Bottom Info Strip: Left (Created By, Seller, Created Date, Category) | Right (Assignee under More actions) -->
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-700"
+      >
+        <!-- Left Fields -->
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Created By -->
+          <div class="flex items-center gap-1.5">
+            <mat-icon class="icon-size-3.5 text-slate-500">person</mat-icon>
+            <span class="text-slate-500 text-[11px]">Created By:</span>
+            <span class="font-bold text-slate-800 text-[11px]">{{
+              getCreatedByDisplayName()
+            }}</span>
+          </div>
+
+          <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+
+          <!-- Seller Name -->
+          <div class="flex items-center gap-1.5">
+            <mat-icon class="icon-size-3.5 text-slate-500">store</mat-icon>
+            <span class="text-slate-500 text-[11px]">Seller:</span>
+            <span class="font-bold text-slate-800 text-[11px]">{{
+              getSellerDisplayName()
+            }}</span>
+          </div>
+
+          <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+
+          <!-- Created Date -->
+          <div class="flex items-center gap-1.5">
+            <mat-icon class="icon-size-3.5 text-slate-500">schedule</mat-icon>
+            <span class="text-slate-500 text-[11px]">Created Date:</span>
+            <span class="font-bold text-slate-800 text-[11px]">{{
+              ticket?.createdAt | date: "dd-MM-yyyy, HH:mm"
+            }}</span>
+          </div>
+
+          <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+
+          <!-- Category -->
+          <div class="flex items-center gap-1.5">
+            <mat-icon class="icon-size-3.5 text-slate-500"
+              >local_offer</mat-icon
+            >
+            <span class="text-slate-500 text-[11px]">Category:</span>
+            <span class="font-bold text-slate-800 text-[11px]">{{
+              ticket?.category || "My Catalog And Products"
+            }}</span>
+          </div>
+        </div>
+
+        <!-- Right Side: Assignee (Only shown for Admin login) -->
+        @if (isAdmin) {
+          <div class="flex items-center gap-1.5 shrink-0">
+            <mat-icon class="icon-size-3.5 text-slate-500"
+              >assignment_ind</mat-icon
+            >
+            <span class="text-slate-500 text-[11px]">Assignee:</span>
+            <span class="font-bold text-slate-800 text-[11px]">{{
+              getAssigneeDisplayName()
+            }}</span>
+            <button
+              type="button"
+              [matMenuTriggerFor]="assigneeMenu"
+              class="w-5 h-5 rounded hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-primary transition-colors cursor-pointer ml-0.5"
+              matTooltip="Edit Assignee"
+            >
+              <mat-icon class="icon-size-3.5">edit</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── Full Width Chat & Tabs Container ──────────────────────────────── -->
+    <div
+      class="w-full bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden"
+    >
+      <!-- Tab Navigation Bar -->
+      <div
+        class="flex items-center gap-1 px-3 border-b border-slate-200/80 bg-white select-none overflow-x-auto"
+      >
+        <button
+          type="button"
+          (click)="activeTab = 'conversation'"
+          class="flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold transition-colors border-b-2 cursor-pointer whitespace-nowrap"
+          [class.border-primary]="activeTab === 'conversation'"
+          [class.text-primary]="activeTab === 'conversation'"
+          [class.border-transparent]="activeTab !== 'conversation'"
+          [class.text-slate-500]="activeTab !== 'conversation'"
+          [class.hover:text-slate-800]="activeTab !== 'conversation'"
+        >
+          <mat-icon class="icon-size-4">chat_bubble_outline</mat-icon>
+          <span>Conversation</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="activeTab = 'attachments'"
+          class="flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold transition-colors border-b-2 cursor-pointer whitespace-nowrap"
+          [class.border-primary]="activeTab === 'attachments'"
+          [class.text-primary]="activeTab === 'attachments'"
+          [class.border-transparent]="activeTab !== 'attachments'"
+          [class.text-slate-500]="activeTab !== 'attachments'"
+          [class.hover:text-slate-800]="activeTab !== 'attachments'"
+        >
+          <mat-icon class="icon-size-4">attach_file</mat-icon>
+          <span>Attachments</span>
+          <span
+            class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200"
+          >
+            {{ getAllTicketAttachments().length }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          (click)="activeTab = 'history'"
+          class="flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold transition-colors border-b-2 cursor-pointer whitespace-nowrap"
+          [class.border-primary]="activeTab === 'history'"
+          [class.text-primary]="activeTab === 'history'"
+          [class.border-transparent]="activeTab !== 'history'"
+          [class.text-slate-500]="activeTab !== 'history'"
+          [class.hover:text-slate-800]="activeTab !== 'history'"
+        >
+          <mat-icon class="icon-size-4">history</mat-icon>
+          <span>History</span>
+        </button>
+      </div>
+
+      <!-- ── TAB CONTENT 1: CONVERSATION ──────────────────────────────── -->
+      @if (activeTab === "conversation") {
+        <div class="flex flex-col min-h-0 bg-slate-50/50 relative">
+          <!-- Scrollable Message Stream grouped dynamically by createdAt -->
+          <div
+            class="min-h-[440px] max-h-[560px] overflow-y-auto p-3 sm:p-4 space-y-3 scroll-smooth"
+            #messageContainer
+          >
+            @for (group of groupedMessages; track group.dateLabel) {
+              <!-- Dynamic Date Badge -->
+              <div class="flex justify-center my-2 select-none">
+                <span
+                  class="px-3 py-0.5 rounded-full bg-primary/10 text-primary font-semibold text-[11px] shadow-2xs"
+                >
+                  {{ group.dateLabel }}
+                </span>
+              </div>
+
+              @for (msg of group.messages; track trackByMsgId($index, msg)) {
+                <app-chat-message-bubble
+                  [message]="msg"
+                  [isOutgoing]="isOutgoingMessage(msg)"
+                  [senderLabel]="getSenderLabel(msg)"
+                  [avatarInitial]="getAvatarInitial(msg)"
+                >
+                </app-chat-message-bubble>
+              }
+            }
+
+            <!-- Typing indicator -->
+            @if (isTyping) {
+              <div
+                class="flex items-center gap-2.5 p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs w-fit text-xs font-semibold text-slate-600 animate-pulse"
+              >
+                <div class="typing-indicator flex items-center gap-1">
+                  <span
+                    class="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"
+                  ></span>
+                  <span
+                    class="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:0.2s]"
+                  ></span>
+                  <span
+                    class="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:0.4s]"
+                  ></span>
+                </div>
+                <span>User is typing...</span>
+              </div>
+            }
+          </div>
+
+          <!-- Pending Attachments Strip -->
+          @if (pendingAttachments.length > 0) {
+            <div
+              class="flex flex-wrap gap-2 px-3 sm:px-4 py-2 bg-white border-t border-slate-200 shadow-inner"
+            >
+              <div
+                class="w-full text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1"
+              >
+                <mat-icon class="icon-size-3.5 text-primary"
+                  >attach_file</mat-icon
+                >
+                Pending Attachments ({{ pendingAttachments.length }})
+              </div>
+              @for (att of pendingAttachments; track att.url; let i = $index) {
+                @if (isImage(att)) {
+                  <div
+                    class="relative group rounded-xl border border-primary/20 overflow-hidden bg-slate-50 shadow-2xs"
+                  >
+                    <a
+                      [href]="getFileUrl(att.url)"
+                      target="_blank"
+                      class="block"
+                    >
+                      <img
+                        [src]="getFileUrl(att.url)"
+                        [alt]="att.fileName"
+                        class="h-12 w-auto object-cover max-w-[120px]"
+                      />
+                    </a>
+                    <button
+                      type="button"
+                      mat-icon-button
+                      class="absolute top-1 right-1 w-4 h-4 min-w-4 leading-none text-white bg-slate-900/70 hover:bg-red-600 rounded-full transition-colors"
+                      (click)="
+                        removeAttachment(i);
+                        $event.preventDefault();
+                        $event.stopPropagation()
+                      "
+                    >
+                      <mat-icon class="icon-size-3">close</mat-icon>
+                    </button>
+                  </div>
+                } @else {
+                  <a
+                    [href]="getFileUrl(att.url)"
+                    target="_blank"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-primary/10 text-primary border border-primary/20 shadow-2xs group hover:bg-primary/20 transition-all"
+                  >
+                    <mat-icon class="icon-size-3.5 text-primary"
+                      >attach_file</mat-icon
+                    >
+                    <span
+                      class="truncate max-w-36 text-slate-800 text-[11px]"
+                      >{{ att.fileName }}</span
+                    >
+                    <button
+                      type="button"
+                      mat-icon-button
+                      class="w-4 h-4 min-w-4 leading-none text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors ml-0.5"
+                      (click)="
+                        removeAttachment(i);
+                        $event.preventDefault();
+                        $event.stopPropagation()
+                      "
+                    >
+                      <mat-icon class="icon-size-3">close</mat-icon>
+                    </button>
+                  </a>
+                }
+              }
+            </div>
+          }
+
+          <!-- ── Bottom Reply Composer ────────────────────────────────── -->
+          <div
+            class="composer border-t border-slate-200/90 p-3 sm:p-3.5 bg-white backdrop-blur-md shadow-xs transition-all relative"
+          >
+            <div
+              class="relative rounded-xl border border-slate-200/90 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all bg-slate-50 focus-within:bg-white"
+            >
+              <!-- Floating Quick Reply Suggestions Menu -->
+              @if (
+                isAdmin &&
+                (isSuperAdmin || canViewQuickReply) &&
+                showQuickReplyMenu &&
+                filteredQuickReplies.length > 0
+              ) {
+                <div
+                  class="absolute bottom-full left-0 mb-2 w-full max-h-48 overflow-y-auto bg-white rounded-xl border border-slate-200 shadow-xl z-50 divide-y divide-slate-100"
+                >
+                  <div
+                    class="px-3 py-2 bg-primary/10 border-b border-primary/20 flex items-center justify-between text-xs font-bold text-primary sticky top-0 backdrop-blur"
+                  >
+                    <span class="flex items-center gap-1.5">
+                      <mat-icon class="icon-size-3.5 text-primary"
+                        >bolt</mat-icon
+                      >
+                      Quick Reply Suggestions (#{{
+                        quickReplyTagMatch.replace("#", "")
+                      }})
+                    </span>
+                    <span class="text-[10px] font-medium text-slate-500"
+                      >Click item to insert</span
+                    >
+                  </div>
+
+                  @for (qr of filteredQuickReplies; track qr._id) {
+                    <button
+                      type="button"
+                      (click)="selectQuickReply(qr)"
+                      class="w-full text-left p-2.5 hover:bg-slate-50 transition-colors flex items-start gap-2.5 group cursor-pointer"
+                    >
+                      <span
+                        class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider shrink-0 mt-0.5"
+                      >
+                        #{{ qr.tag }}
+                      </span>
+                      <span
+                        class="text-xs text-slate-700 font-medium group-hover:text-slate-900 line-clamp-2 leading-relaxed"
+                      >
+                        {{ qr.suggestion }}
+                      </span>
+                    </button>
+                  }
+                </div>
+              }
+
+              <textarea
+                class="w-full p-3 rounded-xl text-xs sm:text-sm font-sans text-slate-800 placeholder-slate-400 bg-transparent resize-y outline-none border-none min-h-[55px] max-h-[100px] leading-relaxed focus:ring-0"
+                placeholder="Write your reply…"
+                [formControl]="messageCtrl"
+                (keydown.enter)="onKeydownEnter($event)"
+                id="ticket-message-input"
+                rows="2"
+              >
+              </textarea>
+            </div>
+
+            <!-- Bottom Actions Bar: Attach File & Send reply -->
+            <div class="flex items-center justify-between gap-2.5 mt-2.5">
+              <!-- Attach File Button -->
+              <label
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs shadow-2xs transition-all cursor-pointer hover:border-slate-300 active:scale-95 select-none"
+                matTooltip="Attach file"
+                [class.opacity-50]="isUploading"
+              >
+                <mat-icon class="icon-size-4 text-slate-500">{{
+                  isUploading ? "hourglass_empty" : "attach_file"
+                }}</mat-icon>
+                <span>{{ isUploading ? "Uploading..." : "Attach file" }}</span>
+                <input
+                  type="file"
+                  hidden
+                  (change)="onFileSelect($event)"
+                  id="ticket-file-input"
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+                />
+              </label>
+
+              <!-- Send Reply Button -->
+              <button
+                type="button"
+                class="send-reply-btn flex items-center gap-1.5 px-5 py-2 rounded-xl bg-primary hover:opacity-90 text-white font-bold text-xs sm:text-sm shadow-md shadow-primary/20 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none cursor-pointer"
+                id="ticket-send-btn"
+                [disabled]="!messageCtrl.value?.trim() || isSending"
+                (click)="sendMessage()"
+              >
+                <mat-icon class="icon-size-4 text-white">send</mat-icon>
+                <span>{{ isSending ? "Sending…" : "Send reply" }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ── TAB CONTENT 2: ATTACHMENTS ───────────────────────────────── -->
+      @if (activeTab === "attachments") {
+        <div class="p-4 space-y-3">
+          <h3
+            class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5"
+          >
+            <mat-icon class="icon-size-4 text-primary">attach_file</mat-icon>
+            Ticket Attachments
+          </h3>
+
+          @if (getAllTicketAttachments().length > 0) {
+            <div
+              class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"
+            >
+              @for (att of getAllTicketAttachments(); track att.url) {
+                <a
+                  [href]="getFileUrl(att.url)"
+                  target="_blank"
+                  class="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-primary/10 hover:border-primary/20 transition-all group"
+                >
+                  @if (isImage(att)) {
+                    <img
+                      [src]="getFileUrl(att.url)"
+                      [alt]="att.fileName"
+                      class="h-20 w-auto object-cover rounded-lg mb-1.5 shadow-2xs group-hover:scale-105 transition-transform"
+                    />
+                  } @else {
+                    <mat-icon class="icon-size-8 text-primary mb-1.5"
+                      >insert_drive_file</mat-icon
+                    >
+                  }
+                  <span
+                    class="text-[11px] font-semibold text-slate-800 truncate max-w-full text-center"
+                    >{{ att.fileName }}</span
+                  >
+                </a>
+              }
+            </div>
+          } @else {
+            <div class="p-8 text-center text-slate-400 font-medium text-xs">
+              No attachments found in this ticket conversation.
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ── TAB CONTENT 3: HISTORY ──────────────────────────────────── -->
+      @if (activeTab === "history") {
+        <div class="p-4 space-y-3">
+          <h3
+            class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5"
+          >
+            <mat-icon class="icon-size-4 text-primary">history</mat-icon>
+            Ticket History & Audit Log
+          </h3>
+          <div
+            class="space-y-2.5 text-xs border-l-2 border-primary/20 pl-3 py-1"
+          >
+            <div class="relative">
+              <span class="font-bold text-slate-900">Ticket Created</span>
+              <p class="text-slate-500 mt-0.5">
+                Created by {{ getCreatedByDisplayName() }} on
+                {{ ticket?.createdAt | date: "dd MMM yyyy, hh:mm a" }}
+              </p>
+            </div>
+            <div class="relative pt-1.5">
+              <span class="font-bold text-slate-900">Status Updated</span>
+              <p class="text-slate-500 mt-0.5">
+                Status set to
+                {{ TICKET_STATUS_LABEL[ticket?.status] || "OPEN" }}
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAT MENUS FOR ACTIONS & DROPDOWNS ═════════════════════════════════ -->
+
+<!-- Status Selection Menu -->
+<mat-menu
+  #statusMenu="matMenu"
+  class="rounded-2xl shadow-xl overflow-hidden min-w-[200px]"
+>
+  <div
+    class="px-3 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100"
+  >
+    Select Status
+  </div>
+  @for (opt of statusOptions; track opt.value) {
+    <button
+      type="button"
+      mat-menu-item
+      (click)="onStatusChange(opt.value)"
+      class="text-xs font-semibold text-slate-700 hover:text-primary hover:bg-primary/10"
+    >
+      <mat-icon
+        class="icon-size-4 text-primary"
+        *ngIf="ticket?.status === opt.value"
+        >check</mat-icon
+      >
+      <span>{{ opt.label }}</span>
+    </button>
+  }
+</mat-menu>
+
+<!-- Assignee Selection Menu -->
+<mat-menu
+  #assigneeMenu="matMenu"
+  class="rounded-2xl shadow-xl overflow-hidden min-w-[220px]"
+>
+  <div
+    class="px-3 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100"
+  >
+    Assign Role
+  </div>
+  <button
+    type="button"
+    mat-menu-item
+    (click)="onAssigneeChange('')"
+    class="text-xs font-semibold text-slate-700 hover:text-primary hover:bg-primary/10"
+  >
+    <mat-icon class="icon-size-4 text-primary" *ngIf="!ticket?.assignedToUserId"
+      >check</mat-icon
+    >
+    <span>Unassigned</span>
+  </button>
+  @for (role of roleOptions; track role._id) {
+    <button
+      type="button"
+      mat-menu-item
+      (click)="onAssigneeChange(role._id)"
+      class="text-xs font-semibold text-slate-700 hover:text-primary hover:bg-primary/10"
+    >
+      <mat-icon
+        class="icon-size-4 text-primary"
+        *ngIf="ticket?.assignedToUserId === role._id"
+        >check</mat-icon
+      >
+      <span>{{ role.role_name }}</span>
+    </button>
+  }
+</mat-menu>
+
+<!-- Top Actions Combined Menu (Triggered by More actions button) -->
+<mat-menu
+  #topActionsMenu="matMenu"
+  class="rounded-2xl shadow-xl overflow-hidden min-w-[200px]"
+>
+  <button
+    type="button"
+    mat-menu-item
+    [matMenuTriggerFor]="statusMenu"
+    class="text-xs font-semibold text-slate-700"
+  >
+    <mat-icon class="icon-size-4 text-slate-500">sync</mat-icon>
+    <span>Change Status</span>
+  </button>
+  @if (isAdmin) {
+    <button
+      type="button"
+      mat-menu-item
+      [matMenuTriggerFor]="assigneeMenu"
+      class="text-xs font-semibold text-slate-700"
+    >
+      <mat-icon class="icon-size-4 text-slate-500">person_add</mat-icon>
+      <span>Assign To Role</span>
+    </button>
+  }
+  <mat-divider></mat-divider>
+  <button
+    type="button"
+    mat-menu-item
+    (click)="closeTicket()"
+    class="text-xs font-semibold text-red-600"
+  >
+    <mat-icon class="icon-size-4 text-red-500">delete_outline</mat-icon>
+    <span>Close Ticket</span>
+  </button>
+</mat-menu>
+
+<!-- Loading skeleton (UI Shape Matched) -->
+<ng-template #loadingTpl>
+  <div
+    class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-slate-100/60 animate-pulse"
+  >
+    <!-- Header Bar Skeleton -->
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 sm:px-5 py-2 bg-white/95 border-b border-slate-200/80 shadow-2xs flex-shrink-0 z-10"
+    >
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-lg bg-slate-200 shrink-0"></div>
+        <div class="h-5 bg-slate-200 rounded-md w-48 sm:w-64"></div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <div class="h-6 w-20 bg-slate-200 rounded-lg"></div>
+        <div class="h-6 w-16 bg-slate-200 rounded-lg"></div>
+      </div>
+    </div>
+
+    <!-- Main Body Skeleton -->
+    <div class="flex-auto min-h-0 overflow-y-auto p-1 sm:p-2 space-y-2">
+      <!-- Top Banner Card Skeleton -->
+      <div
+        class="bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-3.5 shadow-2xs flex flex-col gap-2"
+      >
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-lg bg-slate-200 shrink-0"></div>
+            <div class="min-w-0 space-y-1.5">
+              <div class="h-4 bg-slate-200 rounded-md w-40 sm:w-64"></div>
+              <div class="h-3 bg-slate-200/70 rounded-md w-60 sm:w-96"></div>
+            </div>
+          </div>
+          <div class="h-7 w-24 bg-slate-200 rounded-lg shrink-0"></div>
+        </div>
+
+        <div class="h-px bg-slate-100 w-full"></div>
+
+        <!-- Info strip -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="h-3.5 w-24 bg-slate-200/80 rounded"></div>
+            <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+            <div class="h-3.5 w-24 bg-slate-200/80 rounded"></div>
+            <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+            <div class="h-3.5 w-32 bg-slate-200/80 rounded"></div>
+            <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+            <div class="h-3.5 w-36 bg-slate-200/80 rounded"></div>
+          </div>
+          <div class="h-3.5 w-24 bg-slate-200/80 rounded shrink-0"></div>
+        </div>
+      </div>
+
+      <!-- Chat & Tabs Container Skeleton -->
+      <div
+        class="w-full bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden"
+      >
+        <!-- Tabs Header -->
+        <div
+          class="flex items-center gap-4 px-4 py-2.5 border-b border-slate-200/80 bg-white"
+        >
+          <div class="h-5 w-28 bg-slate-200 rounded-md"></div>
+          <div class="h-5 w-24 bg-slate-200/70 rounded-md"></div>
+          <div class="h-5 w-20 bg-slate-200/70 rounded-md"></div>
+        </div>
+
+        <!-- Chat Stream Skeleton -->
+        <div
+          class="min-h-[400px] max-h-[520px] p-3 sm:p-4 space-y-4 bg-slate-50/50"
+        >
+          <!-- Centered Date Badge -->
+          <div class="flex justify-center my-2">
+            <div class="h-4 w-20 bg-slate-200 rounded-full"></div>
+          </div>
+
+          <!-- Incoming Message Bubble (Left) -->
+          <div class="flex items-start gap-2.5 max-w-[80%] sm:max-w-[65%]">
+            <div
+              class="w-7 h-7 rounded-full bg-slate-200 shrink-0 mt-0.5"
+            ></div>
+            <div class="space-y-1.5 flex-1">
+              <div class="h-3 w-20 bg-slate-200/70 rounded"></div>
+              <div
+                class="p-3 bg-white rounded-2xl rounded-tl-none border border-slate-200/80 space-y-1.5 shadow-2xs"
+              >
+                <div class="h-3.5 bg-slate-200 rounded w-full"></div>
+                <div class="h-3.5 bg-slate-200 rounded w-4/5"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Outgoing Message Bubble (Right) -->
+          <div
+            class="flex items-start gap-2.5 max-w-[80%] sm:max-w-[65%] ml-auto flex-row-reverse"
+          >
+            <div
+              class="w-7 h-7 rounded-full bg-slate-200 shrink-0 mt-0.5"
+            ></div>
+            <div class="space-y-1.5 flex-1 flex flex-col items-end">
+              <div class="h-3 w-16 bg-slate-200/70 rounded"></div>
+              <div
+                class="p-3 bg-primary/10 rounded-2xl rounded-tr-none border border-primary/20 space-y-1.5 shadow-2xs w-full"
+              >
+                <div class="h-3.5 bg-primary/20 rounded w-5/6 ml-auto"></div>
+                <div class="h-3.5 bg-primary/20 rounded w-2/3 ml-auto"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Incoming Message Bubble 2 (Left) -->
+          <div class="flex items-start gap-2.5 max-w-[75%] sm:max-w-[55%]">
+            <div
+              class="w-7 h-7 rounded-full bg-slate-200 shrink-0 mt-0.5"
+            ></div>
+            <div class="space-y-1.5 flex-1">
+              <div class="h-3 w-24 bg-slate-200/70 rounded"></div>
+              <div
+                class="p-3 bg-white rounded-2xl rounded-tl-none border border-slate-200/80 space-y-1 shadow-2xs"
+              >
+                <div class="h-3.5 bg-slate-200 rounded w-11/12"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reply Composer Skeleton -->
+        <div class="border-t border-slate-200/90 p-3 sm:p-3.5 bg-white">
+          <div
+            class="h-14 rounded-xl bg-slate-100 border border-slate-200/80 w-full"
+          ></div>
+          <div class="flex items-center justify-between gap-2.5 mt-2.5">
+            <div class="h-7 w-24 bg-slate-200 rounded-xl"></div>
+            <div class="h-8 w-28 bg-slate-200 rounded-xl"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>

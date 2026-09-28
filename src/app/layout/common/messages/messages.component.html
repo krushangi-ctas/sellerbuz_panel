@@ -1,0 +1,134 @@
+<!-- Messages toggle -->
+<button type="button" mat-icon-button [routerLink]="notifyRoute">
+  @if (unreadCount > 0) {
+    <span
+      class="absolute top-0 right-0 left-0 flex items-center justify-center h-3"
+    >
+      <span
+        class="flex items-center justify-center shrink-0 min-w-4 h-4 px-1 ml-4 mt-2.5 rounded-full bg-emerald-600 text-indigo-50 text-xs font-medium"
+      >
+        {{ unreadCount }}
+      </span>
+    </span>
+  }
+  <mat-icon [svgIcon]="'heroicons_outline:bell'"></mat-icon>
+</button>
+
+<!-- Messages panel -->
+<ng-template #messagesPanel>
+  <div
+    class="fixed inset-0 sm:static sm:inset-auto flex flex-col sm:min-w-140 sm:w-90 sm:rounded-2xl overflow-hidden shadow-lg"
+  >
+    <!-- Header -->
+    <div
+      class="flex shrink-0 items-center py-4 pr-4 pl-6 bg-emerald-800 text-on-primary"
+    >
+      <div class="sm:hidden -ml-1 mr-3">
+        <button type="button" mat-icon-button (click)="closePanel()">
+          <mat-icon
+            class="icon-size-5 text-current"
+            [svgIcon]="'heroicons_solid:x'"
+          ></mat-icon>
+        </button>
+      </div>
+      <div class="text-lg font-medium leading-10">Messages</div>
+      <!-- <div class="ml-auto">
+      <button mat-icon-button [disabled]="unreadCount === 0" [matTooltip]="'Mark all as read'"
+        (click)="markAllAsRead()">
+        <mat-icon class="icon-size-5 text-current" [svgIcon]="'heroicons_solid:mail-open'"></mat-icon>
+      </button>
+    </div> -->
+    </div>
+
+    <!-- Content -->
+    <div
+      class="relative flex flex-col flex-auto sm:max-h-120 divide-y overflow-y-auto bg-card"
+    >
+      <!-- Messages -->
+      @for (message of messages; track trackByFn($index, message)) {
+        <div
+          class="flex group hover:bg-gray-50 dark:hover:bg-black dark:hover:bg-opacity-5"
+        >
+          <!-- Message with a link -->
+          <ng-container>
+            <a
+              class="flex flex-auto py-5 pl-6 cursor-pointer"
+              [routerLink]="notifyRoute"
+            >
+              <ng-container *ngTemplateOutlet="messageContent"></ng-container>
+            </a>
+          </ng-container>
+        </div>
+        <!-- Message content template -->
+        <ng-template #messageContent>
+          @if (message.notification_type === "ACTION_REQUIRED") {
+            <div
+              class="flex flex-shrink-0 items-center justify-center w-8 h-8 mr-4 rounded-full bg-gray-100 dark:bg-gray-700"
+            >
+              <mat-icon
+                class="icon-size-5 text-yellow-700"
+                svgIcon="heroicons_outline:plus-circle"
+              ></mat-icon>
+            </div>
+          }
+          @if (message.notification_type === "ERROR") {
+            <div
+              class="flex flex-shrink-0 items-center justify-center w-8 h-8 mr-4 rounded-full bg-gray-100 dark:bg-gray-700"
+            >
+              <mat-icon sclass="icon-size-5">error</mat-icon>
+            </div>
+          }
+          @if (message.notification_type === "SUCCESS") {
+            <div
+              class="flex flex-shrink-0 items-center justify-center w-8 h-8 mr-4 rounded-full bg-gray-100 dark:bg-gray-700"
+            >
+              <mat-icon
+                class="icon-size-5"
+                svgIcon="heroicons_outline:check-circle"
+              ></mat-icon>
+            </div>
+          }
+          <!-- Title, description & time -->
+          <div class="flex flex-col flex-auto">
+            @if (message.comment) {
+              <div class="font-semibold line-clamp-1">
+                {{ message.comment
+                }}<span class="text-green-800 text-lg"
+                  >({{ message.count }})</span
+                >
+              </div>
+            }
+            <!-- <div class="flex items-center mt-2 text-sm leading-none text-secondary">
+            {{message.description }}
+          </div> -->
+            <!-- <div class="mt-2 text-sm leading-none text-secondary">
+          {{message.createdAt | date:'MMM dd, h:mm a'}}
+        </div> -->
+          </div>
+        </ng-template>
+      }
+
+      <!-- No messages -->
+      @if (!messages || !messages.length) {
+        <div
+          class="flex flex-col flex-auto items-center justify-center sm:justify-start py-12 px-8"
+        >
+          <div
+            class="flex flex-0 items-center justify-center w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-600"
+          >
+            <mat-icon
+              class="text-emerald-700 dark:text-emerald-50"
+              [svgIcon]="'heroicons_outline:bell'"
+            ></mat-icon>
+          </div>
+          <div class="mt-5 text-2xl font-semibold tracking-tight">
+            No messages
+          </div>
+          <div class="w-full max-w-60 mt-1 text-md text-center text-secondary">
+            When you have messages, they will appear here.
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>

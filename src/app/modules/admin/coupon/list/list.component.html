@@ -1,0 +1,443 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white"
+>
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_solid:ticket'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">
+            Coupon List
+          </h1>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <!-- Search -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="searchInputControl"
+            maxlength="50"
+            [autocomplete]="'off'"
+            [placeholder]="'Search coupons...'"
+          />
+        </mat-form-field>
+
+        <!-- Status Filter -->
+        <form [formGroup]="couponSearchForm" class="flex-shrink-0 -mb-5">
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-36">
+            <mat-icon
+              svgIcon="mat_outline:filter_alt"
+              class="icon-size-5 text-gray-400"
+              matPrefix
+            ></mat-icon>
+            <mat-select formControlName="status" placeholder="Status">
+              <mat-option value="">All Status</mat-option>
+              <mat-option value="1">Active</mat-option>
+              <mat-option value="0">Inactive</mat-option>
+              <mat-option value="2">Expired</mat-option>
+              <mat-option value="3">Revoked</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </form>
+
+        <!-- Date Range filter -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-52 -mb-5"
+        >
+          <mat-icon
+            svgIcon="heroicons_outline:calendar"
+            class="icon-size-5 text-gray-400"
+            matPrefix
+          ></mat-icon>
+          <mat-date-range-input [rangePicker]="datePicker" [max]="maxDate">
+            <input
+              matStartDate
+              [formControl]="startDate"
+              [autocomplete]="'off'"
+              placeholder="Start"
+            />
+            <input
+              matEndDate
+              [formControl]="endDate"
+              [autocomplete]="'off'"
+              placeholder="End"
+              (dateChange)="onDateClickFilter()"
+            />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="datePicker"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #datePicker></mat-date-range-picker>
+          @if (isResetDate) {
+            <button mat-icon-button type="button" (click)="clearDate()">
+              <mat-icon class="icon-size-4">clear</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+
+        <!-- Refresh Button -->
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refresh()"
+          matTooltip="Refresh"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+
+        <!-- Add Coupon Button -->
+        @if (isSuperAdmin || canAdd) {
+          <button
+            type="button"
+            class="btn-primary-action"
+            mat-flat-button
+            (click)="addCoupon()"
+          >
+            <mat-icon
+              class="icon-size-5 text-white"
+              [svgIcon]="'heroicons_outline:plus'"
+            ></mat-icon>
+            <span>Add Coupon</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+        @if (isLoading) {
+          <div class="grid">
+            <div class="table-header-row coupon-grid">
+              <div>Code</div>
+              <div>Description</div>
+              <div>Discount</div>
+              <div>Currency</div>
+              <div>Valid From</div>
+              <div>Valid Until</div>
+              <div>Duration</div>
+              <div>Redemptions</div>
+              <div>Plans</div>
+              <div>Status</div>
+              <div class="justify-end">Actions</div>
+            </div>
+
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+              <div class="table-data-row animate-pulse coupon-grid">
+                <div
+                  class="h-6 bg-gray-200 dark:bg-gray-700 rounded-md w-20"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-10"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-12"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-14"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                ></div>
+                <div
+                  class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16"
+                ></div>
+                <div class="flex items-center gap-1 justify-end">
+                  <div
+                    class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                  ></div>
+                  <div
+                    class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          @if (coupons$ | async; as coupons) {
+            @if (coupons.length > 0) {
+              <div class="grid">
+                <div
+                  class="table-header-row coupon-grid"
+                  matSort
+                  matSortDisableClear
+                >
+                  <div class="flex items-center" [mat-sort-header]="'code'">
+                    Code
+                  </div>
+                  <div
+                    class="flex items-center"
+                    [mat-sort-header]="'description'"
+                  >
+                    Description
+                  </div>
+                  <div class="flex items-center">Discount</div>
+                  <div class="flex items-center">Currency</div>
+                  <div
+                    class="flex items-center"
+                    [mat-sort-header]="'valid_from'"
+                  >
+                    Valid From
+                  </div>
+                  <div
+                    class="flex items-center"
+                    [mat-sort-header]="'valid_until'"
+                  >
+                    Valid Until
+                  </div>
+                  <div class="flex items-center">Duration</div>
+                  <div class="flex items-center">Redemptions</div>
+                  <div class="flex items-center">Plans</div>
+                  <div class="flex items-center" [mat-sort-header]="'status'">
+                    Status
+                  </div>
+                  <div class="flex items-center justify-end">Actions</div>
+                </div>
+
+                @for (coupon of coupons; track trackByFn($index, coupon)) {
+                  <div class="table-data-row coupon-grid">
+                    <div class="font-semibold text-sm flex items-center">
+                      <span
+                        class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100"
+                      >
+                        <span [matTooltip]="coupon.code">{{
+                          coupon.code
+                        }}</span>
+                        @if (coupon.code) {
+                          <button
+                            type="button"
+                            [cdkCopyToClipboard]="coupon.code"
+                            class="text-blue-400 hover:text-blue-600 transition-colors flex items-center shrink-0"
+                            matTooltip="Copy Coupon Code"
+                          >
+                            <mat-icon
+                              svgIcon="mat_outline:content_copy"
+                              class="icon-size-3"
+                            >
+                            </mat-icon>
+                          </button>
+                        }
+                      </span>
+                    </div>
+                    <div class="font-medium text-sm text-slate-800 truncate">
+                      <span class="italic" [matTooltip]="coupon.description">
+                        {{ coupon.description }}
+                      </span>
+                    </div>
+                    <div class="font-medium text-sm text-slate-800">
+                      <span [matTooltip]="getDiscountDisplay(coupon)">
+                        {{ getDiscountDisplay(coupon) }}
+                      </span>
+                      <span class="text-xs text-slate-500 ml-1">
+                        ({{
+                          coupon.discount_type === "percentage"
+                            ? "Percentage"
+                            : "Fixed"
+                        }})
+                      </span>
+                    </div>
+                    <div
+                      class="text-sm text-slate-600"
+                      [matTooltip]="coupon.currency"
+                    >
+                      {{ coupon.currency }}
+                    </div>
+                    <div class="text-sm text-slate-600">
+                      {{ coupon.valid_from | date: "dd-MM-yyyy" }}
+                    </div>
+                    <div class="text-sm text-slate-600">
+                      {{ coupon.valid_until | date: "dd-MM-yyyy" }}
+                    </div>
+                    <div class="text-sm text-slate-600">
+                      {{
+                        coupon.duration_months
+                          ? coupon.duration_months + " mo"
+                          : "-"
+                      }}
+                    </div>
+                    <div class="text-sm text-slate-600">
+                      <span class="font-semibold text-slate-800">{{
+                        coupon.current_redemptions
+                      }}</span>
+                      <span class="text-slate-400 mx-0.5">/</span>
+                      <span class="text-slate-500">{{
+                        coupon.max_redemptions || "∞"
+                      }}</span>
+                    </div>
+                    <div
+                      class="text-sm text-slate-600 truncate"
+                      [matTooltip]="getPlansDisplay(coupon.applicable_plans)"
+                    >
+                      {{ getPlansDisplay(coupon.applicable_plans) }}
+                    </div>
+                    <div class="flex items-center">
+                      <span
+                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border"
+                        [ngClass]="{
+                          'bg-emerald-50 text-emerald-700 border-emerald-200':
+                            coupon.status === 1,
+                          'bg-slate-100 text-slate-600 border-slate-200':
+                            coupon.status === 0,
+                          'bg-amber-50 text-amber-700 border-amber-200':
+                            coupon.status === 2,
+                          'bg-rose-50 text-rose-700 border-rose-200':
+                            coupon.status === 3,
+                        }"
+                      >
+                        {{ getStatusLabel(coupon.status) }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-1 justify-end">
+                      @if (isSuperAdmin || canUpdate) {
+                        <button
+                          type="button"
+                          class="table-action-btn"
+                          (click)="editCoupon(coupon._id)"
+                          matTooltip="Edit coupon"
+                        >
+                          <mat-icon
+                            class="icon-size-5"
+                            [svgIcon]="'heroicons_outline:pencil'"
+                          ></mat-icon>
+                        </button>
+                      } @else {
+                        <div class="w-8 h-8"></div>
+                      }
+                      @if (
+                        (isSuperAdmin || canUpdate) &&
+                        (coupon.status === 0 || coupon.status === 3)
+                      ) {
+                        <button
+                          type="button"
+                          class="table-action-btn success"
+                          (click)="activateCoupon(coupon._id)"
+                          matTooltip="Activate coupon"
+                        >
+                          <mat-icon
+                            class="icon-size-5 text-emerald-600"
+                            [svgIcon]="'heroicons_outline:check'"
+                          ></mat-icon>
+                        </button>
+                      } @else if (
+                        (isSuperAdmin || canUpdate) && coupon.status === 1
+                      ) {
+                        <button
+                          type="button"
+                          class="table-action-btn warning"
+                          (click)="revokeCoupon(coupon._id)"
+                          matTooltip="Revoke coupon"
+                        >
+                          <mat-icon
+                            class="icon-size-5 text-amber-600"
+                            [svgIcon]="'heroicons_outline:ban'"
+                          ></mat-icon>
+                        </button>
+                      } @else {
+                        <div class="w-8 h-8"></div>
+                      }
+                      @if (isSuperAdmin || canDelete) {
+                        <button
+                          type="button"
+                          class="table-action-btn danger"
+                          (click)="deleteCoupon(coupon._id)"
+                          matTooltip="Delete coupon"
+                        >
+                          <mat-icon
+                            class="icon-size-5 text-red-600 hover:text-red-700"
+                            [svgIcon]="'heroicons_outline:trash'"
+                          ></mat-icon>
+                        </button>
+                      } @else {
+                        <div class="w-8 h-8"></div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <ng-container [ngTemplateOutlet]="noRecord"></ng-container>
+            }
+          }
+        }
+      </div>
+
+      @if (coupons$ | async; as coupons) {
+        @if (coupons?.length) {
+          <div class="pagination-bar">
+            <mat-paginator
+              [ngClass]="{ 'pointer-events-none': isLoading }"
+              [length]="
+                ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                (coupons?.length || 0) +
+                (pagination?.hasNextPage ? 1 : 0)
+              "
+              [pageSize]="pagination?.size || 100"
+              [pageSizeOptions]="[5, 25, 50, 100]"
+              [pageIndex]="(pagination?.page || 1) - 1"
+              [showFirstLastButtons]="false"
+              (page)="onPageChange($event)"
+            >
+            </mat-paginator>
+          </div>
+        }
+      }
+
+      <ng-template #noRecord>
+        <div class="page-empty-state">
+          <div class="icon-wrapper">
+            <mat-icon
+              class="icon-size-10"
+              [svgIcon]="'heroicons_outline:ticket'"
+            ></mat-icon>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">
+            No coupons found
+          </h3>
+          <p class="text-slate-500 max-w-sm font-medium">
+            Get started by adding your first coupon to the system.
+          </p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

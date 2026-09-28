@@ -1,0 +1,19 @@
+.inventory-grid {
+  grid-template-columns: 80px 50px 120px 130px 200px 50px 70px 160px auto 80px;
+
+  @screen sm {
+    grid-template-columns: 80px 50px 120px 130px 200px 50px 70px 160px auto 80px;
+  }
+
+  @screen md {
+    grid-template-columns: 80px 50px 120px 130px 200px 50px 70px 160px auto 80px;
+  }
+
+  @screen lg {
+    grid-template-columns: 80px 50px 120px 130px 200px 50px 70px 160px auto 80px;
+  }
+}
+
+::ng-deep .custom-field .mat-mdc-form-field-subscript-wrapper {
+  height: 0px;
+}

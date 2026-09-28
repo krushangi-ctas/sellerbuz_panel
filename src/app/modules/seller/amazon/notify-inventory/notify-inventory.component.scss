@@ -1,0 +1,97 @@
+.inventory-grid {
+  grid-template-columns: 130px auto 300px 100px 130px;
+
+  @screen sm {
+    grid-template-columns: 130px auto 300px 100px 130px;
+  }
+
+  @screen md {
+    grid-template-columns: 130px auto 300px 100px 130px;
+  }
+
+  @screen lg {
+    grid-template-columns: 130px auto 300px 100px 130px;
+  }
+}
+
+::ng-deep .custom-field .mat-mdc-form-field-subscript-wrapper {
+  height: 0px;
+}
+
+::ng-deep .mat-sort-header-container {
+  justify-content: center;
+}
+
+.mat-mdc-tab-body-content {
+  padding: 24px;
+}
+
+.bg-custom {
+  background-color: rgb(8 78 62 / 89%);
+  /* Apply RGB with opacity 0.8 */
+  /* Apply RGB with opacity */
+}
+
+/* Custom toggle bar background color */
+.custom-toggle .mat-slide-toggle-bar {
+  background-color: var(--color-accent-200) !important;
+  /* Light accent background */
+}
+
+/* Custom toggle thumb (round shape) color */
+.custom-toggle .mat-slide-toggle-thumb {
+  background-color: var(--fuse-primary) !important;
+  /* Primary thumb color */
+}
+
+/* When toggle is checked (ON state) */
+.custom-toggle.mat-checked .mat-slide-toggle-bar {
+  background-color: var(--color-accent-200) !important;
+  /* Same light accent background */
+}
+
+.custom-toggle.mat-checked .mat-slide-toggle-thumb {
+  background-color: var(--fuse-primary) !important;
+  /* Same primary thumb */
+}
+
+.custom-toggle ::ng-deep .mdc-switch__icons {
+  background-color: var(--fuse-primary) !important;
+  border-radius: 50%;
+}
+
+.border-left {
+  border-left: 3px solid var(--color-gray-200);
+}
+
+.border-btm {
+  border-bottom: 3px solid var(--color-gray-200);
+}
+
+.border-top {
+  border-top: 3px solid var(--color-gray-200);
+}
+
+.border-right {
+  border-right: 3px solid var(--color-gray-200);
+}
+
+.itemAmz {
+  background-color: #dce6e5;
+}
+
+.itemAbebooks {
+  background-color: #f8e1c0;
+}
+
+.itemKaufland {
+  background-color: #f3dde9;
+}
+
+.itemEbay {
+  background-color: #ccf3c9;
+}
+
+.itemWorten {
+  background-color: #f7977f;
+}

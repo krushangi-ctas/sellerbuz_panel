@@ -1,0 +1,102 @@
+/* Web Settings — component styles */
+:host {
+  display: block;
+}
+
+/* ============================================================ */
+/* TAB BAR                                                       */
+/* ============================================================ */
+
+.web-settings-tab {
+  @apply flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium
+         text-gray-600 dark:text-gray-400
+         transition-all duration-200 cursor-pointer
+         border border-transparent;
+
+  &:hover:not(.web-settings-tab--active) {
+    @apply bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200;
+  }
+
+  mat-icon {
+    flex-shrink: 0;
+  }
+
+  span {
+    white-space: nowrap;
+  }
+}
+
+.web-settings-tab--active {
+  @apply bg-primary text-white shadow-md border-primary;
+
+  mat-icon {
+    @apply text-white;
+  }
+}
+
+/* ============================================================ */
+/* TAB CONTENT ANIMATION                                         */
+/* ============================================================ */
+
+.web-settings-tab-content {
+  animation: wsTabFadeIn 0.2s ease-out;
+}
+
+@keyframes wsTabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================ */
+/* MISC HELPERS                                                   */
+/* ============================================================ */
+
+.upload-zone {
+  @apply relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer overflow-hidden;
+
+  &:hover {
+    @apply border-primary;
+  }
+}
+
+.upload-zone img {
+  @apply max-h-full max-w-full object-contain p-2;
+}
+
+.upload-zone .placeholder {
+  @apply flex flex-col items-center gap-1 text-secondary;
+}
+
+.compact-url-field {
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper,
+  ::ng-deep .mat-form-field-subscript-wrapper {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+/* ============================================================ */
+/* RESPONSIVE                                                    */
+/* ============================================================ */
+
+@media (max-width: 640px) {
+  .web-settings-tab {
+    @apply flex-1 justify-center text-xs px-2 py-2;
+
+    span {
+      @apply hidden;
+    }
+
+    mat-icon {
+      @apply mx-auto;
+    }
+  }
+}

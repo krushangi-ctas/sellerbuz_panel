@@ -1,0 +1,5 @@
+.features-grid {
+  grid-template-columns:
+    minmax(180px, 1.5fr) minmax(220px, 2.5fr) minmax(150px, 1.5fr)
+    100px 100px;
+}

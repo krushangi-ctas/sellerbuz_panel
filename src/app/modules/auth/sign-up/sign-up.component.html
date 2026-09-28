@@ -1,0 +1,355 @@
+<div class="auth-ref-container">
+  <div class="auth-ref-shell w-full">
+    <section class="auth-ref-form-panel">
+      <div class="auth-ref-form-wrap auth-ref-form-wrap--signup">
+        <div class="auth-ref-form-intro auth-ref-form-intro--left">
+          <div class="auth-ref-icon-badge">
+            <mat-icon svgIcon="heroicons_solid:user-add"></mat-icon>
+          </div>
+
+          <div
+            class="auth-ref-heading text-4xl font-extrabold tracking-tight text-primary-900"
+          >
+            Sign up
+          </div>
+          <div class="auth-ref-subline flex items-baseline gap-1 font-medium">
+            <div class="text-gray-500">Already have an account?</div>
+            <a
+              class="font-semibold text-primary-600 hover:underline"
+              [routerLink]="['/sign-in']"
+              >Sign in</a
+            >
+          </div>
+        </div>
+
+        @if (showAlert) {
+          <fuse-alert
+            class="auth-ref-alert block"
+            [appearance]="'outline'"
+            [showIcon]="false"
+            [type]="alert.type"
+            [@shake]="alert.type === 'error'"
+          >
+            {{ alert.message }}
+          </fuse-alert>
+        }
+
+        <form
+          class="auth-ref-form auth-ref-form--signup"
+          [formGroup]="signUpForm"
+          #signUpNgForm="ngForm"
+        >
+          <div class="auth-ref-grid auth-ref-grid--2">
+            <mat-form-field
+              class="auth-ref-field w-full"
+              [appearance]="'outline'"
+              [subscriptSizing]="'dynamic'"
+            >
+              <mat-label>First Name</mat-label>
+              <mat-icon matPrefix class="mr-1">person</mat-icon>
+              <input
+                id="first_name"
+                matInput
+                [formControlName]="'first_name'"
+              />
+              @if (
+                signUpForm.get("first_name")?.touched &&
+                signUpForm.get("first_name")?.hasError("required")
+              ) {
+                <mat-error>First name is required.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field
+              class="auth-ref-field w-full"
+              [appearance]="'outline'"
+              [subscriptSizing]="'dynamic'"
+            >
+              <mat-label>Last Name</mat-label>
+              <mat-icon matPrefix class="mr-1">badge</mat-icon>
+              <input id="last_name" matInput [formControlName]="'last_name'" />
+              @if (
+                signUpForm.get("last_name")?.touched &&
+                signUpForm.get("last_name")?.hasError("required")
+              ) {
+                <mat-error>Last name is required.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="auth-ref-grid auth-ref-grid--2">
+            <mat-form-field
+              class="auth-ref-field w-full"
+              [appearance]="'outline'"
+              [subscriptSizing]="'dynamic'"
+            >
+              <mat-label>Email Address</mat-label>
+              <mat-icon matPrefix class="mr-1">email</mat-icon>
+              <input id="email" matInput [formControlName]="'email'" />
+              @if (
+                signUpForm.get("email")?.touched &&
+                signUpForm.get("email")?.hasError("required")
+              ) {
+                <mat-error>Email address is required.</mat-error>
+              }
+
+              @if (
+                signUpForm.get("email")?.touched &&
+                signUpForm.get("email")?.hasError("email")
+              ) {
+                <mat-error>Please enter a valid email address.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field
+              class="auth-ref-field w-full"
+              [appearance]="'outline'"
+              [subscriptSizing]="'dynamic'"
+            >
+              <mat-label>Contact Number</mat-label>
+              <mat-icon matPrefix>phone</mat-icon>
+              <input
+                matInput
+                type="tel"
+                inputmode="numeric"
+                [formControlName]="'contact_no'"
+                maxlength="10"
+                placeholder="Contact Number"
+                (input)="onContactInput()"
+              />
+              @if (
+                signUpForm.get("contact_no")?.touched &&
+                signUpForm.get("contact_no")?.hasError("required")
+              ) {
+                <mat-error>Contact number is required.</mat-error>
+              }
+
+              @if (
+                signUpForm.get("contact_no")?.touched &&
+                signUpForm.get("contact_no")?.hasError("pattern")
+              ) {
+                <mat-error
+                  >Please enter a valid 10-digit contact number.</mat-error
+                >
+              }
+            </mat-form-field>
+          </div>
+
+          <mat-form-field
+            class="auth-ref-field w-full"
+            [appearance]="'outline'"
+            [subscriptSizing]="'dynamic'"
+          >
+            <mat-label>Address</mat-label>
+            <mat-icon matPrefix class="mr-1">location_on</mat-icon>
+            <input
+              id="business_address"
+              matInput
+              [formControlName]="'business_address'"
+            />
+            @if (
+              signUpForm.get("business_address")?.touched &&
+              signUpForm.get("business_address")?.hasError("required")
+            ) {
+              <mat-error>Address is required.</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="auth-ref-grid auth-ref-grid--2">
+            <mat-form-field
+              class="auth-ref-field w-full"
+              [appearance]="'outline'"
+              [subscriptSizing]="'dynamic'"
+              [floatLabel]="'always'"
+            >
+              <mat-label>Password</mat-label>
+              <mat-icon matPrefix class="mr-1">lock</mat-icon>
+              <input
+                id="password"
+                matInput
+                type="password"
+                [formControlName]="'password'"
+                #passwordField
+              />
+              <button
+                mat-icon-button
+                type="button"
+                (click)="
+                  passwordField.type === 'password'
+                    ? (passwordField.type = 'text')
+                    : (passwordField.type = 'password')
+                "
+                matSuffix
+              >
+                @if (passwordField.type === "password") {
+                  <mat-icon
+                    class="icon-size-5"
+                    [svgIcon]="'heroicons_solid:eye'"
+                  ></mat-icon>
+                }
+                @if (passwordField.type === "text") {
+                  <mat-icon
+                    class="icon-size-5"
+                    [svgIcon]="'heroicons_solid:eye-off'"
+                  ></mat-icon>
+                }
+              </button>
+              @if (
+                signUpForm.get("password")?.touched &&
+                signUpForm.get("password")?.hasError("required")
+              ) {
+                <mat-error>Password is required.</mat-error>
+              }
+
+              @if (
+                signUpForm.get("password")?.touched &&
+                signUpForm.get("password")?.hasError("passwordPattern")
+              ) {
+                <mat-error>
+                  Password must contain at least 1 letter and 1 number.
+                </mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field
+              class="auth-ref-field w-full"
+              [appearance]="'outline'"
+              [subscriptSizing]="'dynamic'"
+              [floatLabel]="'always'"
+            >
+              <mat-label>Confirm Password</mat-label>
+              <mat-icon matPrefix class="mr-1">enhanced_encryption</mat-icon>
+              <input
+                id="confirm_password"
+                matInput
+                type="password"
+                [formControlName]="'confirm_password'"
+                #confirmPasswordField
+              />
+              <button
+                mat-icon-button
+                type="button"
+                (click)="
+                  confirmPasswordField.type === 'password'
+                    ? (confirmPasswordField.type = 'text')
+                    : (confirmPasswordField.type = 'password')
+                "
+                matSuffix
+              >
+                @if (confirmPasswordField.type === "password") {
+                  <mat-icon
+                    class="icon-size-5"
+                    [svgIcon]="'heroicons_solid:eye'"
+                  ></mat-icon>
+                }
+                @if (confirmPasswordField.type === "text") {
+                  <mat-icon
+                    class="icon-size-5"
+                    [svgIcon]="'heroicons_solid:eye-off'"
+                  ></mat-icon>
+                }
+              </button>
+              @if (
+                signUpForm.get("confirm_password")?.touched &&
+                signUpForm.get("confirm_password")?.hasError("required")
+              ) {
+                <mat-error>Confirm password is required.</mat-error>
+              }
+              @if (
+                (signUpForm.controls["confirm_password"].pristine ||
+                  signUpForm.controls["confirm_password"].errors
+                    ?.MatchPassword) &&
+                !signUpForm.get("confirm_password").hasError("required")
+              ) {
+                <mat-error> Password does not match </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <button
+            type="button"
+            class="auth-ref-submit auth-ref-submit--auto fuse-mat-button-large !text-white"
+            mat-flat-button
+            [disabled]="signUpForm.disabled"
+            (click)="signUp()"
+          >
+            @if (!signUpForm.disabled) {
+              <span>Create your account</span>
+            } @else {
+              <mat-progress-spinner [diameter]="24" [mode]="'indeterminate'">
+              </mat-progress-spinner>
+            }
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section class="auth-ref-visual-panel">
+      <div class="auth-ref-visual-card">
+        <div class="auth-ref-visual-title">
+          <a routerLink="/" class="flex items-center gap-1 group shrink-0">
+            <img
+              src="assets/ctasis-logo.png"
+              alt="SellerBuz"
+              class="h-10 w-auto object-contain"
+            />
+            <span
+              class="text-[1.8rem] font-bold tracking-tight font-outfit bg-gradient-to-r from-[#3C9AC4] to-[#13355A] bg-clip-text text-transparent"
+            >
+              SellerBuz
+            </span>
+          </a>
+        </div>
+
+        <div class="auth-ref-orbit-scene">
+          <div
+            class="auth-ref-orbit auth-ref-orbit--outer animate-spin-slow"
+          ></div>
+          <div
+            class="auth-ref-orbit auth-ref-orbit--mid animate-spin-slow"
+          ></div>
+          <div
+            class="auth-ref-orbit auth-ref-orbit--inner animate-spin-slow"
+          ></div>
+
+          <div class="auth-ref-core animate-pulse">
+            <img src="assets/logo.png" alt="Logo" />
+          </div>
+
+          <div class="auth-ref-node auth-ref-node--top animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:globe-alt'"></mat-icon>
+          </div>
+          <div class="auth-ref-node auth-ref-node--left animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:shopping-bag'"></mat-icon>
+          </div>
+          <div class="auth-ref-node auth-ref-node--right animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:chat-alt'"></mat-icon>
+          </div>
+          <div class="auth-ref-node auth-ref-node--bottom animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:chart-bar'"></mat-icon>
+          </div>
+          <div class="auth-ref-node auth-ref-node--lower-left animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:cog'"></mat-icon>
+          </div>
+          <div class="auth-ref-node auth-ref-node--lower-right animate-pulse">
+            <mat-icon [svgIcon]="'heroicons_solid:device-tablet'"></mat-icon>
+          </div>
+        </div>
+
+        <div class="auth-ref-copy">
+          <div class="auth-ref-copy-badge">All-In-One Platform</div>
+          <!-- <div class="auth-ref-copy-title">Ctas Sellerbuz</div> -->
+          <div class="auth-ref-copy-text">
+            Streamline your marketplace management with tools to oversee
+            multiple channels, optimize listings, and boost sales performance.
+          </div>
+          <div class="auth-ref-copy-text">
+            Efficient inventory management ensures real-time stock tracking,
+            automated alerts, and accurate forecasting to keep your operations
+            seamless.
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

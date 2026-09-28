@@ -1,0 +1,216 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-card dark:bg-transparent"
+>
+  <!-- Header -->
+  <!-- <div class="xl:block lg:flex-0">
+  <div class="flex flex-row divide-y border-t border-b">
+    <ng-container *ngFor="let panel of panels; trackBy: trackByFn">
+                <div class="flex px-4 py-3 cursor-pointer" [ngClass]="{'hover:bg-gray-100 dark:hover:bg-hover': !selectedPanel || selectedPanel !== panel.id,
+                                'bg-primary-50 dark:bg-hover': selectedPanel && selectedPanel === panel.id}"
+        (click)="goToPanel(panel.id)">
+                    <mat-icon [ngClass]="{'text-hint': !selectedPanel || selectedPanel !== panel.id,
+                                    'text-primary dark:text-primary-500': selectedPanel && selectedPanel === panel.id}"
+        [svgIcon]="panel.icon"></mat-icon>
+        <div class="ml-3">
+          <div class="font-medium leading-6"
+            [ngClass]="{'text-primary dark:text-primary-500': selectedPanel && selectedPanel === panel.id}">
+            {{panel.title}}
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div> -->
+
+  <div
+    class="relative gap-2 flex flex-col sm:flex-row flex-wrap sm:items-center sm:justify-between py-2 px-6 md:px-4 border-btm"
+  >
+    <!-- Title Section -->
+    <div class="font-extrabold tracking-tight flex items-center mb-4 sm:mb-0">
+      <a
+        class="z-20 w-8 h-8 min-h-8 flex items-center justify-center mr-2"
+        (click)="$event.preventDefault()"
+        mat-icon-button
+        [matTooltip]="tooltip"
+      >
+        <mat-icon
+          class="icon-size-6"
+          [svgIcon]="'heroicons_solid:bell'"
+        ></mat-icon>
+      </a>
+      <span class="text-3xl sm:text-2xl lg:text-3xl">Notification</span>
+    </div>
+  </div>
+  <!-- </div> -->
+  <mat-tab-group
+    [(selectedIndex)]="selectedIndex"
+    (selectedIndexChange)="onTabChange($event)"
+  >
+    @for (panel of panels; track trackByFn($index, panel)) {
+      <mat-tab [label]="getTabLabel(panel)">
+        <div
+          [ngClass]="{
+            'bg-green-100 border-green-500 text-green-900':
+              panel.id === 'SUCCESS',
+            'bg-yellow-100 border-yellow-500 text-yellow-900':
+              panel.id === 'ACTION_REQUIRED',
+            'bg-red-100 border-red-500 text-red-900': panel.id === 'ERROR',
+          }"
+          class="flex items-start border-l-4 p-4 rounded-md shadow-md"
+        >
+          <mat-icon
+            class="mr-3"
+            [ngClass]="{
+              'text-green-700': panel.id === 'SUCCESS',
+              'text-yellow-700': panel.id === 'ACTION_REQUIRED',
+              'text-red-700': panel.id === 'ERROR',
+            }"
+          >
+            {{
+              panel.id === "SUCCESS"
+                ? "check_circle"
+                : panel.id === "ERROR"
+                  ? "error"
+                  : "warning"
+            }}
+          </mat-icon>
+          <div>
+            <p class="font-semibold text-md">
+              {{
+                panel.id === "SUCCESS"
+                  ? "Success"
+                  : panel.id === "ACTION_REQUIRED"
+                    ? "Important Notice"
+                    : "Error"
+              }}
+            </p>
+            <p class="text-sm">{{ displayMessage }}</p>
+          </div>
+        </div>
+      </mat-tab>
+    }
+  </mat-tab-group>
+  <div class="flex flex-auto overflow-auto -mt-3">
+    <div class="flex flex-col flex-auto overflow-hidden sm:overflow-y-auto">
+      <!-- NOTIFICATION INVENTORY TAB CONTENT -->
+      <div class="grid overflow-auto lg:mb-14">
+        <div
+          class="inventory-grid z-10 sticky top-0 grid gap-1 py-2 px-1 md:px-2 shadow text-md font-semibold text-secondary bg-gray-50 dark:bg-black dark:bg-opacity-5"
+          matSort
+          matSortDisableClear
+        >
+          @for (header of headers; track header) {
+            <div [id]="header.key">
+              @if (header.label !== "file_name_original") {
+                <span>
+                  {{ header.label }}
+                </span>
+              }
+              @if (header.label === "file_name_original") {
+                <span>
+                  {{ header.label }}
+                </span>
+              }
+            </div>
+          }
+        </div>
+        @if (isLoading) {
+          @for (item of [1, 2, 3, 4, 5]; track $index) {
+            <div
+              class="inventory-grid grid items-center gap-1 py-3 px-1 md:px-2 border-b animate-pulse"
+            >
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+            </div>
+          }
+        } @else if (amzInventoryFormInput | async; as amzInventoryList) {
+          @if (amzInventoryList.length > 0) {
+            @for (
+              inventory of amzInventoryList;
+              track trackByFn(i, inventory);
+              let i = $index
+            ) {
+              <div
+                class="inventory-grid grid items-center gap-1 py-2 px-1 md:px-2 border-b"
+              >
+                <div class="text-sm font-semibold">
+                  {{
+                    inventory.createdAt
+                      ? (inventory.createdAt | date: "dd-MM-yyyy, HH:mm")
+                      : "-"
+                  }}
+                </div>
+                <div
+                  class="truncate text-md font-semibold text-primary-500 cursor-pointer text-left"
+                  [matTooltip]="inventory.tmp_product_ids"
+                  (click)="onRedirectByClick(inventory.masterProductIds)"
+                >
+                  {{ inventory.file_name_original || "Move to retail" }}
+                </div>
+                <div
+                  class="truncate"
+                  [matTooltip]="inventory.file_mime_type"
+                  [ngClass]="{
+                    'text-center': !inventory.file_mime_type,
+                    'text-left': inventory.file_mime_type,
+                  }"
+                >
+                  {{ inventory.file_mime_type || "-" }}
+                </div>
+                <div
+                  class="truncate text-lg font-semibold text-gray-800"
+                  [matTooltip]="inventory.total_record"
+                  [ngClass]="{
+                    'text-center': !inventory.titleCount,
+                    'text-left': inventory.titleCount,
+                  }"
+                >
+                  {{ inventory.titleCount }} /{{
+                    inventory.total_record || inventory.titleCount
+                  }}
+                </div>
+                <div class="text-sm font-semibold text-center">
+                  {{
+                    inventory.updatedAt
+                      ? (inventory.updatedAt | date: "dd-MM-yyyy, HH:mm")
+                      : "-"
+                  }}
+                </div>
+              </div>
+            }
+          } @else {
+            <div
+              class="p-8 sm:p-16 border-t text-4xl font-semibold tracking-tight text-center"
+            >
+              <mat-icon
+                class="icon-size-10"
+                [svgIcon]="'heroicons_outline:archive'"
+              ></mat-icon>
+              <p>Oops! No notification is currently available.</p>
+            </div>
+          }
+        }
+      </div>
+
+      @if (amzInventoryFormInput | async; as amzInventoryList) {
+        @if (amzInventoryList?.length) {
+          <mat-paginator
+            class="sm:absolute mt-auto sm:inset-x-0 sm:bottom-0 border-b sm:border-t sm:border-b-0 z-10 bg-gray-50 dark:bg-transparent"
+            [ngClass]="{ 'pointer-events-none': isLoading }"
+            [length]="
+              ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+              (amzInventoryList?.length || 0) +
+              (pagination?.hasNextPage ? 1 : 0)
+            "
+            [pageSize]="pagination?.size || 100"
+            [pageSizeOptions]="[5, 25, 50, 100]"
+            [pageIndex]="(pagination?.page || 1) - 1"
+            [showFirstLastButtons]="false"
+          ></mat-paginator>
+        }
+      }
+    </div>
+  </div>
+</div>

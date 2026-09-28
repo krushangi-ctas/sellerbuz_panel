@@ -1,0 +1,107 @@
+.blog-grid {
+  display: grid;
+  grid-template-columns: 260px auto 80px 100px 80px 140px 90px;
+  padding-inline: 16px;
+  padding-block: 8px;
+  gap: 12px;
+  align-items: center;
+
+  @screen sm {
+    grid-template-columns: 220px auto 70px 90px 70px 120px 80px;
+  }
+
+  @screen md {
+    grid-template-columns: 240px auto 80px 100px 80px 130px 90px;
+  }
+
+  @screen lg {
+    grid-template-columns: 260px auto 80px 110px 80px 140px 90px;
+  }
+}
+
+app-blog-list {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+:host ::ng-deep .seller-list-paginator,
+:host ::ng-deep .blog-list-paginator {
+  width: 100%;
+  background-color: var(--color-gray-100) !important;
+
+  .mat-mdc-paginator-container {
+    width: 100%;
+    justify-content: flex-start !important;
+    background-color: transparent !important;
+  }
+}
+
+/* ── Blog Preview Modal Dialog Styles ────────────────────────────── */
+:host ::ng-deep .blog-preview-custom-dialog {
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    padding: 0 !important;
+    border-radius: 1.25rem !important;
+    overflow: hidden !important;
+    background-color: white !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+}
+
+.preview-prose {
+  @apply text-base text-slate-700 leading-relaxed;
+
+  p {
+    @apply mb-5;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-slate-900 font-bold mt-7 mb-3 leading-snug;
+  }
+
+  h2 {
+    @apply text-2xl;
+  }
+
+  h3 {
+    @apply text-xl;
+  }
+
+  ul,
+  ol {
+    @apply my-4 pl-6;
+  }
+
+  ul {
+    @apply list-disc;
+  }
+
+  ol {
+    @apply list-decimal;
+  }
+
+  li {
+    @apply mb-2;
+  }
+
+  blockquote {
+    @apply border-l-4 border-primary pl-4 italic text-slate-600 my-6 bg-slate-50 py-2 rounded-r-lg;
+  }
+
+  img {
+    @apply max-w-full h-auto rounded-xl my-5;
+  }
+
+  a {
+    @apply text-primary underline font-medium hover:text-primary-700;
+  }
+}

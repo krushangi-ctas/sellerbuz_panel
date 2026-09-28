@@ -1,0 +1,27 @@
+.orders-grid {
+  grid-template-columns: 200px 180px 160px 150px 155px 155px 155px auto 110px;
+
+  @screen sm {
+    grid-template-columns: 200px 180px 160px 150px 155px 155px 155px auto 110px;
+  }
+
+  @screen md {
+    grid-template-columns: 200px 180px 160px 150px 155px 155px 155px auto 110px;
+  }
+
+  @screen lg {
+    grid-template-columns: 200px 180px 160px 150px 155px 155px 155px auto 110px;
+  }
+}
+
+.order-items-grid {
+  grid-template-columns: 250px 260px 180px 180px 180px 180px 180px 180px;
+}
+
+::ng-deep .custom-field .mat-mdc-form-field-subscript-wrapper {
+  height: 0px;
+}
+
+.border-btm {
+  border-bottom: 3px solid var(--color-gray-200);
+}

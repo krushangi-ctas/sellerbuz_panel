@@ -1,0 +1,68 @@
+:host ::ng-deep {
+  .quill-blog-editor {
+    .ql-toolbar.ql-snow {
+      border-top-left-radius: 0.5rem;
+      border-top-right-radius: 0.5rem;
+      border-color: #e2e8f0;
+      background-color: #f8fafc;
+      padding: 6px 8px;
+    }
+
+    .ql-container.ql-snow {
+      border-bottom-left-radius: 0.5rem;
+      border-bottom-right-radius: 0.5rem;
+      border-color: #e2e8f0;
+      min-height: 260px;
+      max-height: 480px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+    }
+
+    .ql-editor {
+      min-height: 240px;
+    }
+  }
+
+  .dark .quill-blog-editor {
+    .ql-toolbar.ql-snow {
+      border-color: #334155;
+      background-color: #1e293b;
+      color: #f8fafc;
+
+      .ql-stroke {
+        stroke: #94a3b8;
+      }
+      .ql-fill {
+        fill: #94a3b8;
+      }
+      .ql-picker-label {
+        color: #94a3b8;
+      }
+    }
+
+    .ql-container.ql-snow {
+      border-color: #334155;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+  }
+}
+
+.image-slot-card {
+  transition: all 0.2s ease-in-out;
+  border: 1px solid #e2e8f0;
+
+  &:hover {
+    border-color: var(--color-primary-500, #3b82f6);
+    background-color: #ffffff;
+  }
+}
+
+.dark .image-slot-card {
+  border-color: #334155;
+
+  &:hover {
+    border-color: var(--color-primary-500, #3b82f6);
+    background-color: #1e293b;
+  }
+}

@@ -1,0 +1,398 @@
+<div
+  class="flex flex-col -m-6 rounded-xl shadow-2xl min-w-140 max-w-200 bg-white overflow-hidden"
+>
+  <!-- Dialog Header with Primary Branding -->
+  <div
+    class="sticky top-0 z-10 flex items-center justify-between bg-primary text-white px-6 py-4 rounded-t-xl shadow-sm"
+  >
+    <div class="flex items-center gap-3">
+      <mat-icon
+        class="icon-size-6 text-white"
+        svgIcon="heroicons_outline:credit-card"
+      ></mat-icon>
+      <span class="text-xl font-bold tracking-tight text-white">
+        Checkout
+      </span>
+    </div>
+    <button
+      type="button"
+      mat-icon-button
+      (click)="close()"
+      [disabled]="isSubmitting"
+      [tabIndex]="-1"
+      class="text-white hover:bg-white/10 rounded-full transition-colors"
+    >
+      <mat-icon class="icon-size-5" svgIcon="heroicons_outline:x"></mat-icon>
+    </button>
+  </div>
+
+  <!-- Dialog Content -->
+  <div class="p-6 max-h-[75vh] overflow-y-auto">
+    <!-- Plan banner -->
+    <div
+      class="flex items-center gap-4 p-4 rounded-xl border border-primary-200 bg-primary-50 mb-5"
+    >
+      <div
+        class="flex items-center justify-center w-12 h-12 rounded-lg bg-primary text-white shrink-0"
+      >
+        <mat-icon
+          class="icon-size-6"
+          svgIcon="heroicons_outline:star"
+        ></mat-icon>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-lg font-bold text-slate-900">{{ plan.name }}</span>
+        <span class="text-sm text-slate-600">
+          {{ billingCycle === "quarterly" ? "Quarterly" : "Monthly" }} billing ·
+          {{ plan.currency }} {{ planPrice | number: "1.2-2" }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Step 1: Contact / checkout form -->
+    @if (step === "form") {
+      <!-- Step 1: Contact / checkout form -->
+      <form [formGroup]="form" class="flex flex-col gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <mat-form-field class="w-full" appearance="outline">
+            <mat-label>First name</mat-label>
+            <mat-icon
+              matPrefix
+              class="icon-size-5 text-slate-400 mr-2"
+              svgIcon="heroicons_solid:user-circle"
+            ></mat-icon>
+            <input matInput formControlName="first_name" placeholder="John" />
+            @if (form.get("first_name")?.hasError("required")) {
+              <mat-error>First name is required</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="w-full" appearance="outline">
+            <mat-label>Last name</mat-label>
+            <mat-icon
+              matPrefix
+              class="icon-size-5 text-slate-400 mr-2"
+              svgIcon="heroicons_solid:user-circle"
+            ></mat-icon>
+            <input matInput formControlName="last_name" placeholder="Doe" />
+            @if (form.get("last_name")?.hasError("required")) {
+              <mat-error>Last name is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <mat-form-field class="w-full" appearance="outline">
+          <mat-label>Email</mat-label>
+          <mat-icon
+            matPrefix
+            class="icon-size-5 text-slate-400 mr-2"
+            svgIcon="heroicons_solid:mail"
+          ></mat-icon>
+          <input
+            matInput
+            formControlName="email"
+            placeholder="john@company.com"
+            [readonly]="true"
+            class="cursor-not-allowed text-slate-500"
+          />
+          <mat-hint class="text-slate-400 text-xs">
+            <mat-icon
+              class="icon-size-3.5 align-middle mr-0.5"
+              svgIcon="heroicons_mini:lock-closed"
+            ></mat-icon>
+            Pre-filled from your profile
+          </mat-hint>
+        </mat-form-field>
+
+        <mat-form-field class="w-full" appearance="outline">
+          <mat-label>Company name</mat-label>
+          <mat-icon
+            matPrefix
+            class="icon-size-5 text-slate-400 mr-2"
+            svgIcon="heroicons_outline:office-building"
+          ></mat-icon>
+          <input
+            matInput
+            formControlName="company_name"
+            placeholder="Company Inc."
+          />
+        </mat-form-field>
+
+        <mat-form-field class="w-full" appearance="outline">
+          <mat-label>Contact number</mat-label>
+          <mat-icon
+            matPrefix
+            class="icon-size-5 text-slate-400 mr-2"
+            svgIcon="heroicons_outline:phone"
+          ></mat-icon>
+          <input
+            matInput
+            formControlName="contact_number"
+            placeholder="+1 555 000 1234"
+          />
+          @if (form.get("contact_number")?.hasError("required")) {
+            <mat-error>Contact number is required</mat-error>
+          }
+          @if (form.get("contact_number")?.hasError("minlength")) {
+            <mat-error>Contact number must be at least 4 characters</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="w-full" appearance="outline">
+          <mat-label>Country</mat-label>
+          <mat-icon
+            matPrefix
+            class="icon-size-5 text-slate-400 mr-2"
+            svgIcon="heroicons_outline:globe-alt"
+          ></mat-icon>
+          <mat-select
+            formControlName="currency_id"
+            placeholder="Select your country"
+            (selectionChange)="onCurrencyChange()"
+          >
+            @if (currenciesLoading) {
+              <mat-option disabled>Loading...</mat-option>
+            } @else {
+              @for (currency of currencies; track currency.id) {
+                <mat-option [value]="currency.id">
+                  {{ currency.country || currency.currency }}
+                </mat-option>
+              }
+            }
+          </mat-select>
+          @if (
+            form.get("currency_id")?.hasError("required") ||
+            form.get("country_name")?.hasError("required")
+          ) {
+            <mat-error>Country is required</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Checkout action -->
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          (click)="submit()"
+          [disabled]="isFormInvalid || isSubmitting"
+          class="bg-primary text-white hover:bg-primary-600 px-6 py-3 rounded-xl font-medium shadow-md transition-all flex items-center justify-center gap-2"
+        >
+          @if (isSubmitting) {
+            <mat-spinner diameter="18" color="accent"></mat-spinner>
+          } @else {
+            <mat-icon
+              svgIcon="heroicons_outline:lock-closed"
+              class="icon-size-4"
+            ></mat-icon>
+          }
+          <span>{{ isSubmitting ? "Processing..." : "Checkout" }}</span>
+        </button>
+      </form>
+    }
+
+    @if (step === "summary") {
+      <!-- Step 2: Confirmation summary -->
+      <div class="flex flex-col gap-5">
+        <!-- Order summary -->
+        <div
+          class="flex flex-col divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden"
+        >
+          <div class="flex items-center justify-between px-5 py-4 bg-slate-50">
+            <span class="text-sm font-semibold text-slate-700">
+              Order summary
+            </span>
+            <mat-icon
+              class="icon-size-5 text-primary"
+              svgIcon="heroicons_outline:shopping-cart"
+            ></mat-icon>
+          </div>
+          <div
+            class="flex items-center justify-between px-5 py-3 text-sm text-slate-600"
+          >
+            <span>Plan</span>
+            <span class="font-medium text-slate-800">{{ plan.name }}</span>
+          </div>
+          <div
+            class="flex items-center justify-between px-5 py-3 text-sm text-slate-600"
+          >
+            <span>Billing</span>
+            <span class="font-medium text-slate-800">
+              {{ billingCycle === "quarterly" ? "Quarterly" : "Monthly" }}
+            </span>
+          </div>
+          <div
+            class="flex items-center justify-between px-5 py-3 text-sm text-slate-600"
+          >
+            <span>Currency</span>
+            <span class="font-medium text-slate-800">
+              {{ selectedCurrency?.currency || plan.currency }}
+            </span>
+          </div>
+          <div
+            class="flex items-center justify-between px-5 py-3 text-sm text-slate-600"
+          >
+            <span>Country</span>
+            <span class="font-medium text-slate-800">
+              {{
+                form.get("country_name")?.value ||
+                  selectedCurrency?.currency ||
+                  "-"
+              }}
+            </span>
+          </div>
+          @if (plan.trial_days > 0) {
+            <div
+              class="flex items-center justify-between px-5 py-3 text-sm text-slate-600"
+            >
+              <span>Trial</span>
+              <span class="font-medium text-emerald-600">
+                {{ plan.trial_days }} days free
+              </span>
+            </div>
+          }
+          <div
+            class="flex items-center justify-between px-5 py-4 bg-slate-50 text-sm"
+          >
+            <span class="font-semibold text-slate-800">Total due today</span>
+            <span class="font-bold text-xl text-primary">
+              {{ plan.currency }} {{ planPrice | number: "1.2-2" }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Contact note -->
+        <div
+          class="flex items-start gap-3 p-4 rounded-xl border border-primary-200 bg-primary-50"
+        >
+          <mat-icon
+            class="icon-size-6 text-primary shrink-0"
+            svgIcon="heroicons_outline:chat"
+          ></mat-icon>
+          <div class="flex flex-col gap-1">
+            <span class="text-sm font-semibold text-primary">
+              Ready to proceed?
+            </span>
+            <span class="text-xs text-slate-600 leading-relaxed">
+              Our team will contact you within 24 hours via the email address or
+              phone number you provided to confirm your plan and assist you with
+              the next steps.
+            </span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3">
+          <button
+            type="button"
+            mat-stroked-button
+            (click)="step = 'form'"
+            [disabled]="isSubmitting"
+            class="flex-1 px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+          >
+            <mat-icon
+              svgIcon="heroicons_outline:arrow-left"
+              class="icon-size-4"
+            ></mat-icon>
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
+            mat-flat-button
+            color="primary"
+            (click)="confirmLead()"
+            [disabled]="isSubmitting"
+            class="flex-1 bg-primary text-white hover:bg-primary-600 px-6 py-3 rounded-xl font-medium shadow-md transition-all flex items-center justify-center gap-2"
+          >
+            @if (isSubmitting) {
+              <mat-spinner diameter="18" color="accent"></mat-spinner>
+            } @else {
+              <mat-icon
+                svgIcon="heroicons_outline:check"
+                class="icon-size-4"
+              ></mat-icon>
+            }
+            <span>{{
+              isSubmitting ? "Submitting..." : "Confirm & Submit"
+            }}</span>
+          </button>
+        </div>
+      </div>
+    }
+    @if (step === "success") {
+      <!-- Step 3: Confirmation popup -->
+      <div class="flex flex-col items-center gap-5 py-4 text-center">
+        <div
+          class="flex items-center justify-center w-20 h-20 rounded-full bg-emerald-50 border-4 border-emerald-100"
+        >
+          <mat-icon
+            class="icon-size-10 text-emerald-500"
+            svgIcon="heroicons_outline:check"
+          ></mat-icon>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <span class="text-2xl font-bold text-slate-900">
+            You're all set!
+          </span>
+          <span class="text-sm text-slate-600 leading-relaxed">
+            Your request for
+            <strong class="text-slate-900">{{ plan.name }}</strong>
+            on
+            {{ billingCycle === "quarterly" ? "quarterly" : "monthly" }} billing
+            has been received.
+          </span>
+        </div>
+
+        <div
+          class="flex items-start gap-3 p-4 rounded-xl border border-primary-200 bg-primary-50 text-left w-full"
+        >
+          <mat-icon
+            class="icon-size-6 text-primary shrink-0"
+            svgIcon="heroicons_outline:chat"
+          ></mat-icon>
+          <div class="flex flex-col gap-1">
+            <span class="text-sm font-semibold text-primary">
+              Our team will be in touch
+            </span>
+            <span class="text-xs text-slate-600 leading-relaxed">
+              We'll contact you within 24 hours via the email address or phone
+              number you provided to confirm your plan and assist you with the
+              next steps.
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 pt-1">
+          <div class="flex items-center gap-1.5 text-xs text-slate-500">
+            <mat-icon
+              class="icon-size-4 text-emerald-500"
+              svgIcon="heroicons_outline:lock-closed"
+            ></mat-icon>
+            SSL secured
+          </div>
+          <div class="flex items-center gap-1.5 text-xs text-slate-500">
+            <mat-icon
+              class="icon-size-4 text-emerald-500"
+              svgIcon="heroicons_outline:shield-check"
+            ></mat-icon>
+            No card needed
+          </div>
+        </div>
+
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          (click)="close()"
+          class="w-full bg-primary text-white hover:bg-primary-600 px-6 py-3 rounded-xl font-medium shadow-md transition-all flex items-center justify-center gap-2"
+        >
+          <mat-icon
+            svgIcon="heroicons_outline:check"
+            class="icon-size-4"
+          ></mat-icon>
+          <span>Done</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

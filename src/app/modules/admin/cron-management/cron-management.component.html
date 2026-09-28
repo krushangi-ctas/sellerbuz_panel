@@ -1,0 +1,934 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden bg-white">
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_outline:clock'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">
+            {{ isLogsMode ? "Cron Logs" : "Cron Management" }}
+          </h1>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <!-- ========================================================== -->
+        <!-- CRON MANAGEMENT ACTIONS -->
+        <!-- ========================================================== -->
+        @if (!isLogsMode) {
+          <!-- Search Crons -->
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+          >
+            <mat-icon
+              class="icon-size-5 text-gray-400"
+              matPrefix
+              [svgIcon]="'heroicons_solid:search'"
+            ></mat-icon>
+            <input
+              matInput
+              [formControl]="searchControl"
+              maxlength="50"
+              [autocomplete]="'off'"
+              [placeholder]="'Search crons...'"
+              (wheel)="stopScrollingWheel($event)"
+            />
+          </mat-form-field>
+
+          <!-- Domain Filter -->
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+          >
+            <mat-icon
+              svgIcon="mat_outline:filter_alt"
+              class="icon-size-5 text-gray-400"
+              matPrefix
+            ></mat-icon>
+            <mat-select [formControl]="domainControl" placeholder="Domain">
+              @for (domain of domains; track domain) {
+                <mat-option [value]="domain">
+                  {{ domain === "all" ? "All Domains" : domain }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            class="btn-secondary-action"
+            (click)="refresh()"
+            matTooltip="Refresh"
+          >
+            <mat-icon
+              class="icon-size-5"
+              svgIcon="mat_outline:refresh"
+            ></mat-icon>
+          </button>
+        }
+
+        <!-- ========================================================== -->
+        <!-- CRON LOGS ACTIONS (MATCHING ROLE LIST STYLE) -->
+        <!-- ========================================================== -->
+        @if (isLogsMode) {
+          <!-- Search Logs -->
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+          >
+            <mat-icon
+              class="icon-size-5 text-gray-400"
+              matPrefix
+              [svgIcon]="'heroicons_solid:search'"
+            ></mat-icon>
+            <input
+              matInput
+              [formControl]="searchInputControl"
+              maxlength="50"
+              [autocomplete]="'off'"
+              [placeholder]="'Search cron logs...'"
+            />
+          </mat-form-field>
+
+          <!-- Filters Form (Matching Role search form) -->
+          <form
+            [formGroup]="cronSearchFormGroup"
+            class="flex flex-wrap items-center gap-2 -mb-5"
+          >
+            <!-- Status Filter -->
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript min-w-36"
+            >
+              <mat-icon
+                svgIcon="mat_outline:filter_alt"
+                class="icon-size-5 text-gray-400"
+                matPrefix
+              ></mat-icon>
+              <mat-select formControlName="status" placeholder="Status">
+                <mat-option value="">All</mat-option>
+                <mat-option value="success">Success</mat-option>
+                <mat-option value="running">Running</mat-option>
+                <mat-option value="failed">Failed</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Cron Time Filter -->
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript min-w-36"
+            >
+              <mat-icon
+                svgIcon="heroicons_outline:clock"
+                class="icon-size-5 text-gray-400"
+                matPrefix
+              ></mat-icon>
+              <mat-select formControlName="cronTime" placeholder="Cron Time">
+                <mat-option value="">All Times</mat-option>
+                <mat-option value="Daily">Daily</mat-option>
+                <mat-option value="Hourly">Hourly</mat-option>
+                <mat-option value="10 minutes">10 Minutes</mat-option>
+                <mat-option value="20 minutes">20 Minutes</mat-option>
+                <mat-option value="40 minutes">40 Minutes</mat-option>
+                <mat-option value="1 hour">1 Hour</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Date Range Filter -->
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript min-w-52"
+            >
+              <mat-icon
+                svgIcon="heroicons_outline:calendar"
+                class="icon-size-5 text-gray-400"
+                matPrefix
+              ></mat-icon>
+              <mat-date-range-input
+                [rangePicker]="cronDatePicker"
+                [max]="cronMaxDate"
+              >
+                <input
+                  matStartDate
+                  formControlName="startDate"
+                  [autocomplete]="'off'"
+                  placeholder="Start"
+                />
+                <input
+                  matEndDate
+                  formControlName="endDate"
+                  [autocomplete]="'off'"
+                  placeholder="End"
+                />
+              </mat-date-range-input>
+              <mat-datepicker-toggle
+                matSuffix
+                [for]="cronDatePicker"
+              ></mat-datepicker-toggle>
+              <mat-date-range-picker #cronDatePicker></mat-date-range-picker>
+              @if (
+                cronSearchFormGroup.get("startDate")?.value &&
+                cronSearchFormGroup.get("endDate")?.value
+              ) {
+                <button mat-icon-button type="button" (click)="clearCronDate()">
+                  <mat-icon class="icon-size-4">clear</mat-icon>
+                </button>
+              }
+            </mat-form-field>
+          </form>
+
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            class="btn-secondary-action"
+            (click)="refresh()"
+            matTooltip="Refresh"
+          >
+            <mat-icon
+              class="icon-size-5"
+              svgIcon="mat_outline:refresh"
+            ></mat-icon>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div
+      class="flex flex-col flex-auto min-h-0 overflow-hidden"
+      matSort
+      matSortDisableClear
+    >
+      <div
+        class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto"
+        [ngClass]="{ 'lg:mb-14': isLogsMode }"
+      >
+        <!-- ========================================================== -->
+        <!-- CRON MANAGEMENT: CRON LISTING CARDS GRID -->
+        <!-- ========================================================== -->
+        @if (!isLogsMode) {
+          <div class="p-4 sm:p-6 bg-slate-50 min-h-full">
+            @if (isLoadingCrons) {
+              <div class="flex flex-col items-center justify-center py-16">
+                <mat-spinner diameter="40"></mat-spinner>
+                <span class="mt-4 text-sm text-slate-500 font-medium"
+                  >Loading cron status...</span
+                >
+              </div>
+            } @else {
+              <div
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+              >
+                @for (cron of filteredCrons; track cron.cron_name) {
+                  <div
+                    class="bg-white border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between shadow-2xs hover:shadow-md transition-all duration-200"
+                  >
+                    <!-- Top Row: Domain & Status -->
+                    <div>
+                      <div class="flex items-center justify-between mb-3">
+                        <span
+                          class="text-[11px] font-extrabold tracking-wider uppercase text-primary-700 bg-primary-50 px-2.5 py-1 rounded-lg border border-primary-100/80"
+                        >
+                          {{ cron.domain }}
+                        </span>
+
+                        <span
+                          class="text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-2xs border"
+                          [class.bg-emerald-50]="cron.enabled && !cron.running"
+                          [class.text-emerald-700]="
+                            cron.enabled && !cron.running
+                          "
+                          [class.border-emerald-200]="
+                            cron.enabled && !cron.running
+                          "
+                          [class.bg-blue-50]="cron.running"
+                          [class.text-blue-700]="cron.running"
+                          [class.border-blue-200]="cron.running"
+                          [class.bg-slate-100]="!cron.enabled"
+                          [class.text-slate-600]="!cron.enabled"
+                          [class.border-slate-200]="!cron.enabled"
+                        >
+                          <span
+                            class="w-1.5 h-1.5 rounded-full"
+                            [class.bg-emerald-500]="
+                              cron.enabled && !cron.running
+                            "
+                            [class.bg-blue-500]="cron.running"
+                            [class.bg-slate-400]="!cron.enabled"
+                          ></span>
+                          {{ getStatusText(cron) }}
+                        </span>
+                      </div>
+
+                      <!-- Cron Title & Identifier -->
+                      <h3
+                        class="text-base font-bold text-slate-900 leading-snug"
+                      >
+                        {{ cron.display_name }}
+                      </h3>
+                      <p class="text-xs font-mono text-slate-400 mt-0.5">
+                        {{ cron.cron_name }}
+                      </p>
+
+                      <!-- Schedule Expression -->
+                      <div
+                        class="mt-3.5 flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 text-xs font-mono"
+                      >
+                        <mat-icon
+                          class="!w-4 !h-4 text-slate-400"
+                          svgIcon="heroicons_outline:clock"
+                        ></mat-icon>
+                        <span class="text-slate-500">Schedule:</span>
+                        <span class="font-bold text-slate-800">{{
+                          cron.schedule
+                        }}</span>
+                      </div>
+
+                      <!-- Stats Row -->
+                      <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+                        <div
+                          class="bg-slate-50 p-2 rounded-xl border border-slate-200/60 flex flex-col"
+                        >
+                          <span class="text-slate-400 text-[11px]"
+                            >Total Runs</span
+                          >
+                          <span class="font-bold text-slate-800 mt-0.5">{{
+                            cron.totalExecutions || 0
+                          }}</span>
+                        </div>
+                        <div
+                          class="bg-slate-50 p-2 rounded-xl border border-slate-200/60 flex flex-col"
+                        >
+                          <span class="text-slate-400 text-[11px]"
+                            >Failures</span
+                          >
+                          <span class="font-bold text-rose-600 mt-0.5">{{
+                            cron.totalFailures || 0
+                          }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Bottom Action Buttons: START CRON & STOP CRON -->
+                    <div
+                      class="mt-5 pt-3.5 border-t border-slate-100 flex items-center gap-2"
+                    >
+                      <!-- START CRON BUTTON -->
+                      <button
+                        type="button"
+                        class="flex-1 h-9 px-3 rounded-xl text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1.5 shadow-2xs border cursor-pointer"
+                        [ngClass]="{
+                          'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-emerald-200':
+                            !cron.enabled,
+                          'bg-emerald-50 text-emerald-400 border-emerald-100/80 cursor-not-allowed opacity-50':
+                            cron.enabled,
+                        }"
+                        [disabled]="
+                          cron.enabled || actionLoadingMap[cron.cron_name]
+                        "
+                        (click)="startCron(cron)"
+                      >
+                        @if (actionLoadingMap[cron.cron_name]) {
+                          <mat-spinner diameter="14" class="mr-1"></mat-spinner>
+                        } @else {
+                          <mat-icon
+                            class="!w-4 !h-4"
+                            svgIcon="heroicons_outline:play"
+                          ></mat-icon>
+                        }
+                        <span>Start Cron</span>
+                      </button>
+
+                      <!-- STOP CRON BUTTON -->
+                      <button
+                        type="button"
+                        class="flex-1 h-9 px-3 rounded-xl text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1.5 shadow-2xs border cursor-pointer"
+                        [ngClass]="{
+                          'bg-white text-rose-600 hover:bg-rose-50 border-rose-300 shadow-rose-100':
+                            cron.enabled,
+                          'bg-white text-slate-300 border-slate-200 cursor-not-allowed opacity-50':
+                            !cron.enabled,
+                        }"
+                        [disabled]="
+                          !cron.enabled || actionLoadingMap[cron.cron_name]
+                        "
+                        (click)="stopCron(cron)"
+                      >
+                        @if (actionLoadingMap[cron.cron_name]) {
+                          <mat-spinner diameter="14" class="mr-1"></mat-spinner>
+                        } @else {
+                          <mat-icon
+                            class="!w-4 !h-4"
+                            svgIcon="heroicons_outline:stop"
+                          ></mat-icon>
+                        }
+                        <span>Stop Cron</span>
+                      </button>
+
+                      <!-- FORCE RUN BUTTON -->
+                      <button
+                        type="button"
+                        class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/80 transition-all cursor-pointer flex-shrink-0"
+                        matTooltip="Run Now (Force Execution)"
+                        [disabled]="actionLoadingMap[cron.cron_name]"
+                        (click)="runCron(cron)"
+                      >
+                        <mat-icon
+                          class="!w-4 !h-4 text-amber-600"
+                          svgIcon="heroicons_outline:lightning-bolt"
+                        ></mat-icon>
+                      </button>
+
+                      <!-- DELAYED RUN BUTTON -->
+                      <button
+                        type="button"
+                        class="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 transition-all cursor-pointer flex-shrink-0"
+                        matTooltip="Schedule One-Shot Run After Delay (in Seconds)"
+                        [disabled]="actionLoadingMap[cron.cron_name]"
+                        (click)="openDelayModal(cron)"
+                      >
+                        <mat-icon
+                          class="!w-4 !h-4 text-blue-600"
+                          svgIcon="heroicons_outline:clock"
+                        ></mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              @if (filteredCrons.length === 0) {
+                <div
+                  class="text-center py-16 bg-white rounded-2xl border border-slate-200/80"
+                >
+                  <mat-icon
+                    class="icon-size-12 text-slate-300"
+                    svgIcon="heroicons_outline:clock"
+                  ></mat-icon>
+                  <h3 class="text-base font-bold text-slate-700 mt-2">
+                    No Crons Found
+                  </h3>
+                  <p class="text-xs text-slate-400 mt-0.5">
+                    Try adjusting your search query or domain filter.
+                  </p>
+                </div>
+              }
+            }
+          </div>
+        }
+
+        <!-- ========================================================== -->
+        <!-- CRON LOGS TABLE (EXACT ROLE LIST STYLE) -->
+        <!-- ========================================================== -->
+        @if (isLogsMode) {
+          @if (isLoading) {
+            <div class="grid mb-5">
+              <div class="table-header-row cron-logs-grid">
+                <div>Cron Name</div>
+                <div>Schedule</div>
+                <div>Status</div>
+                <div>Last Run</div>
+                <div>Next Run</div>
+                <div>Duration</div>
+              </div>
+
+              @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                <div class="table-data-row cron-logs-grid animate-pulse">
+                  <!-- Cron Name -->
+                  <div class="flex items-center gap-2.5">
+                    <div
+                      class="w-7 h-7 rounded-lg bg-gray-200 dark:bg-gray-700 flex-shrink-0"
+                    ></div>
+                    <div class="space-y-1">
+                      <div
+                        class="h-3.5 bg-gray-200 dark:bg-gray-700 rounded w-32"
+                      ></div>
+                      <div
+                        class="h-2.5 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <!-- Schedule -->
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                  ></div>
+
+                  <!-- Status -->
+                  <div
+                    class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-20"
+                  ></div>
+
+                  <!-- Last Run -->
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                  ></div>
+
+                  <!-- Next Run -->
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                  ></div>
+
+                  <!-- Duration -->
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                  ></div>
+                </div>
+              }
+            </div>
+          } @else if (cronLogs && cronLogs.length > 0) {
+            <div class="grid pb-4">
+              <!-- Table Header -->
+              <div class="table-header-row cron-logs-grid">
+                <div class="flex items-center" [mat-sort-header]="'title'">
+                  Cron Name
+                </div>
+                <div class="flex items-center" [mat-sort-header]="'cron_time'">
+                  Schedule
+                </div>
+                <div class="flex items-center" [mat-sort-header]="'isExecuted'">
+                  Status
+                </div>
+                <div class="flex items-center" [mat-sort-header]="'startTime'">
+                  Last Run
+                </div>
+                <div
+                  class="flex items-center"
+                  [mat-sort-header]="'nextRunTime'"
+                >
+                  Next Run
+                </div>
+                <div
+                  class="flex items-center"
+                  [mat-sort-header]="'executionTime'"
+                >
+                  Duration
+                </div>
+              </div>
+
+              <!-- Table Data Rows -->
+              @for (log of cronLogs; track trackByFn($index, log)) {
+                <div class="table-data-row cron-logs-grid">
+                  <!-- Cron Name -->
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <!-- Icon Badge (Kept exact original icons & colors) -->
+                    <div
+                      class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 shadow-xs"
+                      [class.bg-fuchsia-50]="log.icon === 'alarm'"
+                      [class.text-fuchsia-600]="log.icon === 'alarm'"
+                      [class.bg-blue-50]="log.icon === 'shield'"
+                      [class.text-blue-600]="log.icon === 'shield'"
+                      [class.bg-amber-50]="log.icon === 'amazon'"
+                      [class.text-amber-600]="log.icon === 'amazon'"
+                      [class.bg-teal-50]="log.icon === 'document'"
+                      [class.text-teal-600]="log.icon === 'document'"
+                      [class.bg-violet-50]="log.icon === 'search'"
+                      [class.text-violet-600]="log.icon === 'search'"
+                      [class.bg-rose-50]="log.icon === 'ai'"
+                      [class.text-rose-600]="log.icon === 'ai'"
+                      [class.bg-emerald-50]="log.icon === 'list'"
+                      [class.text-emerald-600]="log.icon === 'list'"
+                      [class.bg-sky-50]="log.icon === 'cart'"
+                      [class.text-sky-600]="log.icon === 'cart'"
+                    >
+                      @if (log.icon === "alarm") {
+                        <mat-icon
+                          class="!w-4 !h-4"
+                          [svgIcon]="'heroicons_outline:clock'"
+                        ></mat-icon>
+                      } @else if (log.icon === "shield") {
+                        <mat-icon
+                          class="!w-4 !h-4"
+                          [svgIcon]="'heroicons_outline:shield-check'"
+                        ></mat-icon>
+                      } @else if (log.icon === "amazon") {
+                        <mat-icon
+                          class="!w-4 !h-4"
+                          [svgIcon]="'heroicons_outline:cube'"
+                        ></mat-icon>
+                      } @else if (log.icon === "search") {
+                        <mat-icon
+                          class="!w-4 !h-4"
+                          [svgIcon]="'heroicons_outline:search'"
+                        ></mat-icon>
+                      } @else if (log.icon === "ai") {
+                        <mat-icon
+                          class="!w-4 !h-4"
+                          [svgIcon]="'heroicons_outline:sparkles'"
+                        ></mat-icon>
+                      } @else if (log.icon === "list") {
+                        <mat-icon
+                          class="!w-4 !h-4"
+                          [svgIcon]="'heroicons_outline:document-text'"
+                        ></mat-icon>
+                      } @else if (log.icon === "cart") {
+                        <mat-icon
+                          class="!w-4 !h-4"
+                          [svgIcon]="'heroicons_outline:shopping-cart'"
+                        ></mat-icon>
+                      } @else {
+                        <mat-icon
+                          class="!w-4 !h-4"
+                          [svgIcon]="'heroicons_outline:document'"
+                        ></mat-icon>
+                      }
+                    </div>
+                    <div class="min-w-0">
+                      <div
+                        class="font-semibold text-slate-800 text-[13px] truncate"
+                        [matTooltip]="
+                          log.cronName || log.title || log.cron_name
+                        "
+                      >
+                        {{ log.cronName || log.title || log.cron_name }}
+                      </div>
+                      <div
+                        class="text-[11px] text-slate-400 truncate"
+                        [matTooltip]="log.subtitle || log.description || ''"
+                      >
+                        {{ log.subtitle || log.description || "-" }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Schedule -->
+                  <div class="flex flex-col min-w-0">
+                    <span
+                      class="font-semibold text-xs text-slate-700 truncate"
+                      [matTooltip]="
+                        log.scheduleLabel || log.cron_time || 'Scheduled'
+                      "
+                    >
+                      {{ log.scheduleLabel || log.cron_time || "Scheduled" }}
+                    </span>
+                    <span
+                      class="text-[11px] font-mono text-slate-400 truncate"
+                      [matTooltip]="
+                        log.scheduleSub || log.cron_time_cron || '-'
+                      "
+                    >
+                      {{ log.scheduleSub || log.cron_time_cron || "-" }}
+                    </span>
+                  </div>
+
+                  <!-- Status -->
+                  <div class="flex items-center">
+                    @if (log.isRunning || log.status === "running") {
+                      <span
+                        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200"
+                        matTooltip="Running"
+                      >
+                        <span
+                          class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"
+                        ></span>
+                        Running
+                      </span>
+                    } @else if (
+                      log.isExecuted !== false && log.status !== "failed"
+                    ) {
+                      <span
+                        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        matTooltip="Success"
+                      >
+                        <span
+                          class="w-1.5 h-1.5 rounded-full bg-emerald-500"
+                        ></span>
+                        Success
+                      </span>
+                    } @else {
+                      <span
+                        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200"
+                        matTooltip="Failed"
+                      >
+                        <span
+                          class="w-1.5 h-1.5 rounded-full bg-rose-500"
+                        ></span>
+                        Failed
+                      </span>
+                    }
+                  </div>
+
+                  <!-- Last Run -->
+                  <div class="flex flex-col min-w-0">
+                    <span
+                      class="font-semibold text-xs text-slate-700"
+                      [matTooltip]="formatCronDate(log.startTime)"
+                    >
+                      {{ formatCronDate(log.startTime) }}
+                    </span>
+                    <span
+                      class="text-[11px] text-slate-400"
+                      [matTooltip]="getRelativeTime(log.startTime)"
+                    >
+                      {{ getRelativeTime(log.startTime) }}
+                    </span>
+                  </div>
+
+                  <!-- Next Run -->
+                  <div class="flex flex-col min-w-0">
+                    <span
+                      class="font-semibold text-xs text-slate-700"
+                      [matTooltip]="
+                        formatCronDate(log.nextRun || log.nextRunTime)
+                      "
+                    >
+                      {{ formatCronDate(log.nextRun || log.nextRunTime) }}
+                    </span>
+                    @if (
+                      (log.nextRun || log.nextRunTime) &&
+                      formatCronDate(log.nextRun || log.nextRunTime) !== "-"
+                    ) {
+                      <span
+                        class="text-[11px] text-slate-400"
+                        [matTooltip]="
+                          getRelativeTime(log.nextRun || log.nextRunTime)
+                        "
+                      >
+                        {{ getRelativeTime(log.nextRun || log.nextRunTime) }}
+                      </span>
+                    }
+                  </div>
+
+                  <!-- Duration -->
+                  <div
+                    class="font-semibold text-xs text-slate-700"
+                    [matTooltip]="log.duration || log.executionTime || '-'"
+                  >
+                    {{ log.duration || log.executionTime || "-" }}
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <ng-container [ngTemplateOutlet]="noRecord"></ng-container>
+          }
+        }
+      </div>
+
+      <!-- Pagination Bar (Matching Role List) -->
+      @if (isLogsMode && cronLogs && cronLogs.length > 0) {
+        <div class="pagination-bar">
+          <mat-paginator
+            [ngClass]="{ 'pointer-events-none': isLoading }"
+            [length]="cronTotalResults"
+            [pageSize]="100"
+            [pageSizeOptions]="[5, 10, 25, 50, 100]"
+            [pageIndex]="_paginators?.first?.pageIndex || 0"
+            [showFirstLastButtons]="false"
+          ></mat-paginator>
+        </div>
+      }
+
+      <!-- Empty State Template (Matching Plan List) -->
+      <ng-template #noRecord>
+        <div class="page-empty-state">
+          <div class="icon-wrapper">
+            <mat-icon
+              class="icon-size-10"
+              [svgIcon]="'heroicons_outline:document-report'"
+            ></mat-icon>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">
+            No cron logs found
+          </h3>
+          <p class="text-slate-500 max-w-sm">
+            Execution logs for background jobs will appear here once triggered.
+          </p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================== -->
+<!-- DELAYED RUN MODAL -->
+<!-- ========================================================== -->
+@if (delayModalCron) {
+  <div
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden transform transition-all"
+    >
+      <!-- Modal Header -->
+      <div
+        class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between"
+      >
+        <div class="flex items-center gap-2.5">
+          <mat-icon
+            class="!w-5 !h-5 text-blue-400"
+            svgIcon="heroicons_outline:clock"
+          ></mat-icon>
+          <div>
+            <h3 class="text-sm font-bold text-white">Schedule Delayed Run</h3>
+            <p class="text-[11px] text-slate-400">
+              One-shot background execution
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="closeDelayModal()"
+          class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+        >
+          <mat-icon class="!w-5 !h-5" svgIcon="heroicons_outline:x"></mat-icon>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6">
+        <!-- Target Cron Info Card -->
+        <div
+          class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 mb-5"
+        >
+          <span
+            class="text-[10px] font-extrabold uppercase text-primary-700 tracking-wider"
+          >
+            Target Cron
+          </span>
+          <h4 class="text-sm font-bold text-slate-900 mt-0.5">
+            {{ delayModalCron.display_name }}
+          </h4>
+          <p class="text-xs font-mono text-slate-500 mt-0.5">
+            {{ delayModalCron.cron_name }} &bull; Current Schedule:
+            {{ delayModalCron.schedule }}
+          </p>
+        </div>
+
+        <!-- Input Field (Seconds) -->
+        <div class="mb-4">
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">
+            Delay Duration (in Seconds) <span class="text-rose-500">*</span>
+          </label>
+          <div class="relative">
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              [formControl]="delaySecondsControl"
+              placeholder="e.g. 60 for 1 minute"
+              (keypress)="onlyNumbers($event)"
+              (paste)="onDelayInputPaste($event)"
+              (wheel)="stopScrollingWheel($event)"
+              class="w-full h-11 px-3.5 bg-white border rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 transition-all placeholder:text-slate-400 placeholder:font-normal"
+              [class.border-rose-400]="delayErrorMessage"
+              [class.focus:ring-rose-500/20]="delayErrorMessage"
+              [class.border-slate-300]="!delayErrorMessage"
+              [class.focus:border-blue-500]="!delayErrorMessage"
+              [class.focus:ring-blue-500/20]="!delayErrorMessage"
+            />
+            <span
+              class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none"
+            >
+              sec
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">
+            Accepts numbers only. Examples: 30 = 30s, 60 = 1m, 300 = 5m, 600 =
+            10m.
+          </p>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="mb-4">
+          <span
+            class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2"
+          >
+            Quick Presets
+          </span>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              (click)="setQuickPreset(30)"
+              class="px-2.5 py-1 text-xs font-bold rounded-lg border bg-slate-50 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 text-slate-700 transition-all cursor-pointer"
+            >
+              30s
+            </button>
+            <button
+              type="button"
+              (click)="setQuickPreset(60)"
+              class="px-2.5 py-1 text-xs font-bold rounded-lg border bg-slate-50 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 text-slate-700 transition-all cursor-pointer"
+            >
+              60s (1m)
+            </button>
+            <button
+              type="button"
+              (click)="setQuickPreset(120)"
+              class="px-2.5 py-1 text-xs font-bold rounded-lg border bg-slate-50 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 text-slate-700 transition-all cursor-pointer"
+            >
+              120s (2m)
+            </button>
+            <button
+              type="button"
+              (click)="setQuickPreset(300)"
+              class="px-2.5 py-1 text-xs font-bold rounded-lg border bg-slate-50 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 text-slate-700 transition-all cursor-pointer"
+            >
+              300s (5m)
+            </button>
+            <button
+              type="button"
+              (click)="setQuickPreset(600)"
+              class="px-2.5 py-1 text-xs font-bold rounded-lg border bg-slate-50 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 text-slate-700 transition-all cursor-pointer"
+            >
+              600s (10m)
+            </button>
+          </div>
+        </div>
+
+        <!-- Validation Error Alert -->
+        @if (delayErrorMessage) {
+          <div
+            class="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-700 font-semibold animate-shake"
+          >
+            <mat-icon
+              class="!w-4 !h-4 text-rose-500 flex-shrink-0 mt-0.5"
+              svgIcon="heroicons_outline:exclamation-circle"
+            ></mat-icon>
+            <span>{{ delayErrorMessage }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div
+        class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3"
+      >
+        <button
+          type="button"
+          (click)="closeDelayModal()"
+          [disabled]="isSubmittingDelay"
+          class="h-9 px-4 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-all cursor-pointer disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="submitDelayedRun()"
+          [disabled]="isSubmittingDelay"
+          class="h-9 px-4 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+        >
+          @if (isSubmittingDelay) {
+            <mat-spinner diameter="14" class="mr-1"></mat-spinner>
+            <span>Scheduling...</span>
+          } @else {
+            <mat-icon
+              class="!w-4 !h-4"
+              svgIcon="heroicons_outline:clock"
+            ></mat-icon>
+            <span>Schedule Run</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

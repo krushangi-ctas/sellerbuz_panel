@@ -1,0 +1,2917 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden bg-white">
+  <!-- Header -->
+  <div
+    class="page-header flex-col md:flex-row items-stretch md:items-center justify-between gap-3"
+  >
+    <!-- Title -->
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="text-3xl font-extrabold tracking-tight flex items-center">
+        <a
+          (click)="$event.preventDefault()"
+          mat-icon-button
+          [matTooltip]="tooltip"
+        >
+          <mat-icon
+            class="icon-size-7 mb-0 mr-1 text-white"
+            [svgIcon]="'heroicons_solid:archive'"
+          ></mat-icon>
+        </a>
+        <span
+          class="text-xl sm:text-2xl font-bold tracking-tight text-white whitespace-nowrap"
+        >
+          Amazon Inventory({{
+            marketplaceData ? marketplaceData.countryCode : "-"
+          }})
+        </span>
+        @if (selectedItems.size !== 0) {
+          <span class="mx-2 text-md flex gap-1">
+            <button
+              type="button"
+              [matMenuTriggerFor]="bulkActionsMenu"
+              class="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg border border-white/20 transition-all text-sm whitespace-nowrap"
+            >
+              Action for selected ({{ selectedItems.size }})
+              <mat-icon class="icon-size-4 text-white">
+                {{ isAuthorize ? "keyboard_arrow_up" : "keyboard_arrow_down" }}
+              </mat-icon>
+            </button>
+          </span>
+        }
+      </div>
+    </div>
+
+    <!-- Marketplace Selection Tabs (Fixed/Constrained Width Scrollable Container) -->
+    @if (sellerMarketplaces && sellerMarketplaces.length > 0) {
+      <div
+        class="flex items-center gap-2 max-w-full sm:max-w-[280px] md:max-w-[380px] lg:max-w-[500px] xl:max-w-[620px] min-w-0 flex-shrink overflow-hidden rounded-xl bg-white/10 border border-white/20 p-1 mx-0 md:mx-2"
+      >
+        <span
+          class="text-[11px] font-semibold text-white/80 uppercase tracking-wider px-2 flex-shrink-0 flex items-center gap-1 select-none"
+        >
+          Marketplaces:
+        </span>
+        <div
+          class="flex items-center gap-1.5 overflow-x-auto min-w-0 py-0.5 custom-header-scrollbar"
+        >
+          @for (m of sellerMarketplaces; track m.id) {
+            <button
+              type="button"
+              (click)="onMarketplaceTabSelect(m.id)"
+              [class.bg-white]="selectedMarketplaceId === m.id"
+              [class.text-blue-900]="selectedMarketplaceId === m.id"
+              [class.font-bold]="selectedMarketplaceId === m.id"
+              [class.shadow-md]="selectedMarketplaceId === m.id"
+              [class.bg-white\/15]="selectedMarketplaceId !== m.id"
+              [class.text-white]="selectedMarketplaceId !== m.id"
+              [class.hover:bg-white\/25]="selectedMarketplaceId !== m.id"
+              class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border border-white/20 transition-all cursor-pointer flex-shrink-0 whitespace-nowrap select-none"
+            >
+              <img
+                [src]="'assets/images/flags/' + m.countryCode + '.svg'"
+                [alt]="m.countryCode"
+                class="w-4 h-4 rounded-full object-cover flex-shrink-0"
+              />
+              <span>{{ m.countryName }} ({{ m.countryCode }})</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-2 flex-shrink-0 ml-auto">
+      <!-- Search -->
+      <mat-form-field
+        class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+      >
+        <mat-icon
+          class="icon-size-5 text-gray-400"
+          matPrefix
+          [svgIcon]="'heroicons_solid:search'"
+        ></mat-icon>
+        <input
+          matInput
+          [formControl]="searchInputControl"
+          maxlength="50"
+          [autocomplete]="'off'"
+          [placeholder]="'Search here...'"
+        />
+      </mat-form-field>
+
+      <!-- Product Type -->
+      <mat-form-field
+        class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+      >
+        <mat-select
+          [(ngModel)]="isProductType"
+          [ngModelOptions]="{ standalone: true }"
+          autocomplete="off"
+          placeholder="Product Type"
+          (selectionChange)="onClickFilter('amz_product_type', $event.value)"
+        >
+          <mat-option [value]="''">All</mat-option>
+          <mat-option [value]="'retail'">Retail</mat-option>
+          <mat-option [value]="'white_label'">White Label</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Date Range filter -->
+      <mat-form-field
+        class="fuse-mat-dense fuse-mat-no-subscript min-w-52 -mb-5"
+      >
+        <mat-icon
+          svgIcon="heroicons_outline:calendar"
+          class="icon-size-5 text-gray-400"
+          matPrefix
+        ></mat-icon>
+        <mat-date-range-input [rangePicker]="datePicker" [max]="maxDate">
+          <input
+            matStartDate
+            [formControl]="startDate"
+            [autocomplete]="'off'"
+            placeholder="Start"
+          />
+          <input
+            matEndDate
+            [formControl]="endDate"
+            [autocomplete]="'off'"
+            placeholder="End"
+            (dateChange)="onDateClickFilter()"
+          />
+        </mat-date-range-input>
+        <mat-datepicker-toggle
+          matSuffix
+          [for]="datePicker"
+        ></mat-datepicker-toggle>
+        <mat-date-range-picker #datePicker></mat-date-range-picker>
+        @if (isResetDate) {
+          <button mat-icon-button type="button" (click)="clearDate()">
+            <mat-icon class="icon-size-4">clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <!-- Refresh Button -->
+      <button
+        type="button"
+        class="btn-secondary-action"
+        (click)="refresh()"
+        matTooltip="Refresh"
+      >
+        <mat-icon class="icon-size-5" svgIcon="mat_outline:refresh"></mat-icon>
+      </button>
+
+      <!-- Actions Menu Button -->
+      <button
+        type="button"
+        class="btn-secondary-action"
+        [matMenuTriggerFor]="actionsMenu"
+        matTooltip="More Actions"
+      >
+        <mat-icon [svgIcon]="'heroicons_outline:dots-vertical'"></mat-icon>
+      </button>
+      <mat-menu #actionsMenu="matMenu" class="!shadow-2xl">
+        @if (sellerSetting && sellerSetting.amz_status === 1) {
+          <button
+            type="button"
+            mat-menu-item
+            (click)="OpenImportPopup(ImportFileTemplate, 'import')"
+          >
+            <mat-icon
+              [svgIcon]="'mat_outline:upload_file'"
+              class="text-slate-600 mr-2"
+            ></mat-icon>
+            <span>Import Inventory File</span>
+          </button>
+        }
+        @if (sellerSetting && sellerSetting.amz_status === 1) {
+          <button
+            type="button"
+            mat-menu-item
+            (click)="OpenSampleFilePopup(SampleFileTemplate, 'sample')"
+          >
+            <mat-icon
+              [svgIcon]="'heroicons_outline:document-download'"
+              class="text-slate-600 mr-2"
+            ></mat-icon>
+            <span>Download Sample File</span>
+          </button>
+        }
+        @if (sellerSetting && sellerSetting.amz_status === 1) {
+          <button type="button" mat-menu-item (click)="OpenAddProductPopup({})">
+            <mat-icon
+              [svgIcon]="'heroicons_outline:plus'"
+              class="text-emerald-600 mr-2"
+            ></mat-icon>
+            <span>Add Inventory Details</span>
+          </button>
+        }
+        <button type="button" mat-menu-item (click)="downloadInventory()">
+          <mat-icon
+            [svgIcon]="'mat_solid:download'"
+            class="text-blue-600 mr-2"
+          ></mat-icon>
+          <span>Download Inventory</span>
+        </button>
+        <!-- <button mat-menu-item (click)="openDialog()">
+          <mat-icon
+            [svgIcon]="'mat_solid:upload'"
+            class="text-indigo-600 mr-2"
+          ></mat-icon>
+          <span>Upload & Sync File</span>
+        </button> -->
+        <button type="button" mat-menu-item (click)="dispalyFilter()">
+          <mat-icon
+            svgIcon="mat_outline:filter_alt"
+            class="text-slate-600 mr-2"
+          ></mat-icon>
+          <span>Filter</span>
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <!-- Filters panel -->
+  @if (showFilter) {
+    <div
+      class="w-full border border-slate-200 bg-slate-50/50 p-3 rounded-lg mx-4 my-2 flex flex-col"
+    >
+      <form class="space-y-3" [formGroup]="filterForm">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+          <!-- Status -->
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-full">
+            <mat-label>Status</mat-label>
+            <mat-select
+              formControlName="status"
+              (selectionChange)="onClickFilter('status', $event.value)"
+            >
+              <mat-option [value]="null">All</mat-option>
+              <mat-option [value]="false">Active</mat-option>
+              <mat-option [value]="true">Deactive</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <!-- Fulfillment By -->
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-full">
+            <mat-label>Fulfillment By</mat-label>
+            <mat-select
+              formControlName="amz_fullfillment_by"
+              (selectionChange)="
+                onClickFilter('amz_fullfillment_by', $event.value)
+              "
+            >
+              <mat-option [value]="''">All</mat-option>
+              <mat-option value="FBA">FBA</mat-option>
+              <mat-option value="FBM">FBM</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <!-- WL Status -->
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-full">
+            <mat-label>WL Status</mat-label>
+            <mat-select
+              formControlName="wlStatus"
+              (selectionChange)="onClickFilter('wl_status', $event.value)"
+            >
+              <mat-option [value]="null">All</mat-option>
+              <mat-option value="Pending">Pending</mat-option>
+              <mat-option value="Processing">Processing</mat-option>
+              <mat-option value="Synced">Done</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <!-- Listing Error -->
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-full">
+            <mat-label>Listing Error</mat-label>
+            <mat-select
+              formControlName="error"
+              (selectionChange)="onClickFilter('error', $event.value)"
+            >
+              <mat-option [value]="null">All</mat-option>
+              <mat-option [value]="1">Yes</mat-option>
+              <mat-option [value]="2">No</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <!-- Stock -->
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-full">
+            <mat-label>Stock</mat-label>
+            <mat-select
+              formControlName="stock"
+              (selectionChange)="onClickFilter('stock', $event.value)"
+            >
+              <mat-option [value]="null">All</mat-option>
+              <mat-option [value]="1">In Stock</mat-option>
+              <mat-option [value]="2">Out Of Stock</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <!-- Product Type -->
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-full">
+            <mat-label>Product Type</mat-label>
+            <mat-select
+              formControlName="product_type"
+              (selectionChange)="onClickFilter('product_type', $event.value)"
+            >
+              <mat-option [value]="null">All</mat-option>
+              @for (value of productTypeList; track trackByFn($index, value)) {
+                <mat-option [value]="value._id">
+                  {{ value._id }} ({{ value.count }})
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </form>
+    </div>
+  }
+
+  <mat-menu #bulkActionsMenu="matMenu" class="bg-white">
+    <button type="button" mat-menu-item (click)="OpenMoveConfirmationPopup()">
+      <mat-icon
+        class="icon-size-5 mr-2"
+        [svgIcon]="'heroicons_outline:receipt-refund'"
+      ></mat-icon>
+      Move to Retail Products
+    </button>
+    <button
+      type="button"
+      mat-menu-item
+      (click)="openDeleteConfirmationPopup('')"
+    >
+      <mat-icon
+        class="icon-size-5 mr-2"
+        [svgIcon]="'heroicons_solid:trash'"
+      ></mat-icon>
+      Delete Listing
+    </button>
+    <button type="button" mat-menu-item (click)="OpenConfirmationPopup()">
+      <mat-icon class="mr-2">published_with_changes</mat-icon>
+      Publish/Unpublish Selected Products
+    </button>
+  </mat-menu>
+
+  <!-- Main -->
+  <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+    <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto">
+      <div class="grid mb-8 pb-8 sm:pb-8">
+        <!-- Sticky Header Matrix Row -->
+        <div
+          class="inventory-grid inventory-grid-header z-10 sticky top-0 grid gap-1 px-2 shadow text-sm font-semibold text-secondary bg-gray-100 dark:bg-black dark:bg-opacity-5"
+          matSort
+          matSortDisableClear
+          (matSortChange)="sortData($event)"
+        >
+          <div></div>
+          <div class="text-sm font-semibold">
+            <mat-checkbox
+              class="block"
+              matTooltip="select all for action"
+              [checked]="isAllSelected | async"
+              (change)="toggleSelectAll($event)"
+            >
+            </mat-checkbox>
+          </div>
+          @for (header of headers; track trackByFn($index, header)) {
+            <div
+              [id]="header.key"
+              [ngClass]="{
+                'mx-auto': header.key === 'stock' || header.key === 'price',
+              }"
+            >
+              @if (header.key !== "main_image_url") {
+                <span [mat-sort-header]="header.sortKey || header.key">
+                  {{ header.label }}
+                </span>
+              }
+              @if (header.key === "main_image_url") {
+                <span>
+                  {{ header.label }}
+                </span>
+              }
+            </div>
+          }
+          <div>Action</div>
+        </div>
+
+        <!-- SKELETON LOADER STATE (10 Rows) -->
+        @if (isLoading) {
+          @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+            <div class="inventory-grid table-data-row animate-pulse">
+              <!-- Alert Icon Column Mask -->
+              <div
+                class="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto"
+              ></div>
+
+              <!-- Checkbox Column Mask -->
+              <div
+                class="w-5 h-5 ml-2 bg-gray-200 dark:bg-gray-700 rounded"
+              ></div>
+
+              <!-- Created Date Column Mask -->
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+
+              <!-- Thumbnail Image Column Mask -->
+              <div>
+                <div
+                  class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded"
+                ></div>
+              </div>
+
+              <!-- Title / Brand / Type Column Mask -->
+              <div class="space-y-1.5">
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-44"
+                ></div>
+                <div
+                  class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                ></div>
+                <div
+                  class="h-2.5 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                ></div>
+              </div>
+
+              <!-- ASIN / Marketplace Block Mask -->
+              <div
+                class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-24 mx-auto"
+              ></div>
+
+              <!-- SKU Block Mask -->
+              <div
+                class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24 mx-auto"
+              ></div>
+
+              <!-- Amazon Margin Field Mask -->
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16 mx-auto"
+              ></div>
+
+              <!-- Amazon Stock Field Mask -->
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16 mx-auto"
+              ></div>
+
+              <!-- Amazon Price Field Mask -->
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16 mx-auto"
+              ></div>
+
+              <!-- Product Type Badge / Sync Status Mask -->
+              <div class="space-y-1 text-center">
+                <div
+                  class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-18 mx-auto"
+                ></div>
+                <div
+                  class="h-2.5 bg-gray-200 dark:bg-gray-700 rounded w-14 mx-auto"
+                ></div>
+              </div>
+
+              <!-- Fulfillment Target Column Mask -->
+              <div
+                class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-12 mx-auto"
+              ></div>
+
+              <!-- Variant Description String Column Mask -->
+              <div
+                class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"
+              ></div>
+
+              <!-- Inventory Update Sync Status Mask -->
+              <div
+                class="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto"
+              ></div>
+
+              <!-- Offer Status Verification Status Mask -->
+              <div
+                class="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto"
+              ></div>
+
+              <!-- Stop/Run Target Slider Input Mask -->
+              <div
+                class="w-9 h-5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto"
+              ></div>
+
+              <!-- Child Variant Expand Dropdown Button Mask -->
+              <div
+                class="w-10 h-7 bg-gray-200 dark:bg-gray-700 rounded mx-auto"
+              ></div>
+
+              <!-- Modified Date Column Mask -->
+              <div
+                class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-18 mx-auto"
+              ></div>
+
+              <!-- Context Operations Action Menu Trigger Mask -->
+              <div
+                class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto"
+              ></div>
+            </div>
+          }
+        } @else {
+          <!-- ACTUAL DATA STATE -->
+          @if (amzInventoryFormInput | async; as amzInventoryList) {
+            @if (amzInventoryList.length > 0) {
+              @for (
+                inventory of amzInventoryList;
+                track trackByFn($index, inventory)
+              ) {
+                <div
+                  [ngClass]="{
+                    'border-2 bg-red-100 border-red-700': inventory.is_banned,
+                  }"
+                  class="inventory-grid inventory-grid-row grid gap-1 px-2 border-b"
+                >
+                  <div>
+                    @if (inventory.issues && inventory.issues.length > 0) {
+                      <button
+                        type="button"
+                        class="w-1 p-1"
+                        mat-icon-button
+                        matTooltip="Listing issue"
+                        (click)="
+                          openIssuesPopup(
+                            inventory.issues,
+                            inventory.amz_product_type
+                          )
+                        "
+                      >
+                        <mat-icon
+                          class="icon-size-5 text-red-600"
+                          [svgIcon]="'heroicons_outline:exclamation-circle'"
+                        ></mat-icon>
+                      </button>
+                    }
+                  </div>
+                  <div class="text-sm font-semibold">
+                    <mat-checkbox
+                      class="block text-sm"
+                      [disabled]="inventory.is_banned"
+                      [checked]="selectedItems.has(inventory._id)"
+                      (change)="onCheckboxChange($event, inventory._id)"
+                    >
+                    </mat-checkbox>
+                    @if (inventory.is_move_to_retail === "PENDING") {
+                      <div class="text-primary text-xs">
+                        {{
+                          inventory.tmp_product_ids &&
+                          inventory.tmp_product_ids.length > 0
+                            ? "Product found!"
+                            : "Not found!"
+                        }}
+                      </div>
+                    }
+                  </div>
+                  <div
+                    class="flex items-center justify-center text-center text-xs font-semibold"
+                  >
+                    {{
+                      inventory.createdAt
+                        ? (inventory.createdAt | date: "dd-MM-yyyy, HH:mm")
+                        : "-"
+                    }}
+                  </div>
+                  <div class="flex items-center justify-center">
+                    <div class="h-fit w-fit">
+                      <button
+                        type="button"
+                        class="relative overflow-hidden"
+                        (click)="
+                          handleLightBoxProduct(
+                            inventory.white_label_products,
+                            inventory.main_image_url
+                          )
+                        "
+                      >
+                        <img
+                          class="w-10 h-10"
+                          [src]="getImageUrl(inventory.main_image_url)"
+                          alt="image"
+                          (error)="onImageError($event)"
+                        />
+                        @if (inventory.total_images > 1) {
+                          <span
+                            class="absolute top-0 right-0 bg-gray-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border border-white shadow-md"
+                          >
+                            {{ inventory.total_images }}
+                          </span>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="truncate text-sm font-semibold text-primary-500"
+                      [matTooltip]="getVarientTitle(inventory)"
+                      [ngClass]="{
+                        'text-center': !getVarientTitle(inventory),
+                        'text-left': getVarientTitle(inventory),
+                      }"
+                    >
+                      {{ getVarientTitle(inventory) || "-" }}
+                    </div>
+                    @if (inventory.brand) {
+                      <div
+                        class="truncate text-gray-700 text-sm"
+                        [matTooltip]="inventory.brand"
+                        [ngClass]="{
+                          'text-center': !inventory.brand,
+                          'text-left': inventory.brand,
+                        }"
+                      >
+                        {{ inventory.brand || "-" }}
+                      </div>
+                    }
+                    @if (inventory.product_type) {
+                      <div
+                        class="truncate cursor-default font-serif font-semibold text-gray-600 text-xs"
+                        [matTooltip]="inventory.product_type"
+                        [ngClass]="{
+                          'text-center': !inventory.product_type,
+                          'text-left': inventory.product_type,
+                        }"
+                      >
+                        {{ inventory.product_type || " - " }}
+                      </div>
+                    }
+                  </div>
+                  <div class="inventory-identifier-cell">
+                    @if (inventory.asin) {
+                      <div class="inventory-chip inventory-chip-asin">
+                        {{ inventory.marketplace_id }}
+                        <div class="text-center text-xs mx-auto truncate">
+                          <a
+                            [href]="
+                              marketplaceData?.amazonLink + inventory.asin
+                            "
+                            target="_blank"
+                          >
+                            {{ inventory.asin }}
+                          </a>
+                          <button
+                            type="button"
+                            [cdkCopyToClipboard]="inventory.asin"
+                          >
+                            <mat-icon
+                              svgIcon="mat_outline:content_copy"
+                              class="icon-size-3 ml-0.5"
+                            >
+                            </mat-icon>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                    @if (!inventory.asin) {
+                      <div class="text-center text-md mx-auto truncate">-</div>
+                    }
+                  </div>
+                  <div class="inventory-identifier-cell">
+                    @if (inventory.sku) {
+                      <div class="inventory-chip inventory-chip-sku">
+                        <div class="text-center text-xs">
+                          <span class="mx-auto truncate">{{
+                            inventory.sku
+                          }}</span>
+                          <button
+                            type="button"
+                            [cdkCopyToClipboard]="inventory.sku"
+                          >
+                            <mat-icon
+                              svgIcon="mat_outline:content_copy"
+                              class="icon-size-3 ml-0.5"
+                            >
+                            </mat-icon>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                    <!-- Fallback when SKU is not available -->
+                    @if (!inventory.sku) {
+                      <div class="text-center text-xs mx-auto truncate">-</div>
+                    }
+                  </div>
+                  <div
+                    class="inventory-input-cell border-left itemAmz"
+                    [ngClass]="{
+                      'border-top': i === 0,
+                      'border-btm': i === amzInventoryList.length - 1,
+                    }"
+                  >
+                    <!-- 'arshil' -->
+                    <mat-form-field
+                      class="fuse-mat-dense fuse-mat-no-subscript flex-wrap max-h-10 w-full inventory-form-field items-center text-sm"
+                    >
+                      <input
+                        matInput
+                        type="number"
+                        [disabled]="
+                          inventory.is_banned ||
+                          (inventory?.varients && inventory.varients.length > 0)
+                        "
+                        [value]="inventory.margin || 0"
+                        id="amz_margin_{{ inventory._id }}"
+                        (keyup.enter)="
+                          addUpdateSelectedAmzInventory(
+                            inventory._id,
+                            'amazon_margin'
+                          )
+                        "
+                        (wheel)="stopScrollingWheel($event)"
+                        min="0"
+                        max="999"
+                        oninput="
+                          if (this.value.length > 3)
+                            this.value = this.value.slice(0, 3);
+                          if (this.value < 0) this.value = 0;
+                        "
+                      />
+                    </mat-form-field>
+                  </div>
+                  <!-- Input Field for Updating Stock, with Enter Key Event -->
+                  <div
+                    class="inventory-input-cell border-left itemAmz"
+                    [ngClass]="{
+                      'border-top': i === 0,
+                      'border-btm': i === amzInventoryList.length - 1,
+                    }"
+                  >
+                    <mat-form-field
+                      class="fuse-mat-dense fuse-mat-no-subscript flex-wrap max-h-10 w-full inventory-form-field items-center text-sm"
+                    >
+                      <input
+                        matInput
+                        type="number"
+                        [value]="inventory.stock || 0"
+                        id="amz_stock_{{ inventory._id }}"
+                        [disabled]="
+                          inventory.is_banned ||
+                          (inventory?.varients && inventory.varients.length > 0)
+                        "
+                        (keyup.enter)="
+                          addUpdateSelectedAmzInventory(
+                            inventory._id,
+                            'amazon_stock'
+                          )
+                        "
+                        (wheel)="stopScrollingWheel($event)"
+                        min="0"
+                        [max]="inventory.master_stock"
+                        oninput="
+                          this.value = Math.min(
+                            Math.max(this.value, 0),
+                            this.getAttribute('max'),
+                          )
+                        "
+                      />
+                    </mat-form-field>
+                  </div>
+                  <div
+                    class="inventory-input-cell border-right itemAmz"
+                    [ngClass]="{
+                      'border-top': i === 0,
+                      'border-btm': i === amzInventoryList.length - 1,
+                    }"
+                  >
+                    <mat-form-field
+                      class="fuse-mat-dense fuse-mat-no-subscript flex-wrap max-h-10 w-full inventory-form-field items-center text-sm"
+                    >
+                      <input
+                        matInput
+                        type="number"
+                        [value]="inventory.price || 0"
+                        id="amz_price_{{ inventory._id }}"
+                        [disabled]="
+                          inventory.is_banned ||
+                          (inventory?.varients && inventory.varients.length > 0)
+                        "
+                        (keyup.enter)="
+                          addUpdateSelectedAmzInventory(
+                            inventory._id,
+                            'amazon_price'
+                          )
+                        "
+                        (wheel)="stopScrollingWheel($event)"
+                        min="0"
+                        max="9999999"
+                        oninput="
+                          if (this.value.length > 7)
+                            this.value = this.value.slice(0, 7);
+                          if (this.value < 0) this.value = 0;
+                        "
+                      />
+                    </mat-form-field>
+                  </div>
+                  <div
+                    class="truncate font-semibold text-center"
+                    [matTooltip]="inventory.amz_product_type"
+                  >
+                    <span
+                      class="px-2.5 py-0.5 rounded-full text-xs"
+                      [ngClass]="{
+                        'bg-accent-100 text-primary-500':
+                          inventory.amz_product_type === 'retail',
+                        'bg-custom text-white':
+                          inventory.amz_product_type === 'white_label',
+                      }"
+                    >
+                      {{
+                        getProductTypeName(inventory.amz_product_type) ||
+                          "White Label"
+                      }}
+                    </span>
+                    @if (inventory.amz_product_type === "white_label") {
+                      <div class="text-xs">
+                        <!-- Show processing status -->
+                        @if (
+                          [4, 5, 6, 0].includes(inventory.amazon_script_status)
+                        ) {
+                          <mat-icon color="gray" class="icon-size-3"
+                            >hourglass_empty</mat-icon
+                          >
+                          <span
+                            class="text-primary-500 font-semibold text-sm upparcase mr-3"
+                            >Processing</span
+                          >
+                        }
+                        <!-- Show pending status -->
+                        @if (inventory.amazon_script_status === 3) {
+                          <mat-icon class="icon-size-3">pending</mat-icon>
+                          <span
+                            class="text-primary-500 font-semibold text-sm upparcase"
+                            >PENDING</span
+                          >
+                        }
+                        <!-- Show synced status -->
+                        @if (inventory.amazon_script_status === 7) {
+                          <mat-icon color="success" class="icon-size-3"
+                            >check_circle</mat-icon
+                          >
+                          <span class="text-primary-500 font-semibold"
+                            >Done</span
+                          >
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <div class="truncate font-semibold text-center">
+                    <span
+                      class="truncate mx-auto px-2 py-0.5 font-semibold transition-all duration-200 text-xs"
+                      [ngClass]="{
+                        'bg-pink-200 text-pink-800':
+                          inventory.amz_fullfillment_by &&
+                          inventory.amz_fullfillment_by !== '-',
+                      }"
+                    >
+                      {{ inventory.amz_fullfillment_by || "-" }}
+                    </span>
+                  </div>
+                  <div
+                    class="truncate italic text-gray-700 text-center text-sm"
+                    [matTooltip]="stripHtml(getVarientDescription(inventory))"
+                  >
+                    {{ stripHtml(getVarientDescription(inventory)) || "" }}
+                  </div>
+                  <div class="text-center">
+                    @if (inventory.is_inventory_updated) {
+                      @if (
+                        !(
+                          inventory.amz_product_type === "retail" &&
+                          inventory.issues &&
+                          inventory.issues.length > 0
+                        )
+                      ) {
+                        <mat-icon
+                          class="icon-size-5 text-sky-600"
+                          matTooltip="UPDATED"
+                          [svgIcon]="'mat_solid:thumb_up'"
+                        ></mat-icon>
+                      } @else {
+                        -
+                      }
+                    }
+                    @if (!inventory.is_inventory_updated) {
+                      @if (
+                        !(
+                          inventory.amz_product_type === "retail" &&
+                          inventory.issues &&
+                          inventory.issues.length > 0
+                        )
+                      ) {
+                        <mat-icon
+                          matTooltip="PROCESSING"
+                          class="icon-size-5 text-slate-600"
+                          [svgIcon]="'mat_solid:thumb_down'"
+                        ></mat-icon>
+                      } @else {
+                        -
+                      }
+                    }
+                  </div>
+                  <div class="text-center">
+                    @if (inventory.is_offer_added) {
+                      @if (
+                        !(
+                          inventory.amz_product_type === "retail" &&
+                          inventory.issues &&
+                          inventory.issues.length > 0
+                        )
+                      ) {
+                        <mat-icon
+                          class="icon-size-5 text-green-700"
+                          matTooltip="ADDED"
+                          [svgIcon]="'heroicons_solid:bell'"
+                        ></mat-icon>
+                      } @else {
+                        -
+                      }
+                    }
+                    @if (!inventory.is_offer_added) {
+                      @if (
+                        !(
+                          inventory.amz_product_type === "retail" &&
+                          inventory.issues &&
+                          inventory.issues.length > 0
+                        )
+                      ) {
+                        <mat-icon
+                          matTooltip="PROCESSING"
+                          class="icon-size-5 text-red-700"
+                          [svgIcon]="'heroicons_solid:bell'"
+                        ></mat-icon>
+                      } @else {
+                        -
+                      }
+                    }
+                  </div>
+                  <div class="flex items-center justify-center gap-1.5">
+                    <mat-slide-toggle
+                      class="custom-toggle sm:mt-0 sm:ml-auto"
+                      [disabled]="inventory.is_banned"
+                      [matTooltip]="
+                        getStatus(inventory.is_product_stopped)
+                          ? 'Enabled product'
+                          : 'Disabled product'
+                      "
+                      [checked]="getStatus(inventory.is_product_stopped)"
+                      (change)="productStopInAmz($event, inventory._id)"
+                    >
+                    </mat-slide-toggle>
+                    @if (
+                      inventory?.import_from === "File" ||
+                      inventory?.import_from === "File Import"
+                    ) {
+                      <mat-icon
+                        class="icon-size-5 text-blue-600 cursor-pointer"
+                        matTooltip="File Import"
+                      >
+                        description
+                      </mat-icon>
+                    } @else {
+                      <mat-icon
+                        class="icon-size-5 text-amber-600 cursor-pointer"
+                        matTooltip="Manual Added"
+                      >
+                        edit_note
+                      </mat-icon>
+                    }
+                  </div>
+                  <div class="flex justify-center items-center">
+                    <button
+                      type="button"
+                      class="min-w-10 min-h-7 h-7 px-2 leading-6"
+                      [disabled]="!(inventory?.varients?.length > 0)"
+                      mat-stroked-button
+                      (click)="
+                        setProductId(
+                          selectedProduct === inventory._id ? '' : inventory._id
+                        )
+                      "
+                    >
+                      <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="
+                          selectedProduct === inventory._id
+                            ? 'heroicons_solid:chevron-up'
+                            : 'heroicons_solid:chevron-down'
+                        "
+                      >
+                      </mat-icon>
+                    </button>
+                  </div>
+                  <div class="text-xs font-semibold text-center">
+                    {{
+                      inventory.updatedAt
+                        ? (inventory.updatedAt | date: "dd-MM-yyyy, HH:mm")
+                        : "-"
+                    }}
+                  </div>
+                  <div class="flex flex-col md:px-0 text-center">
+                    <button
+                      type="button"
+                      mat-icon-button
+                      [matMenuTriggerFor]="menu"
+                      class="rounded-none hover:rounded-none"
+                    >
+                      <mat-icon
+                        [svgIcon]="'heroicons_outline:dots-vertical'"
+                      ></mat-icon>
+                    </button>
+                    <mat-menu
+                      #menu="matMenu"
+                      class="!shadow-2xl divide-y-2 bg-white"
+                    >
+                      <button
+                        type="button"
+                        mat-menu-item
+                        class="border border-b-2 text-black"
+                        (click)="
+                          inventory.amz_product_type === 'white_label'
+                            ? OpenUpdateProductPopup(
+                                updateProductTemplate,
+                                inventory._id,
+                                inventory.product_type,
+                                inventory
+                              )
+                            : null;
+                          inventory.amz_product_type === 'white_label'
+                            ? onUpdatePopupOpen(inventory.missing_attributes)
+                            : ''
+                        "
+                      >
+                        @if (inventory.amz_product_type === "white_label") {
+                          <mat-icon
+                            svgIcon="heroicons_solid:pencil"
+                            class="text-black cursor-pointer"
+                          ></mat-icon>
+                        } @else {
+                          <mat-icon
+                            svgIcon="edit_off"
+                            class="text-gray-600 cursor-pointer"
+                          ></mat-icon>
+                        }
+                        <span class="flex flex-col justify-center item-center">
+                          <span> Edit Item </span>
+                        </span>
+                      </button>
+                      @if (inventory.amz_product_type === "white_label") {}
+                      <button
+                        type="button"
+                        mat-menu-item
+                        class="text-black"
+                        (click)="openDeleteConfirmationPopup(inventory._id)"
+                      >
+                        <mat-icon
+                          svgIcon="heroicons_solid:trash"
+                          class="text-black cursor-pointer"
+                        ></mat-icon>
+                        <span class="flex flex-col justify-center item-center">
+                          <span> Delete Listing </span>
+                        </span>
+                      </button>
+                      @if (inventory?.tag) {
+                        <button
+                          mat-menu-item
+                          type="button"
+                          [matTooltip]="inventory?.tag"
+                          (click)="
+                            inventory.amz_product_type === 'white_label'
+                              ? OpenUpdateProductPopup(
+                                  updateProductTemplate,
+                                  inventory._id,
+                                  inventory.product_type,
+                                  inventory
+                                )
+                              : null;
+                            isHaveTokeepDiable(inventory?.issue);
+                            inventory.amz_product_type === 'white_label'
+                              ? onUpdatePopupOpen(inventory.missing_attributes)
+                              : ''
+                          "
+                        >
+                          <mat-icon
+                            class="text-red-400 cursor-pointer"
+                            svgIcon="heroicons_solid:trash"
+                          ></mat-icon>
+                          <span class="flex flex-col">
+                            <span> Remove Tag </span>
+                          </span>
+                        </button>
+                      }
+                      @if (inventory.amz_product_type === "white_label") {
+                        <button
+                          class="border border-b-2 text-black"
+                          mat-menu-item
+                          type="button"
+                          (click)="
+                            OpenAddImagePopup(
+                              AddImages,
+                              inventory.main_image_url,
+                              inventory._id,
+                              inventory.white_label_products
+                            )
+                          "
+                        >
+                          <mat-icon
+                            class="text-black cursor-pointer"
+                            svgIcon="feather:image"
+                          ></mat-icon>
+                          <span class="flex flex-col">
+                            <span> Manage Images </span>
+                          </span>
+                        </button>
+                      }
+                    </mat-menu>
+                  </div>
+                </div>
+                <div class="grid">
+                  @if (
+                    inventory?._id === selectedProduct &&
+                    inventory?.varients?.length > 0
+                  ) {
+                    <ng-container
+                      *ngTemplateOutlet="
+                        rowDetailsTemplate;
+                        context: {
+                          $implicit: {
+                            inventory,
+                            amzInventoryList,
+                          },
+                        }
+                      "
+                    >
+                    </ng-container>
+                  }
+                </div>
+              }
+            } @else {
+              <div
+                class="flex flex-col items-center justify-center p-12 p-20 text-center border-t"
+              >
+                <div
+                  class="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-4"
+                >
+                  <mat-icon
+                    class="icon-size-12 text-primary"
+                    [svgIcon]="'heroicons_outline:archive'"
+                  ></mat-icon>
+                </div>
+                <h3
+                  class="text-xl font-semibold text-gray-900 dark:text-white mb-2"
+                >
+                  No Inventory Found
+                </h3>
+                <p class="text-gray-500 dark:text-gray-400 max-w-sm">
+                  No inventory records are available at the moment.
+                </p>
+              </div>
+            }
+          }
+        }
+      </div>
+
+      <!-- Paginator Footer Interface -->
+      @if (amzInventoryFormInput | async; as amzInventoryList) {
+        @if (amzInventoryList?.length) {
+          <div class="overflow-auto">
+            <div
+              class="sm:absolute absolute inset-x-0 bottom-0 sm:inset-x-0 sm:bottom-0 flex flex-col sm:flex-row justify-between border-b sm:border-t sm:border-b-0 z-10 bg-gray-50 dark:bg-transparent"
+            >
+              <div
+                class="flex flex-wrap sm:pr-3 sm:pl-2 items-center font-semibold text-secondary"
+              >
+                <mat-paginator
+                  [ngClass]="{ 'pointer-events-none': isLoading }"
+                  [length]="
+                    ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                    (amzInventoryList?.length || 0) +
+                    (pagination?.hasNextPage ? 1 : 0)
+                  "
+                  [pageSize]="pagination?.size || 100"
+                  [pageSizeOptions]="[5, 25, 50, 100]"
+                  [pageIndex]="(pagination?.page || 1) - 1"
+                  [showFirstLastButtons]="false"
+                ></mat-paginator>
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>
+
+<ng-template #inventoryUploadDialog>
+  <div class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-160">
+    <form
+      class="flex flex-col"
+      [formGroup]="inventoryFormGroup"
+      (keydown)="onKeydown($event)"
+    >
+      <!-- Header Section -->
+      <div
+        class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+      >
+        <div class="flex items-center gap-2">
+          <mat-icon
+            class="icon-size-5 text-white"
+            svgIcon="heroicons_outline:cloud-upload"
+          ></mat-icon>
+          <span class="text-lg font-semibold text-white"
+            >Inventory File Upload</span
+          >
+        </div>
+        <button
+          type="button"
+          mat-icon-button
+          (click)="closeUpdateDialog()"
+          [tabIndex]="-1"
+          class="text-white"
+        >
+          <mat-icon [svgIcon]="'heroicons_outline:x'"></mat-icon>
+        </button>
+      </div>
+
+      <!-- File Upload Section -->
+      <div class="p-6 flex flex-col items-center justify-center gap-3">
+        <button
+          type="button"
+          mat-flat-button
+          class="bg-slate-800 text-white font-medium rounded-lg px-4 py-2 hover:bg-slate-900 transition-colors"
+          (click)="selectFile.click()"
+        >
+          <mat-icon
+            svgIcon="heroicons_outline:upload"
+            class="mr-1 text-white"
+          ></mat-icon>
+          Choose File
+        </button>
+        <input type="file" hidden #selectFile (change)="onFileUpload($event)" />
+
+        @if (fileNM) {
+          <div
+            class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 text-sm font-semibold"
+          >
+            <mat-icon
+              class="icon-size-4 shrink-0 text-emerald-600"
+              svgIcon="heroicons_outline:check-circle"
+            ></mat-icon>
+            <span>{{ fileNM }}</span>
+          </div>
+        }
+        @if (!fileNM) {
+          <mat-error
+            class="text-red-500 text-xs font-bold flex items-center gap-1.5 mt-2"
+          >
+            <mat-icon
+              class="icon-size-4 text-red-500"
+              svgIcon="heroicons_outline:exclamation-circle"
+            ></mat-icon>
+            Please select a file to proceed.
+          </mat-error>
+        }
+      </div>
+
+      <!-- Action Buttons -->
+      <div
+        class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50"
+      >
+        <button type="button" class="btn-cancel" (click)="closeUpdateDialog()">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="btnDisable"
+          (click)="uploadInventoryFile()"
+        >
+          <mat-icon
+            class="text-white mr-1"
+            svgIcon="heroicons_outline:check"
+          ></mat-icon>
+          Save
+        </button>
+      </div>
+    </form>
+  </div>
+</ng-template>
+
+<ng-template #SampleFileTemplate>
+  <div class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-160">
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-white">insert_drive_file</mat-icon>
+        <span class="text-lg font-semibold text-white"
+          >Download Sample File</span
+        >
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeUpdateDialog()"
+        class="text-white"
+      >
+        <mat-icon class="text-white">close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="p-6 space-y-4 max-h-[350px] overflow-auto">
+      <!-- Product Type Selection -->
+      <div>
+        <p class="text-sm font-semibold text-slate-800 mb-2">
+          Select Product Type:
+        </p>
+        <mat-radio-group
+          [(ngModel)]="selectedCategory"
+          class="flex flex-wrap gap-3"
+          [ngModelOptions]="{ standalone: true }"
+        >
+          <mat-radio-button value="retail" class="text-sm text-gray-700"
+            >Retail</mat-radio-button
+          >
+          <mat-radio-button value="whitelabel" class="text-sm text-gray-700"
+            >Whitelabel</mat-radio-button
+          >
+        </mat-radio-group>
+      </div>
+
+      <!-- File Type Selection (Only for Retail) -->
+      @if (selectedCategory === "retail") {
+        <div class="space-y-2">
+          <p class="text-sm font-semibold text-slate-800">Select File Type:</p>
+          <mat-radio-group
+            [(ngModel)]="selectedFileType"
+            class="flex flex-wrap gap-3"
+          >
+            <mat-radio-button value="csv" class="text-sm text-gray-700"
+              >CSV</mat-radio-button
+            >
+            <mat-radio-button value="excel" class="text-sm text-gray-700"
+              >Excel</mat-radio-button
+            >
+          </mat-radio-group>
+          <p class="text-xs text-slate-500">
+            Choose CSV for lightweight files or Excel for structured data.
+          </p>
+        </div>
+      }
+
+      <!-- Amazon Product Type Selection (Only for Whitelabel) -->
+      @if (selectedCategory === "whitelabel") {
+        <div class="space-y-4">
+          <div
+            class="p-3 border text-slate-700 bg-blue-50 border-blue-100 rounded-lg"
+          >
+            <p class="text-xs font-semibold">
+              <mat-icon
+                class="icon-size-4 inline text-blue-600 mr-1"
+                svgIcon="heroicons_outline:information-circle"
+              ></mat-icon>
+              Bullet points: separate multiple points using |||. Example:
+              <code
+                class="bg-slate-100 px-1 rounded text-slate-800 font-mono font-bold"
+                >High-quality material ||| Durable and long-lasting</code
+              >
+            </p>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-slate-800 mb-2">
+              Select Amazon Product Type:
+            </p>
+            <mat-form-field class="w-full fuse-mat-dense">
+              <mat-label>Select Amazon Product Type</mat-label>
+              <mat-select
+                [(ngModel)]="selectProductType"
+                [ngModelOptions]="{ standalone: true }"
+              >
+                <mat-option>
+                  <ngx-mat-select-search
+                    placeholderLabel="Search..."
+                    (keyup)="
+                      filterProductTypeDataForSingleProducts(
+                        $event.target.value
+                      )
+                    "
+                    noEntriesFoundLabel="'No product type found'"
+                  >
+                  </ngx-mat-select-search>
+                </mat-option>
+                @for (
+                  productType of singleProductsVars.filteredProductTypeList;
+                  track productType
+                ) {
+                  <mat-option [value]="productType.productType">
+                    {{ productType.displayName }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div
+      class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50"
+    >
+      <button
+        type="button"
+        mat-stroked-button
+        (click)="closeUpdateDialog()"
+        class="font-medium rounded-lg px-4 py-2 border-slate-200 text-slate-700"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        mat-flat-button
+        class="bg-slate-800 text-white font-medium rounded-lg px-4 py-2 hover:bg-slate-900 transition-colors"
+        (click)="!disableDownload ? downloadFile() : null"
+        [disabled]="disableDownload"
+      >
+        Download
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #ImportFileTemplate>
+  <div class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-160">
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-white text-xl">insert_drive_file</mat-icon>
+        <span class="text-lg font-semibold text-white"
+          >Import Inventory File</span
+        >
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeUpdateDialog()"
+        class="text-white"
+      >
+        <mat-icon class="text-white">close</mat-icon>
+      </button>
+    </div>
+
+    @if (sellerSetting && sellerSetting.amz_status === 0) {
+      <div
+        class="p-4 bg-amber-50 border border-amber-100 text-amber-900 rounded-lg m-4 flex flex-col gap-2"
+      >
+        <p class="text-sm font-semibold">
+          Amazon integration is disabled. Configure settings to enable.
+        </p>
+        <a
+          (click)="navigateToSettings()"
+          class="text-blue-600 font-semibold hover:underline cursor-pointer text-sm"
+        >
+          Go to Amazon Settings
+        </a>
+      </div>
+    }
+
+    <!-- Body Section -->
+    @if (sellerSetting && sellerSetting.amz_status === 1) {
+      <div class="p-6 max-h-[400px] overflow-auto space-y-4">
+        <!-- Settings Grid -->
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Fulfillment -->
+          <div
+            class="flex flex-col bg-slate-50 border border-slate-100 p-3 rounded-lg"
+          >
+            <span class="text-xs font-semibold text-slate-700 mb-2"
+              >Fulfillment By</span
+            >
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript w-full scale-95 -ml-1"
+            >
+              <mat-select [formControl]="fulfillmentControl">
+                <mat-option [value]="'FBM'">FBM</mat-option>
+                <mat-option [value]="'FBA'">FBA</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+          <!-- Product Type -->
+          <div
+            class="flex flex-col bg-slate-50 border border-slate-100 p-3 rounded-lg"
+          >
+            <span class="text-xs font-semibold text-slate-700 mb-2"
+              >Product Type</span
+            >
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript w-full scale-95 -ml-1"
+            >
+              <mat-select [formControl]="productTypeControl">
+                <mat-option [value]="'retail'">Retail</mat-option>
+                <mat-option [value]="'white_label'">White Label</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+          <!-- Margin Mode -->
+          <div
+            class="flex flex-col bg-slate-50 border border-slate-100 p-3 rounded-lg"
+          >
+            <span class="text-xs font-semibold text-slate-700 mb-2"
+              >Margin Mode</span
+            >
+            <mat-radio-group
+              [formControl]="amzMarginModeControl"
+              class="flex gap-4 mt-2 scale-90"
+            >
+              <mat-radio-button value="FIX">Fixed</mat-radio-button>
+              <mat-radio-button value="PERCENTAGE">Percentage</mat-radio-button>
+            </mat-radio-group>
+          </div>
+          <!-- Margin -->
+          <div
+            class="flex flex-col bg-slate-50 border border-slate-100 p-3 rounded-lg"
+          >
+            <span class="text-xs font-semibold text-slate-700 mb-2"
+              >Margin</span
+            >
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript w-full scale-95 -ml-1"
+            >
+              <input
+                matInput
+                [formControl]="amzMarginControl"
+                type="number"
+                placeholder="Enter margin"
+                min="0"
+                (wheel)="stopScrollingWheel($event)"
+                (keydown.enter)="$event.preventDefault()"
+              />
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Warning -->
+        <div
+          class="flex items-center bg-amber-50 border border-amber-100 text-amber-900 p-3 rounded-lg text-xs font-semibold"
+        >
+          <mat-icon class="mr-2 text-amber-600 icon-size-5">warning</mat-icon>
+          <span>
+            Prices will be synced in
+            <strong
+              >{{ marketplaceData?.currencyCode }} ({{
+                marketplaceData?.currency
+              }})</strong
+            >
+          </span>
+        </div>
+
+        <!-- File Settings -->
+        <div class="p-4 border border-slate-200 rounded-lg bg-slate-50">
+          <p class="text-sm font-semibold text-slate-700 mb-3">File Settings</p>
+          @if (productTypeControl.value === "retail") {
+            <div class="space-y-2">
+              <mat-label class="text-xs font-semibold text-slate-600"
+                >Select File Format</mat-label
+              >
+              <mat-radio-group
+                [formControl]="fileFormatControl"
+                class="flex gap-4 mt-1 scale-95"
+              >
+                <mat-radio-button value="csv">CSV</mat-radio-button>
+                <mat-radio-button value="excel">Excel (.xlsx)</mat-radio-button>
+              </mat-radio-group>
+            </div>
+          }
+          @if (productTypeControl.value === "white_label") {
+            <div class="space-y-3">
+              <div
+                class="flex items-start bg-blue-50 border border-blue-100 text-blue-900 p-3 rounded-lg text-xs font-semibold"
+              >
+                <mat-icon class="mr-2 text-blue-600 icon-size-5">info</mat-icon>
+                <span
+                  >Bullet points: use ||| to separate (e.g.,
+                  bullet1|||bullet2)</span
+                >
+              </div>
+              <mat-form-field class="fuse-mat-dense w-full">
+                <mat-label>Select Amazon Product Type</mat-label>
+                <mat-select
+                  (openedChange)="triggerEvent()"
+                  [(ngModel)]="isProductType"
+                  [ngModelOptions]="{ standalone: true }"
+                >
+                  <mat-option>
+                    <ngx-mat-select-search
+                      placeholderLabel="Search product type"
+                      (keyup)="
+                        filterProductTypeDataForSingleProducts(
+                          $event.target.value
+                        )
+                      "
+                      noEntriesFoundLabel="'No product type found'"
+                    >
+                    </ngx-mat-select-search>
+                  </mat-option>
+                  @for (
+                    productType of singleProductsVars.filteredProductTypeList;
+                    track productType
+                  ) {
+                    <mat-option [value]="productType.productType">
+                      {{ productType.productType }}
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+        </div>
+
+        <!-- File Upload -->
+        <div
+          class="text-center flex flex-col items-center justify-center gap-3 pt-2"
+        >
+          <button
+            type="button"
+            mat-flat-button
+            class="bg-slate-800 text-white font-medium rounded-lg px-4 py-2 hover:bg-slate-900 transition-colors"
+            (click)="selectFile.click()"
+          >
+            <mat-icon
+              class="text-white mr-1"
+              svgIcon="heroicons_outline:upload"
+            ></mat-icon>
+            Choose File
+          </button>
+          <input
+            type="file"
+            hidden
+            #selectFile
+            (change)="onFileUploadWL($event)"
+          />
+          @if (fileNM) {
+            <div
+              class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 text-sm font-semibold"
+            >
+              <mat-icon
+                class="icon-size-4 shrink-0 text-emerald-600"
+                svgIcon="heroicons_outline:check-circle"
+              ></mat-icon>
+              <span>{{ fileNM }}</span>
+            </div>
+          }
+          @if (!fileNM) {
+            <mat-error
+              class="text-red-500 text-xs font-bold flex items-center gap-1.5 mt-2"
+            >
+              <mat-icon
+                class="icon-size-4 text-red-500"
+                svgIcon="heroicons_outline:exclamation-circle"
+              ></mat-icon>
+              Please upload a file to proceed.
+            </mat-error>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Footer Actions -->
+    <div
+      class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50"
+    >
+      <button type="button" class="btn-cancel" (click)="closeUpdateDialog()">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="!fileNM || isDisableFlow"
+        (click)="importInventoryFile(sellerSetting, selectedMarketplaceId)"
+      >
+        Confirm and Process
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #issueTemplate let-data>
+  <div
+    class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-160 max-w-240 max-h-180"
+  >
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-white">error_outline</mat-icon>
+        <span class="text-lg font-semibold text-white">Listing Issues</span>
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeMoveRetailDialog()"
+        class="text-white"
+      >
+        <mat-icon
+          [svgIcon]="'heroicons_outline:x'"
+          class="text-white"
+        ></mat-icon>
+      </button>
+    </div>
+
+    <!-- Dynamic Error List -->
+    <div class="p-6 overflow-auto max-h-[350px] space-y-4">
+      @if (data.product_type === "white_label") {
+        @for (error of data?.issues || []; track error; let i = $index) {
+          <div class="p-4 bg-slate-50 border border-slate-100 rounded-lg">
+            @for (entry of error | keyvalue; track entry) {
+              <div class="mt-1 text-sm text-slate-700">
+                <strong class="text-slate-800 capitalize"
+                  >{{ entry.key }}:
+                </strong>
+                <!-- Handle Array Values -->
+                @if (isArray(entry.value)) {
+                  <span>
+                    @for (item of entry.value; track item; let last = $last) {
+                      <span>
+                        {{ item }}
+                        @if (!last) {
+                          <span>, </span>
+                        }
+                      </span>
+                    }
+                  </span>
+                }
+                <!-- Handle String/Number Values -->
+                @if (!isArray(entry.value)) {
+                  <span>{{ entry.value }}</span>
+                }
+              </div>
+            }
+          </div>
+        }
+      } @else {
+        @for (error of data?.issues || []; track error; let i = $index) {
+          <div
+            class="p-4 bg-slate-50 border border-slate-100 rounded-lg space-y-2"
+          >
+            @for (entry of error | keyvalue; track entry) {
+              <div class="text-sm text-slate-700">
+                <strong class="text-slate-800 capitalize"
+                  >{{ entry.key }}:
+                </strong>
+                <!-- Handle Array of Objects -->
+                @if (isArray(entry.value)) {
+                  @for (item of entry.value; track item) {
+                    <div class="ml-4 border-l-2 pl-3 border-slate-300 mt-1">
+                      @if (isObject(item)) {
+                        @for (subEntry of item | keyvalue; track subEntry) {
+                          <div class="text-xs mt-0.5 text-slate-600">
+                            <strong class="text-slate-700"
+                              >{{ subEntry.key }}:
+                            </strong>
+                            @if (!isArray(subEntry.value)) {
+                              <span>{{ subEntry.value }}</span>
+                            }
+                            <!-- Handle Nested Arrays -->
+                            @if (isArray(subEntry.value)) {
+                              <ul
+                                class="list-disc list-inside text-slate-500 mt-1 pl-2"
+                              >
+                                @for (
+                                  subItem of subEntry.value;
+                                  track subItem
+                                ) {
+                                  <li>
+                                    @if (isObject(subItem)) {
+                                      @for (
+                                        deepEntry of subItem | keyvalue;
+                                        track deepEntry
+                                      ) {
+                                        <div>
+                                          <strong>{{ deepEntry.key }}: </strong>
+                                          {{ deepEntry.value }}
+                                        </div>
+                                      }
+                                    } @else {
+                                      {{ subItem }}
+                                    }
+                                  </li>
+                                }
+                              </ul>
+                            }
+                          </div>
+                        }
+                      } @else {
+                        <span class="text-xs">{{ item }}</span>
+                      }
+                    </div>
+                  }
+                } @else {
+                  <span>{{ entry.value }}</span>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+    <div class="p-4 border-t border-slate-100 flex justify-end bg-slate-50">
+      <button
+        type="button"
+        mat-flat-button
+        class="bg-slate-800 text-white font-medium rounded-lg px-4 py-2 hover:bg-slate-900 transition-colors"
+        (click)="closeMoveRetailDialog()"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #deleteListingTemplate>
+  <div
+    class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-160 max-w-240 max-h-128"
+  >
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-white" svgIcon="heroicons_solid:trash"></mat-icon>
+        <span class="text-lg font-semibold text-white">Delete Listing</span>
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeMoveRetailDialog()"
+        class="text-white"
+      >
+        <mat-icon
+          [svgIcon]="'heroicons_outline:x'"
+          class="text-white"
+        ></mat-icon>
+      </button>
+    </div>
+
+    <!-- Content Section -->
+    <div class="p-6 space-y-4 max-h-[350px] overflow-auto">
+      <div
+        class="p-4 bg-amber-50 border border-amber-100 rounded-lg text-sm text-slate-700"
+      >
+        You have selected <strong>{{ selectedItems.size }} listing</strong> to
+        be deleted.
+      </div>
+
+      <p class="font-semibold text-slate-800 text-sm">
+        Please review the following before deleting the listing:
+      </p>
+      <ul class="list-disc pl-5 space-y-2 text-xs text-slate-600 font-medium">
+        <li>
+          <strong>Impact on Your Contributions:</strong> Your offer and any
+          contributions made by you will be permanently removed from the Amazon
+          product detail page.
+        </li>
+        <li>
+          <strong>FBA SKUs:</strong> To prevent stranded inventory, please
+          create removal orders for associated FBA SKUs before deleting the
+          listing.
+        </li>
+      </ul>
+    </div>
+
+    <!-- Actions Footer -->
+    <div
+      class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50"
+    >
+      <button
+        type="button"
+        mat-stroked-button
+        class="font-medium rounded-lg px-4 py-2 border-slate-200 text-slate-700"
+        (click)="closeMoveRetailDialog()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        mat-flat-button
+        class="bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg px-4 py-2 transition-colors"
+        (click)="deleteFromAmazon(matDataDialog?.sku ?? '')"
+      >
+        Delete Listing
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #moveInventoryTemplate>
+  <div
+    class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-180 max-w-280 max-h-180"
+  >
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon
+          class="text-white"
+          svgIcon="heroicons_solid:receipt-refund"
+        ></mat-icon>
+        <span class="text-lg font-semibold text-white"
+          >Move Products to Retail</span
+        >
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeMoveRetailDialog()"
+        class="text-white"
+      >
+        <mat-icon class="text-white">close</mat-icon>
+      </button>
+    </div>
+
+    <div class="p-6 max-h-[350px] overflow-auto space-y-4">
+      <div
+        class="p-4 bg-amber-50 border border-amber-100 text-amber-900 rounded-lg text-xs font-semibold flex items-start gap-2.5"
+      >
+        <mat-icon class="text-amber-600 icon-size-5 mt-0.5">warning</mat-icon>
+        <div>
+          <p class="font-bold text-sm">Important Notice</p>
+          <p class="mt-0.5">
+            You are about to take action on these inventory items. Please
+            confirm if you want to proceed with moving these products to retail
+            or reject the action.
+          </p>
+        </div>
+      </div>
+
+      @if (asinListForMoveToRetail) {
+        <div class="space-y-4 divide-y divide-slate-100">
+          @for (product of asinListForMoveToRetail; track product) {
+            <div class="flex flex-col gap-3 py-3 first:pt-0">
+              <div class="flex flex-wrap items-center gap-2 text-sm">
+                <span class="font-semibold text-slate-700">SKU:</span>
+                <span
+                  class="px-1.5 py-0.5 bg-slate-100 font-mono text-slate-800 rounded border border-slate-200 text-xs"
+                  >{{ product.sku }}</span
+                >
+              </div>
+              @if (
+                product.tmp_product_ids && product.tmp_product_ids.length > 0
+              ) {
+                <div class="flex flex-col gap-2">
+                  <span class="font-semibold text-slate-700 text-sm"
+                    >Select ASIN:</span
+                  >
+                  <mat-radio-group
+                    [(ngModel)]="selectedAsins[product._id]"
+                    [ngModelOptions]="{ standalone: true }"
+                    class="border border-slate-200 rounded-lg p-3 flex flex-col gap-2 bg-slate-50/50 max-h-40 overflow-y-auto"
+                  >
+                    @for (asin of product.tmp_product_ids; track asin) {
+                      <mat-radio-button [value]="asin.asin" class="text-xs">
+                        <span class="font-bold text-slate-800">{{
+                          asin.asin
+                        }}</span>
+                        <span
+                          class="text-slate-500 block truncate max-w-lg mt-0.5"
+                          >({{ asin.title }})</span
+                        >
+                        <hr class="my-1.5 border-slate-100" />
+                      </mat-radio-button>
+                    }
+                  </mat-radio-group>
+                </div>
+              } @else {
+                <div class="text-red-500 text-xs font-bold">
+                  No catalog found
+                </div>
+              }
+              @if (
+                product.tmp_product_ids && product.tmp_product_ids.length > 0
+              ) {
+                <div class="flex flex-wrap gap-2 mt-1">
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
+                    [disabled]="isActionCompleted[product._id]"
+                    (click)="
+                      OpenMoveProductConfirmationPopup('Approve', product._id)
+                    "
+                  >
+                    Confirm - Sync as Retail
+                  </button>
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                    [disabled]="isActionCompleted[product._id]"
+                    (click)="
+                      OpenMoveProductConfirmationPopup('Reject', product._id)
+                    "
+                  >
+                    Reject - Don't Move
+                  </button>
+                  @if (product.amz_product_type === "white_label") {
+                    <button
+                      type="button"
+                      [disabled]="isActionCompleted[product._id]"
+                      class="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                      (click)="
+                        OpenMoveProductConfirmationPopup('Submit', product._id)
+                      "
+                    >
+                      Create new listing?
+                    </button>
+                  }
+                </div>
+              }
+              <!-- Create New Listing Link -->
+              @if (
+                product.amz_product_type === "retail" &&
+                !isActionCompleted[product._id]
+              ) {
+                <a
+                  (click)="
+                    OpenAddProductPopup({
+                      id: product._id,
+                      sku: product.sku,
+                    })
+                  "
+                  class="text-blue-600 font-semibold hover:underline cursor-pointer text-xs mt-1 inline-block"
+                >
+                  Create a new listing?
+                </a>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+    <div class="p-4 border-t border-slate-100 flex justify-end bg-slate-50">
+      <button
+        type="button"
+        mat-flat-button
+        class="bg-slate-800 text-white font-medium rounded-lg px-4 py-2 hover:bg-slate-900 transition-colors"
+        (click)="closeMoveRetailDialog()"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #AddImages>
+  <div
+    class="flex flex-col -m-6 bg-white rounded-xl overflow-hidden min-w-180 max-w-280 max-h-180"
+  >
+    <!-- Header -->
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-white" svgIcon="feather:image"></mat-icon>
+        <span class="text-lg font-semibold text-white">Manage Media Files</span>
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeUpdateDialog()"
+        class="text-white"
+      >
+        <mat-icon class="text-white">close</mat-icon>
+      </button>
+    </div>
+
+    <div class="p-6 max-h-[350px] overflow-auto space-y-4">
+      <div
+        class="p-4 bg-blue-50 border border-blue-100 text-blue-900 rounded-lg text-xs font-semibold flex items-start gap-2.5"
+      >
+        <mat-icon class="text-blue-700 icon-size-5 mt-0.5">warning</mat-icon>
+        <div>
+          <p class="font-bold text-sm">Important Notice</p>
+          <p class="mt-0.5">
+            Your products will be synced with the media files you upload below.
+            Maximum of 9 files are allowed.
+          </p>
+        </div>
+      </div>
+
+      <!-- Image Upload Button -->
+      <div class="flex justify-center py-2">
+        <input
+          type="file"
+          multiple
+          accept="image/*,video/*"
+          (change)="onFileSelected($event)"
+          #fileInput
+          hidden
+        />
+        <button
+          type="button"
+          mat-flat-button
+          class="bg-slate-800 text-white font-medium px-4 py-2 rounded-lg hover:bg-slate-900 transition-colors"
+          (click)="fileInput.click()"
+        >
+          <mat-icon
+            svgIcon="heroicons_outline:upload"
+            class="mr-2 text-white"
+          ></mat-icon>
+          Upload Media Files
+        </button>
+      </div>
+
+      <!-- Main Media Section -->
+      <div class="py-4 border-t border-slate-100">
+        <h3 class="text-sm font-bold text-slate-800 mb-3">Main Media</h3>
+        <div
+          class="relative w-36 h-36 rounded-lg overflow-hidden border border-slate-200 group"
+        >
+          @if (getFileType(matDataDialog.image) === "image") {
+            <img
+              [src]="matDataDialog.image"
+              class="w-full h-full object-cover"
+            />
+          } @else {
+            <video
+              [src]="matDataDialog.image"
+              class="w-full h-full object-cover"
+              controls
+            ></video>
+          }
+
+          <button
+            type="button"
+            mat-icon-button
+            class="absolute top-1 right-1 bg-white/80 hover:bg-white text-slate-800 rounded-full shadow scale-90"
+            (click)="mainImage.click()"
+          >
+            <mat-icon class="icon-size-4">edit</mat-icon>
+          </button>
+          <input
+            type="file"
+            accept="image/*,video/*"
+            (change)="onMainMediaSelected($event)"
+            #mainImage
+            hidden
+          />
+        </div>
+      </div>
+
+      <!-- Recommended Images Section -->
+      <div class="py-4 border-t border-slate-100 space-y-3">
+        <div class="flex flex-col">
+          <h3 class="text-sm font-bold text-slate-800">
+            Your media Recommendations
+          </h3>
+          <span class="text-xs text-slate-500"
+            >Upload your recommendations for product images or videos.</span
+          >
+        </div>
+
+        <!-- Collapsible Image Guidelines Section -->
+        <div class="w-full">
+          <button
+            type="button"
+            (click)="showGuidelines = !showGuidelines"
+            class="text-blue-600 font-semibold flex items-center text-xs"
+          >
+            {{
+              showGuidelines
+                ? "Hide image guidelines ▲"
+                : "Show image guidelines ▼"
+            }}
+          </button>
+
+          @if (showGuidelines) {
+            <div
+              class="bg-slate-50 border border-slate-200 p-4 rounded-lg text-xs text-slate-600 space-y-2 mt-2"
+            >
+              <a href="#" class="text-blue-600 font-semibold hover:underline"
+                >Product images style guideline</a
+              >
+              <p>
+                Listings that are missing a main image will not appear in search
+                or browse until you fix the listing.
+              </p>
+              <p>
+                Choose images that are clear, information-rich, and attractive.
+              </p>
+              <p class="font-semibold text-slate-700">
+                Images must meet the following requirements:
+              </p>
+              <ul class="list-disc ml-5 space-y-1">
+                <li>
+                  Products must fill at least 85% of the image. Images must show
+                  only the product that is for sale, with few or no props and
+                  with no logos, watermarks, or inset images. Images may only
+                  contain text that is a part of the product.
+                </li>
+                <li>
+                  Main images must have a pure white background, must be a photo
+                  (not a drawing), and must not contain excluded accessories.
+                </li>
+                <li>
+                  Images must be at least 1000 pixels on the longest side and at
+                  least 500 pixels on the shortest side.
+                </li>
+                <li>
+                  JPEG is the preferred image format, but you also may use TIFF
+                  and GIF files.
+                </li>
+              </ul>
+            </div>
+          }
+        </div>
+        <!-- <div class="grid grid-cols-3 gap-4 mt-3">
+          <div *ngFor="let image of selectedImages; let i = index" class="relative">
+            <img [src]="image.preview" class="w-24 h-24 object-cover rounded shadow border" />
+            <button mat-icon-button class="absolute top-0 left-0 bg-white rounded-full shadow"
+              (click)="onFileSelected($event, i)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" class="absolute top-0 right-0 bg-white rounded-full shadow"
+              (click)="removeImage(i)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div> -->
+        <div class="space-y-2">
+          <h3 class="text-xs font-bold text-slate-700">Uploaded Media Files</h3>
+          <div class="grid grid-cols-4 gap-4">
+            @for (image of selectedImages; track image; let i = $index) {
+              @if (image.preview) {
+                <div
+                  class="relative w-28 h-28 border border-slate-200 rounded-lg overflow-hidden group"
+                >
+                  @if (getFileType(image.preview) === "image") {
+                    <img
+                      class="w-full h-full object-cover"
+                      [src]="image.preview"
+                      alt="Uploaded image"
+                      onerror="
+                        this.onerror = null;
+                        this.src =
+                          '../../../../../../assets/images/no-image-icon.png';
+                      "
+                    />
+                  } @else {
+                    @if (getFileType(image.preview) === "video") {
+                      <video
+                        class="w-full h-full object-cover"
+                        [src]="image.preview"
+                        controls
+                        onerror="
+                          this.onerror = null;
+                          this.src =
+                            '../../../../../../assets/images/no-image-icon.png';
+                        "
+                      ></video>
+                    }
+                  }
+                  <!-- Overlay Controls -->
+                  <div
+                    class="absolute inset-0 bg-slate-900/60 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      (change)="onFileSelected($event, i)"
+                      #editFileInput
+                      hidden
+                    />
+                    <button
+                      type="button"
+                      class="w-8 h-8 rounded-full bg-white text-slate-800 flex items-center justify-center shadow hover:bg-slate-100"
+                      (click)="editFileInput.click()"
+                    >
+                      <mat-icon class="icon-size-4">edit</mat-icon>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="removeImage(i)"
+                      class="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center shadow hover:bg-red-700"
+                    >
+                      <mat-icon class="icon-size-4 text-white">delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Buttons -->
+    <div
+      class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50"
+    >
+      <button
+        type="button"
+        mat-stroked-button
+        class="font-medium rounded-lg px-4 py-2 border-slate-200 text-slate-700"
+        (click)="closeUpdateDialog()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        mat-flat-button
+        class="bg-slate-800 text-white font-medium rounded-lg px-4 py-2 hover:bg-slate-900 transition-colors"
+        [disabled]="selectedImages.length === 0 && !matDataDialog.file"
+        (click)="submitImages(matDataDialog.sku ?? '')"
+      >
+        Submit
+        <mat-icon
+          class="ml-1 text-white icon-size-4"
+          svgIcon="heroicons_outline:upload"
+        ></mat-icon>
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #rowDetailsTemplate let-inventories>
+  <div class="variant-rows overflow-hidden bg-slate-50">
+    @if (inventories.inventory; as inventory) {
+      @if (inventories.amzInventoryList; as amzInventoryList) {
+        @for (varient of inventory.varients; track varient) {
+          @if (varient.status !== 2) {
+            <div
+              [ngClass]="{
+                'border-red-200 !bg-red-50/50': inventory.is_banned,
+              }"
+              class="inventory-grid inventory-grid-row inventory-grid-row--variant grid gap-1 px-2 border-b"
+            >
+              <div>
+                <!-- <button
+                  class="w-1 p-1"
+                  mat-icon-button
+                                    *ngIf="
+                                        inventory.issues &&
+                                        inventory.issues.length > 0
+                                    "
+                  matTooltip="Listing issue"
+                  (click)="openIssuesPopup(inventory.issues,inventory.amz_product_type)"
+                  >
+                  <mat-icon
+                    class="icon-size-5 text-red-600"
+                                        [svgIcon]="
+                                            'heroicons_outline:exclamation-circle'
+                                        "
+                  ></mat-icon>
+                </button> -->
+              </div>
+              <div
+                class="flex items-center justify-center text-center text-xs font-semibold"
+              >
+                <!-- <mat-checkbox
+                class="block text-sm"
+                [disabled]="inventory.is_banned"
+                    [checked]="
+                        selectedItems.has(inventory._id)
+                    "
+                    (change)="
+                        onCheckboxChange(
+                            $event,
+                            inventory._id
+                        )
+                    "
+                >
+              </mat-checkbox> -->
+                <!-- <ng-container
+                                    *ngIf="
+                                        inventory.is_move_to_retail ===
+                                        'PENDING'
+                                    "
+              >
+              <div class="text-primary text-xs">
+                {{
+                inventory.tmp_product_ids &&
+                inventory.tmp_product_ids.length > 0
+                ? "Product found!"
+                : "Not found!"
+                }}
+              </div>
+            </ng-container> -->
+              </div>
+              <div
+                class="flex items-center justify-center text-center text-xs font-semibold text-slate-600"
+              >
+                {{
+                  inventory.createdAt
+                    ? (inventory.createdAt | date: "dd-MM-yyyy, HH:mm")
+                    : "-"
+                }}
+              </div>
+              <div class="flex items-center justify-center">
+                <div
+                  class="h-8 w-8 relative overflow-hidden rounded border border-slate-200"
+                >
+                  <button
+                    type="button"
+                    class="h-full w-full"
+                    (click)="
+                      handleLightBoxProduct(
+                        varient?.attributes,
+                        varient.main_product_image_locator___media_location
+                      )
+                    "
+                  >
+                    <img
+                      class="object-cover h-full w-full"
+                      [src]="
+                        varient.main_product_image_locator___media_location
+                      "
+                      alt="portal image"
+                      onerror="
+                        this.onerror = null;
+                        this.src =
+                          '../../../../../../assets/images/no-image-icon.png';
+                      "
+                    />
+                    @if (getVarientImageCount(varient) > 1) {
+                      <span
+                        class="absolute top-0 right-0 bg-slate-800 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full"
+                      >
+                        {{ getVarientImageCount(varient) }}
+                      </span>
+                    }
+                  </button>
+                </div>
+              </div>
+              <div>
+                <div
+                  class="truncate text-sm font-semibold text-blue-600 hover:text-blue-700 cursor-pointer underline underline-offset-2"
+                  [matTooltip]="inventory.title"
+                >
+                  {{ getVarientTitle(inventory, varient) || "-" }}
+                </div>
+                @if (inventory.brand) {
+                  <div
+                    class="truncate text-slate-500 font-medium text-xs mt-0.5"
+                    [matTooltip]="inventory.brand"
+                  >
+                    {{ inventory.brand || "-" }}
+                  </div>
+                }
+                @if (inventory.product_type) {
+                  <div
+                    class="truncate font-semibold text-slate-400 text-[10px]"
+                    [matTooltip]="inventory.product_type"
+                  >
+                    {{ inventory.product_type || " - " }}
+                  </div>
+                }
+              </div>
+              <div class="inventory-identifier-cell">
+                @if (varient.asin) {
+                  <div class="inventory-chip inventory-chip-asin">
+                    {{ inventory.marketplace_id }}
+                    <div class="text-center text-xs mx-auto truncate">
+                      <a
+                        [href]="marketplaceData?.amazonLink + varient.asin"
+                        target="_blank"
+                      >
+                        {{ varient.asin }}
+                      </a>
+                      <button type="button" [cdkCopyToClipboard]="varient.asin">
+                        <mat-icon
+                          svgIcon="mat_outline:content_copy"
+                          class="icon-size-3 ml-0.5"
+                        >
+                        </mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <span class="text-slate-400">-</span>
+                }
+              </div>
+              <div class="inventory-identifier-cell">
+                @if (varient.sku) {
+                  <div class="inventory-chip inventory-chip-sku">
+                    <div class="text-center text-xs">
+                      <span class="mx-auto truncate">{{ varient.sku }}</span>
+                      <button type="button" [cdkCopyToClipboard]="varient.sku">
+                        <mat-icon
+                          svgIcon="mat_outline:content_copy"
+                          class="icon-size-3 ml-0.5"
+                        >
+                        </mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <span class="text-slate-400">-</span>
+                }
+              </div>
+              <div class="inventory-input-cell border-left itemAmz">
+                <mat-form-field
+                  class="fuse-mat-dense fuse-mat-no-subscript flex-wrap max-h-8 w-full inventory-form-field items-center text-xs"
+                >
+                  <input
+                    matInput
+                    type="number"
+                    [disabled]="inventory.is_banned"
+                    [value]="varient.margin || 0"
+                    id="amz_margin_{{ inventory._id }}_{{ varient.sku }}"
+                    (keyup.enter)="
+                      addUpdateSelectedAmzInventory(
+                        inventory._id,
+                        'amazon_margin',
+                        varient.sku
+                      )
+                    "
+                    (wheel)="stopScrollingWheel($event)"
+                    min="0"
+                    max="999"
+                    oninput="
+                      if (this.value.length > 3)
+                        this.value = this.value.slice(0, 3);
+                      if (this.value < 0) this.value = 0;
+                    "
+                  />
+                </mat-form-field>
+              </div>
+              <!-- Input Field for Updating Stock, with Enter Key Event -->
+              <div class="inventory-input-cell border-left itemAmz">
+                <mat-form-field
+                  class="fuse-mat-dense fuse-mat-no-subscript flex-wrap max-h-8 w-full inventory-form-field items-center text-xs"
+                >
+                  <input
+                    matInput
+                    type="number"
+                    [value]="varient.fulfillment_availability___quantity || 0"
+                    id="amz_stock_{{ inventory._id }}_{{ varient.sku }}"
+                    [disabled]="inventory.is_banned"
+                    (keyup.enter)="
+                      addUpdateSelectedAmzInventory(
+                        inventory._id,
+                        'amazon_stock',
+                        varient.sku
+                      )
+                    "
+                    (wheel)="stopScrollingWheel($event)"
+                    min="0"
+                    [max]="inventory.master_stock"
+                    (input)="validateInput($event)"
+                    (blur)="resetIfEmpty($event)"
+                  />
+                </mat-form-field>
+              </div>
+              <div class="inventory-input-cell border-right itemAmz">
+                <mat-form-field
+                  class="fuse-mat-dense fuse-mat-no-subscript flex-wrap max-h-8 w-full inventory-form-field items-center text-xs"
+                >
+                  <input
+                    matInput
+                    type="number"
+                    [value]="
+                      varient.purchasable_offer___our_price___schedule___value_with_tax
+                    "
+                    id="amz_price_{{ inventory._id }}_{{ varient.sku }}"
+                    [disabled]="inventory.is_banned"
+                    (keyup.enter)="
+                      addUpdateSelectedAmzInventory(
+                        inventory._id,
+                        'amazon_price',
+                        varient.sku
+                      )
+                    "
+                    (wheel)="stopScrollingWheel($event)"
+                    min="0"
+                    max="9999999"
+                    (input)="validateInput($event)"
+                    (blur)="resetIfEmpty($event)"
+                  />
+                </mat-form-field>
+              </div>
+              <div class="text-center">
+                <span
+                  class="px-2.5 py-0.5 rounded-full text-xs font-semibold border"
+                  [ngClass]="{
+                    'bg-emerald-50 text-emerald-700 border-emerald-200':
+                      inventory.amz_product_type === 'retail',
+                    'bg-violet-50 text-violet-700 border-violet-200':
+                      inventory.amz_product_type === 'white_label',
+                  }"
+                >
+                  {{
+                    getProductTypeName(inventory.amz_product_type) ||
+                      "White Label"
+                  }}
+                </span>
+                @if (inventory.amz_product_type === "white_label") {
+                  <div
+                    class="text-xs mt-1 flex items-center justify-center gap-1 font-semibold text-slate-500"
+                  >
+                    <!-- Show processing status -->
+                    @if (
+                      [4, 5, 6, 0].includes(inventory.amazon_script_status)
+                    ) {
+                      <mat-icon color="gray" class="icon-size-3"
+                        >hourglass_empty</mat-icon
+                      >
+                      <span>Processing</span>
+                    }
+                    <!-- Show pending status -->
+                    @if (inventory.amazon_script_status === 3) {
+                      <mat-icon class="icon-size-3">pending</mat-icon>
+                      <span>Pending</span>
+                    }
+                    <!-- Show synced status -->
+                    @if (inventory.amazon_script_status === 7) {
+                      <mat-icon color="success" class="icon-size-3"
+                        >check_circle</mat-icon
+                      >
+                      <span class="text-emerald-600">Done</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="truncate font-semibold text-center">
+                <span
+                  class="truncate mx-auto px-2 py-0.5 font-semibold text-xs rounded border"
+                  [ngClass]="{
+                    'bg-pink-50 text-pink-700 border-pink-200':
+                      inventory.amz_fullfillment_by &&
+                      inventory.amz_fullfillment_by !== '-',
+                    'bg-slate-50 text-slate-600 border-slate-200':
+                      !inventory.amz_fullfillment_by ||
+                      inventory.amz_fullfillment_by === '-',
+                  }"
+                >
+                  {{ inventory.amz_fullfillment_by || "-" }}
+                </span>
+              </div>
+              <div
+                class="truncate italic text-slate-500 text-center text-xs"
+                [matTooltip]="
+                  stripHtml(getVarientDescription(inventory, varient))
+                "
+              >
+                {{ stripHtml(getVarientDescription(inventory, varient)) || "" }}
+              </div>
+              <div class="text-center">
+                @if (inventory.is_inventory_updated) {
+                  @if (
+                    !(
+                      inventory.amz_product_type === "retail" &&
+                      inventory.issues &&
+                      inventory.issues.length > 0
+                    )
+                  ) {
+                    <mat-icon
+                      class="icon-size-5 text-sky-600"
+                      matTooltip="UPDATED"
+                      [svgIcon]="'mat_solid:thumb_up'"
+                    ></mat-icon>
+                  } @else {
+                    -
+                  }
+                }
+                @if (!inventory.is_inventory_updated) {
+                  @if (
+                    !(
+                      inventory.amz_product_type === "retail" &&
+                      inventory.issues &&
+                      inventory.issues.length > 0
+                    )
+                  ) {
+                    <mat-icon
+                      matTooltip="PROCESSING"
+                      class="icon-size-5 text-slate-600"
+                      [svgIcon]="'mat_solid:thumb_down'"
+                    ></mat-icon>
+                  } @else {
+                    -
+                  }
+                }
+              </div>
+              <div class="text-center">
+                @if (inventory.is_offer_added) {
+                  @if (
+                    !(
+                      inventory.amz_product_type === "retail" &&
+                      inventory.issues &&
+                      inventory.issues.length > 0
+                    )
+                  ) {
+                    <mat-icon
+                      class="icon-size-5 text-emerald-600"
+                      matTooltip="ADDED"
+                      [svgIcon]="'heroicons_solid:bell'"
+                    ></mat-icon>
+                  } @else {
+                    -
+                  }
+                }
+                @if (!inventory.is_offer_added) {
+                  @if (
+                    !(
+                      inventory.amz_product_type === "retail" &&
+                      inventory.issues &&
+                      inventory.issues.length > 0
+                    )
+                  ) {
+                    <mat-icon
+                      matTooltip="PROCESSING"
+                      class="icon-size-5 text-rose-700"
+                      [svgIcon]="'heroicons_solid:bell'"
+                    ></mat-icon>
+                  } @else {
+                    -
+                  }
+                }
+              </div>
+              <div class="flex items-center justify-center gap-1.5">
+                @if (
+                  inventory?.import_from === "File" ||
+                  inventory?.import_from === "file" ||
+                  inventory?.import_from === "Report" ||
+                  inventory?.import_from === "report"
+                ) {
+                  <mat-icon
+                    class="icon-size-5 text-blue-600 cursor-pointer"
+                    matTooltip="File Import"
+                  >
+                    upload_file
+                  </mat-icon>
+                } @else {
+                  <mat-icon
+                    class="icon-size-5 text-amber-600 cursor-pointer"
+                    matTooltip="Manual Added"
+                  >
+                    edit_note
+                  </mat-icon>
+                }
+              </div>
+              <div></div>
+              <div class="text-xs font-semibold text-slate-600 text-center">
+                {{
+                  inventory.updatedAt
+                    ? (inventory.updatedAt | date: "dd-MM-yyyy, HH:mm")
+                    : "-"
+                }}
+              </div>
+              <div class="flex flex-col md:px-0 text-center">
+                <button
+                  type="button"
+                  mat-icon-button
+                  [matMenuTriggerFor]="menu"
+                  class="rounded-none hover:rounded-none"
+                >
+                  <mat-icon
+                    [svgIcon]="'heroicons_outline:dots-vertical'"
+                  ></mat-icon>
+                </button>
+                <mat-menu #menu="matMenu" class="!shadow-2xl bg-white">
+                  <button
+                    type="button"
+                    mat-menu-item
+                    (click)="
+                      inventory.amz_product_type === 'white_label'
+                        ? OpenUpdateProductPopup(
+                            updateProductTemplate,
+                            inventory._id,
+                            inventory.product_type,
+                            inventory,
+                            varient.sku
+                          )
+                        : null;
+                      inventory.amz_product_type === 'white_label'
+                        ? onUpdatePopupOpen(inventory.missing_attributes)
+                        : ''
+                    "
+                  >
+                    @if (inventory.amz_product_type === "white_label") {
+                      <mat-icon
+                        svgIcon="heroicons_solid:pencil"
+                        class="text-blue-600 mr-2"
+                      ></mat-icon>
+                    } @else {
+                      <mat-icon
+                        svgIcon="edit_off"
+                        class="text-gray-400 mr-2"
+                      ></mat-icon>
+                    }
+                    <span> Edit Item </span>
+                  </button>
+                  <!-- <button
+            mat-menu-item
+            class="border border-b-2 text-black"
+                                            *ngIf="
+                                                inventory.amz_product_type ===
+                                                'white_label'
+                                            "
+                                            (click)="
+                                                onTemplateGenerate(
+                                                    inventory._id,
+                                                    inventory.product_type
+                                                )
+                                            "
+            >
+            <mat-icon
+              svgIcon="heroicons_solid:plus-circle"
+              class="text-black cursor-pointer"
+            ></mat-icon>
+            <span
+              class="flex flex-col justify-center item-center"
+              >
+              <span>
+                Use this templates
+              </span>
+            </span>
+          </button> -->
+                  <button
+                    type="button"
+                    mat-menu-item
+                    (click)="
+                      openDeleteConfirmationPopup(
+                        inventory._id,
+                        varient.sku ?? ''
+                      )
+                    "
+                  >
+                    <mat-icon
+                      svgIcon="heroicons_solid:trash"
+                      class="text-red-500 mr-2"
+                    ></mat-icon>
+                    <span> Delete Listing </span>
+                  </button>
+                  <!-- <button
+          *ngIf="inventory?.tag"
+          mat-menu-item
+          type="button"
+          [matTooltip]="inventory?.tag"
+                                        (click)="
+                                            inventory.amz_product_type ===
+                                            'white_label'
+                                                ? OpenUpdateProductPopup(
+                                                      updateProductTemplate,
+                                                      inventory._id,
+                                                      inventory.product_type,
+                                                      inventory
+                                                  )
+                                                : null;
+                                            isHaveTokeepDiable(
+                                                inventory?.issue
+                                            );
+                                            inventory.amz_product_type ===
+                                            'white_label'
+                                                ? onUpdatePopupOpen(
+                                                      inventory.missing_attributes
+                                                  )
+                                                : ''
+                                        "
+          >
+          <mat-icon
+            class="text-red-400 cursor-pointer"
+            svgIcon="heroicons_solid:trash"
+          ></mat-icon>
+          <span class="flex flex-col">
+            <span> Remove Tag </span>
+          </span>
+        </button> -->
+                  @if (inventory.amz_product_type === "white_label") {
+                    <button
+                      mat-menu-item
+                      type="button"
+                      (click)="
+                        OpenAddImagePopup(
+                          AddImages,
+                          varient.main_product_image_locator___media_location,
+                          inventory._id,
+                          varient.attributes,
+                          varient.sku
+                        )
+                      "
+                    >
+                      <mat-icon
+                        class="text-slate-600 mr-2"
+                        svgIcon="feather:image"
+                      ></mat-icon>
+                      <span> Manage Images </span>
+                    </button>
+                  }
+                </mat-menu>
+              </div>
+            </div>
+          }
+        }
+      }
+    }
+  </div>
+</ng-template>
+
+<ng-template #noProducts>
+  <div class="page-empty-state">
+    <div class="icon-wrapper">
+      <mat-icon
+        class="icon-size-10"
+        [svgIcon]="'heroicons_outline:archive'"
+      ></mat-icon>
+    </div>
+    <h3 class="text-xl font-bold text-slate-800 mb-2">No products found</h3>
+    <p class="text-slate-500 max-w-sm font-medium">
+      There are no products available at the moment.
+    </p>
+  </div>
+</ng-template>

@@ -1,0 +1,413 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden">
+  <mat-drawer-container
+    class="flex-auto h-full bg-card dark:bg-transparent"
+    (backdropClick)="onBackdropClicked()"
+  >
+    <!-- Drawer -->
+    <mat-drawer
+      class="w-full md:w-160 bg-white dark:bg-gray-900"
+      [mode]="drawerMode"
+      [opened]="false"
+      [position]="'end'"
+      [disableClose]="true"
+      #matDrawer
+    >
+      <router-outlet></router-outlet>
+    </mat-drawer>
+
+    <mat-drawer-content class="flex flex-col">
+      <!-- Main -->
+      <div class="flex flex-col flex-auto overflow-hidden">
+        <!-- Header -->
+        <div class="page-header">
+          <div class="flex items-center gap-3">
+            <div
+              class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+            >
+              <a
+                (click)="$event.preventDefault()"
+                mat-icon-button
+                [matTooltip]="tooltip"
+              >
+                <mat-icon
+                  class="icon-size-7 mb-0 mr-1 text-white"
+                  [svgIcon]="'heroicons_solid:user-group'"
+                ></mat-icon>
+              </a>
+            </div>
+            <div>
+              <h1 class="text-2xl font-bold tracking-tight text-white">
+                Premises Users
+              </h1>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+            <!-- Search -->
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript min-w-48 -mb-5"
+            >
+              <mat-icon
+                class="icon-size-5 text-gray-400"
+                matPrefix
+                [svgIcon]="'heroicons_solid:search'"
+              ></mat-icon>
+              <input
+                matInput
+                [formControl]="searchInputControl"
+                [autocomplete]="'off'"
+                [placeholder]="'Search User'"
+              />
+            </mat-form-field>
+
+            <!-- Seller Status Dropdown -->
+            <form
+              [formGroup]="sellerStatusfromGroup"
+              class="flex-shrink-0 -mb-5"
+            >
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-36"
+              >
+                <mat-icon
+                  svgIcon="mat_outline:filter_alt"
+                  class="icon-size-5 text-gray-400"
+                  matPrefix
+                ></mat-icon>
+                <mat-select [formControlName]="'status'" placeholder="Status">
+                  <mat-option [value]="">All</mat-option>
+                  <mat-option [value]="1">Activated</mat-option>
+                  <mat-option [value]="0">Deactivated</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </form>
+
+            <!-- Refresh Button -->
+            <button
+              type="button"
+              class="btn-secondary-action"
+              (click)="refresh()"
+              matTooltip="Refresh"
+            >
+              <mat-icon
+                class="icon-size-5"
+                svgIcon="mat_outline:refresh"
+              ></mat-icon>
+            </button>
+
+            <!-- Add Contact Button -->
+            @if (canAdd) {
+              <button
+                type="button"
+                [routerLink]="['./add']"
+                class="btn-primary-action"
+                mat-flat-button
+              >
+                <mat-icon
+                  class="icon-size-5"
+                  [svgIcon]="'heroicons_outline:plus'"
+                ></mat-icon>
+                <span>Add User</span>
+              </button>
+            }
+          </div>
+        </div>
+        <!-- sellers list -->
+        <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+          <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+            <div class="grid">
+              <!-- Table Header -->
+              <div
+                class="table-header-row"
+                [ngClass]="{
+                  'seller-no-update-control': !canUpdate,
+                  'seller-grid': canUpdate,
+                }"
+                matSort
+                matSortDisableClear
+              >
+                @for (header of headers; track header; let i = $index) {
+                  @if (header?.sortBy) {
+                    <div
+                      class="font-medium leading-5 truncate"
+                      [mat-sort-header]="header.sortBy"
+                    >
+                      {{ header.key }}
+                    </div>
+                  } @else {
+                    <div class="font-medium leading-5 truncate">
+                      {{ header.key }}
+                    </div>
+                  }
+                }
+              </div>
+
+              <!-- SKELETON LOADER STATE (10 Rows) -->
+              @if (isLoading) {
+                @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                  <div
+                    class="table-data-row animate-pulse"
+                    [ngClass]="{
+                      'seller-no-update-control': !canUpdate,
+                      'seller-grid': canUpdate,
+                    }"
+                  >
+                    <!-- Seller Name Skeleton -->
+                    <div class="z-20 flex items-center py-1">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"
+                      ></div>
+                    </div>
+
+                    <!-- Email Skeleton -->
+                    <div class="flex justify-start items-center min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-40"
+                      ></div>
+                    </div>
+
+                    <!-- Phone Skeleton -->
+                    <div class="flex justify-start items-center min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                      ></div>
+                    </div>
+
+                    <!-- Role Badge Skeleton -->
+                    <div class="flex justify-start items-center">
+                      <div
+                        class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"
+                      ></div>
+                    </div>
+
+                    <!-- Status Skeleton -->
+                    @if (canUpdate) {
+                      <div class="flex justify-start items-center">
+                        <div
+                          class="w-9 h-5 bg-gray-200 dark:bg-gray-700 rounded-full"
+                        ></div>
+                      </div>
+                    }
+
+                    <!-- Actions Column Skeleton -->
+                    @if (canUpdate) {
+                      <div class="flex justify-start items-center gap-2">
+                        <div
+                          class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                        ></div>
+                        @if (isSuperAdmin || canDelete) {
+                          <div
+                            class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                          ></div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              } @else {
+                <!-- ACTUAL DATA STATE -->
+                @if (sellerFormInput | async; as sellers) {
+                  @if (sellers.length) {
+                    @for (
+                      contact of sellers;
+                      track trackByFn(i, contact);
+                      let i = $index
+                    ) {
+                      <div
+                        class="table-data-row"
+                        [ngClass]="{
+                          'bg-blue-50/70 border-blue-100':
+                            selectedSeller &&
+                            selectedSeller._id === contact._id,
+                          'seller-no-update-control': !canUpdate,
+                          'seller-grid': canUpdate,
+                        }"
+                      >
+                        <div class="z-20 flex items-center py-1">
+                          <!-- <div
+                            class="flex flex-0 items-center justify-center w-8 h-8 rounded-full overflow-hidden"
+                            [ngClass]="{
+                              'bg-primary':
+                                imageErrors[contact._id] ||
+                                (!contact.avatar && !contact.profileImgUrl),
+                            }"
+                          >
+                            @if (contact.avatar && !imageErrors[contact._id]) {
+                              <img
+                                class="object-cover w-full h-full"
+                                [src]="contact.avatar | mediaUrl:''"
+                                alt="User avatar"
+                                (error)="onImageError(contact._id)"
+                              />
+                            } @else if (
+                              contact.profileImgUrl && !imageErrors[contact._id]
+                            ) {
+                              <img
+                                class="object-cover w-full h-full"
+                                [src]="
+                                  transformAvatarUrl(contact.profileImgUrl)
+                                "
+                                alt="User avatar"
+                                (error)="onImageError(contact._id)"
+                              />
+                            } @else {
+                              <span class="text-xs font-bold text-white">
+                                {{ getInitials(contact) }}
+                              </span>
+                            }
+                          </div> -->
+                          <div
+                            class="min-w-0 ml-4 cursor-pointer truncate"
+                            [routerLink]="['./', contact._id]"
+                          >
+                            <div
+                              class="font-medium leading-5 truncate"
+                              [matTooltip]="
+                                contact.first_name + ' ' + contact.last_name
+                              "
+                            >
+                              {{ contact.first_name + " " + contact.last_name }}
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          class="leading-5 truncate text-slate-700 font-semibold flex justify-start items-center"
+                          [matTooltip]="contact?.email"
+                        >
+                          <span class="!max-w-[80%] truncate">{{
+                            contact?.email || ""
+                          }}</span>
+                          @if (contact?.email) {
+                            <button
+                              type="button"
+                              [cdkCopyToClipboard]="contact?.email || ''"
+                            >
+                              <mat-icon
+                                svgIcon="mat_outline:content_copy"
+                                class="icon-size-3 ml-0.5 text-gray-400 hover:text-primary transition-colors"
+                              ></mat-icon>
+                            </button>
+                          }
+                        </div>
+                        <div
+                          class="leading-5 truncate text-slate-700 font-semibold flex justify-start items-center space-x-1"
+                          [matTooltip]="contact?.contact_no"
+                        >
+                          <span class="!max-w-[80%] truncate">{{
+                            contact?.contact_no || ""
+                          }}</span>
+                          @if (contact?.contact_no) {
+                            <button
+                              type="button"
+                              [cdkCopyToClipboard]="contact?.contact_no || ''"
+                            >
+                              <mat-icon
+                                svgIcon="mat_outline:content_copy"
+                                class="icon-size-3 ml-0.5 text-gray-400 hover:text-primary transition-colors"
+                              ></mat-icon>
+                            </button>
+                          }
+                        </div>
+                        <div
+                          class="flex justify-start items-center"
+                          [matTooltip]="contact?.role"
+                        >
+                          @if (contact?.role) {
+                            <span
+                              class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded bg-blue-50 text-blue-700 border border-blue-100"
+                            >
+                              {{ contact.role }}
+                            </span>
+                          } @else {
+                            <span class="text-sm text-gray-400">-</span>
+                          }
+                        </div>
+                        <div class="flex items-center">
+                          <mat-slide-toggle
+                            [color]="'primary'"
+                            [checked]="getStatus(contact.status)"
+                            (change)="toggleSellerStatus(contact, $event)"
+                            class="scale-75 -mr-1"
+                          >
+                          </mat-slide-toggle>
+                        </div>
+                        @if (canUpdate) {
+                          <div class="flex items-center gap-1">
+                            <button
+                              type="button"
+                              class="table-action-btn"
+                              [routerLink]="['./edit', contact._id]"
+                              matTooltip="Edit user"
+                            >
+                              <mat-icon
+                                class="icon-size-5"
+                                [svgIcon]="'heroicons_outline:pencil'"
+                              ></mat-icon>
+                            </button>
+
+                            @if (isSuperAdmin || canDelete) {
+                              <button
+                                type="button"
+                                class="table-action-btn danger"
+                                (click)="deleteSelectedseller(contact._id)"
+                                matTooltip="Delete user"
+                              >
+                                <mat-icon
+                                  class="icon-size-5 text-red-500"
+                                  [svgIcon]="'heroicons_outline:trash'"
+                                ></mat-icon>
+                              </button>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  } @else {
+                    <ng-container [ngTemplateOutlet]="nosellers"></ng-container>
+                  }
+                }
+              }
+
+              <!-- No sellers template -->
+              <ng-template #nosellers>
+                <div class="page-empty-state">
+                  <div class="icon-wrapper">
+                    <mat-icon
+                      class="icon-size-10"
+                      [svgIcon]="'heroicons_outline:users'"
+                    ></mat-icon>
+                  </div>
+                  <h3 class="text-xl font-bold text-slate-800 mb-2">
+                    No users found
+                  </h3>
+                  <p class="text-slate-500 max-w-sm">
+                    Get started by adding your first user to the system.
+                  </p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+
+          <!-- Footer Paginator -->
+          @if (sellerFormInput | async; as sellers) {
+            @if (sellers.length) {
+              <div class="pagination-bar">
+                <mat-paginator
+                  class="w-full bg-transparent"
+                  [ngClass]="{ 'pointer-events-none': isLoading }"
+                  [length]="
+                    ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                    (sellers?.length || 0) +
+                    (pagination?.hasNextPage ? 1 : 0)
+                  "
+                  [pageSize]="pagination?.size || 100"
+                  [pageSizeOptions]="[5, 25, 50, 100]"
+                  [pageIndex]="(pagination?.page || 1) - 1"
+                  [showFirstLastButtons]="false"
+                ></mat-paginator>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </mat-drawer-content>
+  </mat-drawer-container>
+</div>

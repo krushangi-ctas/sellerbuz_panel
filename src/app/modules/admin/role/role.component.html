@@ -1,0 +1,299 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden bg-white">
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_solid:lock-open'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">
+            Role List
+          </h1>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <!-- Search -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="searchInputControl"
+            maxlength="50"
+            [autocomplete]="'off'"
+            [placeholder]="'Search roles...'"
+          />
+        </mat-form-field>
+
+        <!-- Status filter -->
+        <form [formGroup]="roleSearchFromGroup" class="flex-shrink-0 -mb-5">
+          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript min-w-36">
+            <mat-icon
+              svgIcon="mat_outline:filter_alt"
+              class="icon-size-5 text-gray-400"
+              matPrefix
+            ></mat-icon>
+            <mat-select formControlName="status" placeholder="Status">
+              <mat-option [value]="">All</mat-option>
+              <mat-option [value]="1">Active</mat-option>
+              <mat-option [value]="0">Inactive</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </form>
+
+        <!-- Refresh Button -->
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refresh()"
+          matTooltip="Refresh"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+
+        <!-- Add Role Button -->
+        @if (isSuperAdmin || canAdd) {
+          <button
+            type="button"
+            class="btn-primary-action"
+            mat-flat-button
+            (click)="addRole()"
+          >
+            <mat-icon
+              class="icon-size-5"
+              [svgIcon]="'heroicons_outline:plus'"
+            ></mat-icon>
+            <span>Add Role</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+        <div class="grid">
+          <div
+            class="table-header-row"
+            [ngClass]="{
+              'role-grid': isSuperAdmin || canUpdate,
+              'role-restricted': !isSuperAdmin && !canUpdate && canDelete,
+              'role-no-control': !isSuperAdmin && !canUpdate && !canDelete,
+            }"
+            matSort
+            matSortDisableClear
+          >
+            <div class="flex items-center" [mat-sort-header]="'createdAt'">
+              Creation Date
+            </div>
+            <div class="flex items-center" [mat-sort-header]="'role_name'">
+              Role Name
+            </div>
+            <div class="flex items-center">Section List</div>
+            <div class="flex items-center" [mat-sort-header]="'updatedAt'">
+              Updated Date
+            </div>
+            @if (isSuperAdmin || canUpdate) {
+              <div class="flex items-center" [mat-sort-header]="'status'">
+                Status
+              </div>
+            }
+            @if (isSuperAdmin || canUpdate || canDelete) {
+              <div class="flex items-center justify-end">Action</div>
+            }
+          </div>
+
+          @if (isLoading) {
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+              <div
+                class="table-data-row animate-pulse"
+                [ngClass]="{
+                  'role-grid': isSuperAdmin || canUpdate,
+                  'role-restricted': !isSuperAdmin && !canUpdate && canDelete,
+                  'role-no-control': !isSuperAdmin && !canUpdate && !canDelete,
+                }"
+              >
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                ></div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"
+                ></div>
+                <div class="flex flex-row flex-wrap gap-2 py-0.5">
+                  <div
+                    class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16"
+                  ></div>
+                  <div
+                    class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"
+                  ></div>
+                </div>
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                ></div>
+                @if (isSuperAdmin || canUpdate) {
+                  <div class="flex items-center">
+                    <div
+                      class="w-9 h-5 bg-gray-200 dark:bg-gray-700 rounded-full"
+                    ></div>
+                  </div>
+                }
+                @if (isSuperAdmin || canUpdate || canDelete) {
+                  <div class="flex gap-2 justify-end items-center">
+                    @if (isSuperAdmin || canUpdate) {
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                    }
+                    @if (isSuperAdmin || canDelete) {
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          } @else {
+            @if (roleFormInput | async; as roles) {
+              @if (roles.length > 0) {
+                @for (type of roles; track trackByFn($index, type)) {
+                  <div
+                    class="table-data-row"
+                    [ngClass]="{
+                      'role-grid': isSuperAdmin || canUpdate,
+                      'role-restricted':
+                        !isSuperAdmin && !canUpdate && canDelete,
+                      'role-no-control':
+                        !isSuperAdmin && !canUpdate && !canDelete,
+                    }"
+                  >
+                    <div class="font-semibold text-sm text-slate-600">
+                      {{ type.createdAt | date: "dd-MM-yyyy HH:mm" || "-" }}
+                    </div>
+                    <div
+                      class="truncate font-semibold text-slate-800"
+                      [matTooltip]="type.role_name"
+                    >
+                      {{ type.role_name | titlecase }}
+                    </div>
+                    <div class="truncate flex flex-row flex-wrap gap-2 py-0.5">
+                      @for (res of type.sections; track res; let j = $index) {
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-100"
+                        >
+                          {{ res | titlecase }}
+                        </span>
+                      }
+                    </div>
+                    <div class="font-semibold text-sm text-slate-600">
+                      {{ type.updatedAt | date: "dd-MM-yyyy HH:mm" || "-" }}
+                    </div>
+                    @if (isSuperAdmin || canUpdate) {
+                      <div class="flex items-center">
+                        <mat-slide-toggle
+                          [checked]="type.status === 1"
+                          (change)="toggleRoleStatus(type._id, $event)"
+                          [color]="'primary'"
+                          class="scale-75 -mr-1"
+                        >
+                        </mat-slide-toggle>
+                      </div>
+                    }
+                    @if (isSuperAdmin || canUpdate || canDelete) {
+                      <div class="flex items-center justify-end gap-1">
+                        @if (isSuperAdmin || canUpdate) {
+                          <button
+                            type="button"
+                            class="table-action-btn"
+                            [routerLink]="['./edit', type._id]"
+                            matTooltip="Edit role"
+                          >
+                            <mat-icon
+                              class="icon-size-5"
+                              [svgIcon]="'heroicons_outline:pencil'"
+                            ></mat-icon>
+                          </button>
+                        }
+                        @if (isSuperAdmin || canDelete) {
+                          <button
+                            type="button"
+                            class="table-action-btn danger"
+                            (click)="deleteSelectedRole(type._id)"
+                            matTooltip="Delete role"
+                          >
+                            <mat-icon
+                              class="icon-size-5 text-red-500"
+                              [svgIcon]="'heroicons_outline:trash'"
+                            ></mat-icon>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              } @else {
+                <ng-container [ngTemplateOutlet]="noRecord"></ng-container>
+              }
+            }
+          }
+        </div>
+      </div>
+
+      @if (roleFormInput | async; as roles) {
+        @if (roles.length) {
+          <div class="pagination-bar">
+            <mat-paginator
+              [ngClass]="{ 'pointer-events-none': isLoading }"
+              [length]="
+                ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                (roles?.length || 0) +
+                (pagination?.hasNextPage ? 1 : 0)
+              "
+              [pageSize]="pagination?.size || 100"
+              [pageSizeOptions]="[5, 25, 50, 100]"
+              [pageIndex]="(pagination?.page || 1) - 1"
+              [showFirstLastButtons]="false"
+            ></mat-paginator>
+          </div>
+        }
+      }
+
+      <ng-template #noRecord>
+        <div class="page-empty-state">
+          <div class="icon-wrapper">
+            <mat-icon
+              class="icon-size-10"
+              [svgIcon]="'heroicons_outline:shield-exclamation'"
+            ></mat-icon>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">No roles found</h3>
+          <p class="text-slate-500 max-w-sm">
+            Get started by adding your first role to the system.
+          </p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,264 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Support Ticket SCSS
+   Full-screen Fuse responsive layout with sticky bottom pagination
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Summary cards grid ─────────────────────────────────────────────────── */
+.summary-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1.5px solid transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  &.all {
+    border-color: #e2e8f0;
+  }
+
+  &.open {
+    border-color: #3b82f6;
+  }
+
+  &.pending {
+    border-color: #f59e0b;
+  }
+
+  &.resolved {
+    border-color: #10b981;
+  }
+
+  &.closed {
+    border-color: #94a3b8;
+  }
+
+  &.unassigned {
+    border-color: #ef4444;
+  }
+
+  &.unread {
+    border-color: #a855f7;
+  }
+
+  .card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #475569;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+
+    .card-count {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1;
+      color: #0f172a;
+    }
+
+    .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+  }
+}
+
+/* ── Primary action button ───────────────────────────────────────────────── */
+.create-btn {
+  background-color: #f97316 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  height: 40px !important;
+
+  &:hover {
+    background-color: #ea580c !important;
+  }
+}
+
+/* ── Support Ticket Table & Grid Styles ─────────────────────────────────── */
+.tickets-table {
+  .mat-mdc-header-cell,
+  .mat-mdc-cell {
+    border-bottom: none !important;
+    border-top: none !important;
+    border: none !important;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+}
+
+/* Ticket list grid — columns: Code | Subject | Created By | Topic | Status | Assignee | Last Message | Updated | Actions */
+.ticket-grid {
+  display: grid;
+  grid-template-columns: 120px auto 160px 150px 150px 150px 160px 160px 70px;
+  padding-inline: 15px;
+  padding-block: 5px;
+
+  @screen sm {
+    grid-template-columns: 90px auto 120px 110px 120px 110px 120px 120px 50px;
+  }
+
+  @screen md {
+    grid-template-columns: 110px auto 140px 130px 135px 130px 140px 140px 60px;
+  }
+
+  @screen lg {
+    grid-template-columns: 120px auto 160px 150px 150px 150px 160px 160px 70px;
+  }
+}
+
+/* ── Sticky Pagination Bar ───────────────────────────────────────────────── */
+.pagination-bar {
+  ::ng-deep mat-paginator,
+  ::ng-deep .mat-mdc-paginator {
+    background: transparent !important;
+    flex-shrink: 0 !important;
+    width: auto !important;
+
+    .mat-mdc-paginator-outer-container {
+      width: auto !important;
+    }
+
+    .mat-mdc-paginator-container {
+      min-height: 38px !important;
+      padding: 0 !important;
+      width: auto !important;
+      justify-content: flex-start !important;
+    }
+  }
+}
+
+/* ── Composer internal note state ────────────────────────────────────────── */
+.composer {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.internal-mode {
+    background-color: #fefce8 !important;
+    border-top-color: #f59e0b !important;
+  }
+}
+
+/* ── Typing indicator ─────────────────────────────────────────────────────── */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+
+  span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #cbd5e1;
+    animation: typing-bounce 1.2s infinite;
+
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+}
+
+@keyframes typing-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-6px);
+  }
+}
+
+/* ── Composer textarea focus & send button ─────────────────────────────── */
+.composer-textarea {
+  &:focus {
+    border-color: var(--fuse-primary, #3b82f6) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+  }
+}
+
+.send-reply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+/* ── Green Notification Popup Toast ─────────────────────────────────────── */
+::ng-deep .green-notification-popup {
+  --mdc-snackbar-container-color: #10b981 !important;
+  --mdc-snackbar-supporting-text-color: #ffffff !important;
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4) !important;
+
+  .mdc-snackbar__surface {
+    background-color: #10b981 !important;
+    border-radius: 10px !important;
+  }
+
+  .mat-mdc-snack-bar-label {
+    color: #ffffff !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+  }
+
+  .mat-mdc-button,
+  .mat-mdc-snack-bar-action {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    text-decoration: underline !important;
+  }
+}

@@ -1,0 +1,15 @@
+.seller-store-grid {
+  grid-template-columns: 140px 170px 230px 120px 110px 160px auto 140px;
+
+  @screen sm {
+    grid-template-columns: 140px 170px 230px 120px 110px 160px auto 140px;
+  }
+
+  @screen md {
+    grid-template-columns: 140px 170px 230px 120px 110px 160px auto 140px;
+  }
+
+  @screen lg {
+    grid-template-columns: 140px 180px 250px 130px 120px 160px auto 140px;
+  }
+}

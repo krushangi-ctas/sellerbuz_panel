@@ -1,0 +1,68 @@
+.tag-setting-grid {
+  grid-template-columns: 160px 160px auto 160px 70px 180px;
+
+  @screen sm {
+    grid-template-columns: 160px 160px auto 160px 70px 180px;
+  }
+
+  @screen md {
+    grid-template-columns: 160px 160px auto 160px 70px 180px;
+  }
+
+  @screen lg {
+    grid-template-columns: 160px 160px auto 160px 70px 180px;
+  }
+}
+
+::ng-deep
+  .mat-form-field.mat-form-field-appearance-fill
+  .mat-form-field-wrapper
+  .mat-form-field-flex {
+  min-height: 38px;
+}
+
+::ng-deep
+  .custom-field-mb
+  .mat-form-field.mat-form-field-appearance-fill
+  .mat-form-field-wrapper {
+  margin-bottom: 0px;
+}
+
+::ng-deep .mat-button-toggle-checked {
+  background-color: var(--fuse-primary) !important;
+}
+
+::ng-deep .mdc-switch__icon {
+  background-color: var(--color-white-100) !important;
+  /* Default background color */
+  border: 1px solid var(--fuse-primary) !important;
+  /* Border color if needed */
+}
+
+/* Change the background of the toggle bar */
+.custom-toggle .mat-slide-toggle-bar {
+  background-color: var(--color-accent-200) !important;
+  /* Background bar color */
+}
+
+/* Change the color of the thumb (round shape) */
+.custom-toggle .mat-slide-toggle-thumb {
+  background-color: var(--fuse-primary) !important;
+  /* Thumb color */
+}
+
+/* Ensure the color remains consistent when checked */
+.custom-toggle.mat-checked .mat-slide-toggle-bar {
+  background-color: var(--color-accent-200) !important;
+  /* Background bar color when checked */
+}
+
+.custom-toggle.mat-checked .mat-slide-toggle-thumb {
+  background-color: var(--fuse-primary) !important;
+  /* Thumb color when checked */
+}
+
+.custom-toggle ::ng-deep .mdc-switch__icons {
+  background-color: var(--fuse-primary) !important;
+  border-radius: 50%;
+}

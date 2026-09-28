@@ -1,0 +1,524 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-gray-50/50 dark:bg-gray-900"
+>
+  <!-- Header Bar -->
+  <div
+    class="page-header relative flex flex-row flex-0 items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-800 shadow-sm"
+  >
+    <div class="flex items-center gap-3">
+      <div class="text-2xl font-extrabold tracking-tight flex items-center">
+        <a (click)="$event.preventDefault()" mat-icon-button class="mr-1">
+          <mat-icon
+            class="icon-size-6 text-white"
+            [svgIcon]="'heroicons_outline:document-text'"
+          ></mat-icon>
+        </a>
+        <span class="text-xl font-bold tracking-tight text-white">
+          {{ title }}
+        </span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        mat-flat-button
+        class="btn-back inline-flex items-center rounded-xl px-4 py-2 font-semibold shadow-sm transition-all duration-200"
+        (click)="goBack()"
+      >
+        <mat-icon
+          class="icon-size-5 mr-1"
+          svgIcon="heroicons_outline:arrow-left"
+        ></mat-icon>
+        <span>Back to Blogs</span>
+      </button>
+
+      <button
+        type="button"
+        mat-flat-button
+        color="primary"
+        class="btn-primary-action rounded-xl px-5 py-2 font-semibold shadow-sm"
+        (click)="saveBlog()"
+        [disabled]="blogForm.invalid || isSubmitting"
+      >
+        @if (isSubmitting) {
+          <mat-progress-spinner
+            [diameter]="18"
+            [mode]="'indeterminate'"
+            class="mr-2"
+          ></mat-progress-spinner>
+        }
+        <span>{{ isEditMode ? "Update Blog" : "Create Blog" }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Scrollable Body -->
+  <div class="flex-auto overflow-y-auto px-4 py-4 sm:px-6">
+    <div class="w-full">
+      @if (isLoading) {
+        <!-- SKELETON LOADER FOR BLOG FORM -->
+        <div class="animate-pulse grid grid-cols-12 gap-5">
+          <div class="col-span-12 lg:col-span-7 xl:col-span-8 space-y-4">
+            <div
+              class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-3"
+            >
+              <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+              <div
+                class="h-10 bg-gray-200 dark:bg-gray-700 rounded w-full"
+              ></div>
+              <div
+                class="h-16 bg-gray-200 dark:bg-gray-700 rounded w-full"
+              ></div>
+            </div>
+            <div
+              class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-3"
+            >
+              <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+              <div
+                class="h-64 bg-gray-200 dark:bg-gray-700 rounded w-full"
+              ></div>
+            </div>
+          </div>
+          <div class="col-span-12 lg:col-span-5 xl:col-span-4 space-y-4">
+            <div
+              class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3"
+            >
+              <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-full"
+              ></div>
+            </div>
+            <div
+              class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3"
+            >
+              <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+              <div
+                class="h-20 bg-gray-200 dark:bg-gray-700 rounded w-full"
+              ></div>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <form
+          [formGroup]="blogForm"
+          (ngSubmit)="saveBlog()"
+          class="grid grid-cols-12 gap-5 pb-6"
+        >
+          <!-- LEFT COLUMN: Blog Details & Content Editor -->
+          <div
+            class="col-span-12 lg:col-span-7 xl:col-span-8 flex flex-col gap-4"
+          >
+            <!-- Basic Information Card -->
+            <div
+              class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-3"
+            >
+              <div
+                class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700"
+              >
+                <h2
+                  class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 flex items-center gap-2"
+                >
+                  <mat-icon
+                    class="icon-size-4 text-primary"
+                    svgIcon="heroicons_outline:information-circle"
+                  ></mat-icon>
+                  Blog Information
+                </h2>
+              </div>
+
+              <div class="space-y-3">
+                <!-- Blog Title -->
+                <div>
+                  <mat-form-field
+                    class="w-full fuse-mat-dense"
+                    appearance="outline"
+                  >
+                    <mat-label>Blog Title *</mat-label>
+                    <input
+                      matInput
+                      formControlName="blog_title"
+                      placeholder="Enter engaging blog title..."
+                      maxlength="250"
+                    />
+                    <mat-error
+                      *ngIf="blogForm.get('blog_title')?.hasError('required')"
+                    >
+                      Blog title is required
+                    </mat-error>
+                    <mat-error
+                      *ngIf="blogForm.get('blog_title')?.hasError('minlength')"
+                    >
+                      Blog title must be at least 2 characters
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+
+                <!-- Short Description -->
+                <div>
+                  <mat-form-field
+                    class="w-full fuse-mat-dense"
+                    appearance="outline"
+                  >
+                    <mat-label>Short Description (Summary)</mat-label>
+                    <textarea
+                      matInput
+                      formControlName="short_description"
+                      rows="2"
+                      placeholder="Enter short summary for blog preview cards..."
+                      maxlength="500"
+                    ></textarea>
+                    <mat-hint align="end"
+                      >{{
+                        blogForm.get("short_description")?.value?.length || 0
+                      }}/500</mat-hint
+                    >
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <!-- Blog Content (Quill Editor) -->
+            <div
+              class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-3"
+            >
+              <div
+                class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700"
+              >
+                <h2
+                  class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 flex items-center gap-2"
+                >
+                  <mat-icon
+                    class="icon-size-4 text-primary"
+                    svgIcon="heroicons_outline:pencil-square"
+                  ></mat-icon>
+                  Blog Content (Rich Text)
+                </h2>
+              </div>
+
+              <div class="quill-blog-editor">
+                <quill-editor
+                  [formControl]="$any(blogForm.controls.description)"
+                  [modules]="quillModules"
+                  placeholder="Write detailed blog content here..."
+                ></quill-editor>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: Status & Images Manager -->
+          <div
+            class="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col gap-4"
+          >
+            <!-- Status & Publishing Card -->
+            <div
+              class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <div
+                    class="text-sm font-semibold text-gray-800 dark:text-gray-200"
+                  >
+                    Publish Status
+                  </div>
+                  <div class="text-xs text-gray-400">
+                    Visible on website when active
+                  </div>
+                </div>
+
+                <mat-slide-toggle
+                  [checked]="blogForm.get('status')?.value === 1"
+                  color="primary"
+                  (change)="
+                    blogForm.get('status')?.setValue($event.checked ? 1 : 0)
+                  "
+                >
+                  <span
+                    class="text-xs font-semibold"
+                    [ngClass]="
+                      blogForm.get('status')?.value === 1
+                        ? 'text-green-600 font-bold'
+                        : 'text-gray-400'
+                    "
+                  >
+                    {{
+                      blogForm.get("status")?.value === 1
+                        ? "Active"
+                        : "Inactive"
+                    }}
+                  </span>
+                </mat-slide-toggle>
+              </div>
+            </div>
+
+            <!-- Blog Images Management Card -->
+            <div
+              class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-3"
+            >
+              <div
+                class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700"
+              >
+                <div>
+                  <h2
+                    class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 flex items-center gap-2"
+                  >
+                    <mat-icon
+                      class="icon-size-4 text-primary"
+                      svgIcon="heroicons_outline:photograph"
+                    ></mat-icon>
+                    Blog Images
+                  </h2>
+                  <p class="text-[11px] text-gray-400 mt-0.5">
+                    Manage multiple images for this blog
+                  </p>
+                </div>
+
+                <!-- + Add Image Button -->
+                <button
+                  type="button"
+                  mat-stroked-button
+                  color="primary"
+                  class="rounded-lg text-xs font-semibold px-2.5 py-1 h-8"
+                  (click)="addImageSlot()"
+                >
+                  <mat-icon
+                    class="icon-size-3.5 mr-1"
+                    [svgIcon]="'heroicons_outline:plus'"
+                  ></mat-icon>
+                  <span>Add Image</span>
+                </button>
+              </div>
+
+              <!-- Image Slots List -->
+              <div
+                formArrayName="description_images"
+                class="space-y-3 max-h-[580px] overflow-y-auto pr-1"
+              >
+                @for (
+                  control of descriptionImages.controls;
+                  track $index;
+                  let i = $index
+                ) {
+                  <div
+                    class="image-slot-card rounded-lg p-2.5 bg-gray-50/70 dark:bg-gray-800/80 border flex items-center gap-2.5"
+                  >
+                    <!-- Hidden file picker -->
+                    <input
+                      #fileInput
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      (change)="onImagePicked($event, i)"
+                    />
+
+                    <!-- Image Thumbnail / Upload Box -->
+                    <div
+                      class="w-12 h-12 flex-shrink-0 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center cursor-pointer overflow-hidden bg-white dark:bg-gray-900 hover:border-primary transition-colors relative group"
+                      (click)="onThumbnailClick(i, control.value, $event)"
+                      [matTooltip]="
+                        control.value
+                          ? 'Click to view large preview'
+                          : 'Click to upload image'
+                      "
+                    >
+                      @if (uploadingSlotIndex === i) {
+                        <mat-progress-spinner
+                          [diameter]="18"
+                          [mode]="'indeterminate'"
+                          color="primary"
+                        ></mat-progress-spinner>
+                      } @else if (control.value) {
+                        <img
+                          [src]="control.value"
+                          alt="Preview"
+                          class="w-full h-full object-cover"
+                        />
+                        <div
+                          class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-1.5 transition-opacity z-10"
+                        >
+                          <button
+                            type="button"
+                            class="w-5 h-5 flex items-center justify-center rounded bg-slate-900/80 hover:bg-black text-white transition-colors cursor-pointer"
+                            matTooltip="View preview"
+                            (click)="openImagePreview(control.value, i, $event)"
+                          >
+                            <mat-icon
+                              class="icon-size-3.5 text-white"
+                              svgIcon="heroicons_outline:eye"
+                            ></mat-icon>
+                          </button>
+                          <button
+                            type="button"
+                            class="w-5 h-5 flex items-center justify-center rounded bg-slate-900/80 hover:bg-black text-white transition-colors cursor-pointer"
+                            matTooltip="Replace image"
+                            (click)="
+                              triggerFileInput(i); $event.stopPropagation()
+                            "
+                          >
+                            <mat-icon
+                              class="icon-size-3.5 text-white"
+                              svgIcon="heroicons_outline:refresh"
+                            ></mat-icon>
+                          </button>
+                        </div>
+                      } @else {
+                        <mat-icon
+                          class="icon-size-4 text-gray-400 group-hover:text-primary"
+                          svgIcon="heroicons_outline:upload"
+                        ></mat-icon>
+                        <span class="text-[8px] text-gray-400 font-medium"
+                          >Upload</span
+                        >
+                      }
+                    </div>
+
+                    <!-- Image URL Field -->
+                    <div class="flex-1 min-w-0">
+                      <mat-form-field
+                        class="w-full fuse-mat-dense fuse-mat-no-subscript text-xs -mb-5"
+                        appearance="outline"
+                      >
+                        <mat-label>Image #{{ i + 1 }} URL</mat-label>
+                        <input
+                          matInput
+                          [formControl]="$any(control)"
+                          placeholder="Image URL..."
+                        />
+                      </mat-form-field>
+                    </div>
+
+                    <!-- Delete Slot Button -->
+                    <button
+                      type="button"
+                      mat-icon-button
+                      color="warn"
+                      (click)="removeImageSlot(i)"
+                      matTooltip="Remove image"
+                      class="w-7 h-7 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-full flex-shrink-0"
+                    >
+                      <mat-icon
+                        class="icon-size-4"
+                        svgIcon="heroicons_outline:trash"
+                      ></mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+
+  <!-- Large Image Preview Dialog / Modal -->
+  @if (previewModalImage) {
+    <div
+      class="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 sm:p-6 select-none animate-in fade-in duration-200"
+      (click)="closeImagePreview()"
+    >
+      <div
+        class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-w-[92vw] max-h-[90vh] animate-in zoom-in-95 duration-200"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Modal Header -->
+        <div
+          class="flex items-center justify-between px-5 py-3.5 bg-slate-800/90 border-b border-slate-700 select-none"
+        >
+          <div
+            class="flex items-center gap-2.5 truncate pr-4 text-slate-200 text-sm font-semibold"
+          >
+            <div
+              class="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center"
+            >
+              <mat-icon
+                class="icon-size-4 text-blue-400"
+                svgIcon="heroicons_outline:photograph"
+              ></mat-icon>
+            </div>
+            <span class="truncate">
+              Image #{{ previewModalImage.index + 1 }} Preview
+            </span>
+          </div>
+
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <!-- Open original in new tab -->
+            <a
+              [href]="previewModalImage.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors flex items-center"
+              matTooltip="Open original in new tab"
+            >
+              <mat-icon
+                class="icon-size-4"
+                svgIcon="heroicons_outline:external-link"
+              ></mat-icon>
+            </a>
+
+            <!-- Close button -->
+            <button
+              type="button"
+              class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg transition-colors cursor-pointer flex items-center"
+              matTooltip="Close preview (Esc)"
+              (click)="closeImagePreview()"
+            >
+              <mat-icon
+                class="icon-size-5"
+                svgIcon="heroicons_outline:x"
+              ></mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Image Body -->
+        <div
+          class="p-3 sm:p-5 flex items-center justify-center bg-slate-950/90 overflow-auto flex-1 min-h-0"
+        >
+          <img
+            [src]="previewModalImage.url"
+            [alt]="'Image #' + (previewModalImage.index + 1)"
+            class="max-h-[72vh] max-w-[86vw] object-contain rounded-lg shadow-xl select-none"
+          />
+        </div>
+
+        <!-- Modal Footer -->
+        <div
+          class="px-5 py-3 bg-slate-900/95 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400"
+        >
+          <span
+            class="truncate max-w-[450px] font-mono select-all text-slate-300 text-[11px]"
+          >
+            {{ previewModalImage.url }}
+          </span>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              mat-stroked-button
+              class="text-xs h-7 px-3 text-slate-200 border-slate-700 hover:bg-slate-800"
+              (click)="
+                triggerFileInput(previewModalImage.index); closeImagePreview()
+              "
+            >
+              <mat-icon
+                class="icon-size-3.5 mr-1"
+                svgIcon="heroicons_outline:refresh"
+              ></mat-icon>
+              <span>Replace Image</span>
+            </button>
+            <button
+              type="button"
+              mat-flat-button
+              color="primary"
+              class="text-xs h-7 px-3"
+              (click)="closeImagePreview()"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

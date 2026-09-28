@@ -1,0 +1,5 @@
+.feature-meter-grid {
+  grid-template-columns:
+    90px minmax(220px, 2fr) minmax(160px, 1fr)
+    130px 90px 100px;
+}

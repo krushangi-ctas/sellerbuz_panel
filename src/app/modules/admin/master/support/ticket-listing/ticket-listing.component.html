@@ -1,0 +1,525 @@
+<div class="absolute inset-0 flex flex-col bg-white min-w-0 sm:overflow-hidden">
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- ══ Header (Matching Tag Setting List UI) ═════════════════════════════ -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_solid:ticket'"
+            ></mat-icon>
+          </a>
+          <span class="text-2xl font-bold tracking-tight text-white"
+            >Support Tickets</span
+          >
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <!-- Search -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+          matTooltip="Search tickets by ticket number or subject"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="searchCtrl"
+            maxlength="50"
+            [autocomplete]="'off'"
+            [placeholder]="'Search tickets...'"
+            id="ticket-search-input"
+          />
+        </mat-form-field>
+
+        <!-- Status Filter -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+          matTooltip="Filter by status"
+        >
+          <mat-icon
+            svgIcon="mat_outline:filter_alt"
+            class="icon-size-5 text-gray-400"
+            matPrefix
+          ></mat-icon>
+          <mat-select
+            [formControl]="statusCtrl"
+            (selectionChange)="onStatusChange()"
+            placeholder="Status"
+            id="ticket-status-filter"
+          >
+            <mat-option value="">All Statuses</mat-option>
+            @for (opt of statusOptions; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Category Filter -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-44 -mb-5"
+          matTooltip="Filter by topic category"
+        >
+          <mat-icon
+            svgIcon="mat_outline:filter_alt"
+            class="icon-size-5 text-gray-400"
+            matPrefix
+          ></mat-icon>
+          <mat-select
+            [formControl]="categoryCtrl"
+            (selectionChange)="onCategoryChange()"
+            placeholder="Category"
+            id="ticket-category-filter"
+          >
+            <mat-option value="">All Categories</mat-option>
+            @for (cat of categoryOptions; track cat.value) {
+              <mat-option [value]="cat.value">{{ cat.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Refresh Button -->
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refresh()"
+          matTooltip="Refresh list"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+
+        <!-- Create Ticket Button -->
+        @if (isSuperAdmin || canAdd) {
+          <button
+            type="button"
+            class="btn-primary-action"
+            mat-flat-button
+            (click)="openCreateDialog()"
+            id="create-ticket-btn"
+            matTooltip="Create new support ticket"
+          >
+            <mat-icon
+              class="icon-size-5 text-white"
+              [svgIcon]="'heroicons_outline:plus'"
+            ></mat-icon>
+            <span>Create Ticket</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- ══ Main Content (Table + Sticky Pagination) ═══════════════════════ -->
+    <div
+      class="flex flex-col flex-auto min-h-0 overflow-hidden"
+      matSort
+      matSortDisableClear
+    >
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+        <!-- Skeleton Loader State -->
+        @if (isLoading) {
+          <div class="grid min-w-[1100px] w-full">
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+              <div class="table-data-row ticket-grid animate-pulse">
+                <div class="h-4 bg-gray-200 rounded w-20"></div>
+                <div class="h-4 bg-gray-200 rounded w-48"></div>
+                <div class="h-4 bg-gray-200 rounded w-28"></div>
+                <div class="h-4 bg-gray-200 rounded w-24"></div>
+                <div class="h-5 bg-gray-200 rounded-full w-24"></div>
+                <div class="h-4 bg-gray-200 rounded w-24"></div>
+                <div class="h-4 bg-gray-200 rounded w-28"></div>
+                <div class="h-4 bg-gray-200 rounded w-28"></div>
+                <div
+                  class="w-8 h-8 bg-gray-200 rounded-full justify-self-end"
+                ></div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="grid min-w-[1100px] w-full">
+            <!-- Table Header Row (Always Visible) -->
+            <div
+              class="table-header-row ticket-grid sticky top-0 z-10 bg-slate-50 font-semibold text-slate-600 border-b border-slate-200"
+              matSort
+              matSortDisableClear
+            >
+              <div [mat-sort-header]="'ticketNo'">Code</div>
+              <div [mat-sort-header]="'subject'">Subject</div>
+              <div>Created By</div>
+              <div>Topic</div>
+              <div [mat-sort-header]="'status'">Status</div>
+              <div>Assignee</div>
+              <div [mat-sort-header]="'lastMessageAt'">Last Message</div>
+              <div [mat-sort-header]="'updatedAt'">Updated</div>
+              <div class="justify-end">Actions</div>
+            </div>
+
+            @if (tickets && tickets.length > 0) {
+              <!-- Table Data Rows -->
+              @for (row of tickets; track trackByFn($index, row)) {
+                <div
+                  class="table-data-row ticket-grid ticket-row border-b border-slate-200/80 hover:bg-blue-50/20 cursor-pointer transition-colors"
+                  [class.bg-blue-50\/30]="getUnreadCount(row) > 0"
+                  (click)="openTicket(row)"
+                >
+                  <!-- 1. Code -->
+                  <div class="flex items-center">
+                    <a
+                      class="inline-flex items-center gap-1 font-semibold text-xs rounded-md px-2 py-0.5 transition-all hover:underline cursor-pointer"
+                      style="
+                        color: var(--fuse-primary, #3b82f6);
+                        background-color: rgba(59, 130, 246, 0.08);
+                      "
+                      (click)="openTicket(row); $event.stopPropagation()"
+                      [matTooltip]="'Ticket #' + row.ticketNo"
+                    >
+                      <mat-icon
+                        class="icon-size-3.5"
+                        svgIcon="heroicons_solid:ticket"
+                      ></mat-icon>
+                      <span>#{{ row.ticketNo }}</span>
+                    </a>
+                  </div>
+
+                  <!-- 2. Subject -->
+                  <div
+                    class="flex flex-col truncate py-1 min-w-0"
+                    [matTooltip]="row.subject"
+                  >
+                    <span class="text-xs font-bold text-slate-800 truncate">{{
+                      row.subject
+                    }}</span>
+                    <span
+                      class="text-[11px] text-slate-400 truncate"
+                      [matTooltip]="row.lastMessage"
+                      >{{ row.lastMessage }}</span
+                    >
+                  </div>
+
+                  <!-- 3. Created By -->
+                  <div
+                    class="flex items-center gap-2 min-w-0"
+                    [matTooltip]="'Created by ' + row.createdByName"
+                  >
+                    <span
+                      class="w-6 h-6 rounded-full text-white font-bold text-[11px] flex items-center justify-center flex-shrink-0 shadow-sm"
+                      style="background-color: var(--fuse-primary, #3b82f6)"
+                    >
+                      {{ row.createdByName?.charAt(0) | uppercase }}
+                    </span>
+                    <span class="text-xs font-medium text-slate-700 truncate">{{
+                      row.createdByName
+                    }}</span>
+                  </div>
+
+                  <!-- 4. Topic / Category -->
+                  <div
+                    class="flex items-center min-w-0"
+                    [matTooltip]="'Topic: ' + (row.category || 'OTHER')"
+                  >
+                    <span
+                      class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200/80 max-w-full"
+                    >
+                      <mat-icon
+                        class="icon-size-3.5 text-slate-400 flex-shrink-0"
+                        svgIcon="heroicons_solid:tag"
+                      ></mat-icon>
+                      <span class="truncate">{{
+                        row.category || "OTHER"
+                      }}</span>
+                    </span>
+                  </div>
+
+                  <!-- 5. Status -->
+                  <div
+                    class="flex items-center min-w-0"
+                    [matTooltip]="
+                      'Status: ' + (TICKET_STATUS_LABEL[row.status] || 'Active')
+                    "
+                  >
+                    <app-ticket-status-badge
+                      [status]="row.status"
+                    ></app-ticket-status-badge>
+                  </div>
+
+                  <!-- 6. Assignee -->
+                  <div
+                    class="flex items-center gap-1.5 min-w-0"
+                    [matTooltip]="
+                      row.assignedToName
+                        ? 'Assigned to ' + row.assignedToName
+                        : 'Currently unassigned'
+                    "
+                  >
+                    <mat-icon
+                      class="icon-size-3.5 text-slate-400 flex-shrink-0"
+                      svgIcon="heroicons_solid:user-circle"
+                    ></mat-icon>
+                    <span
+                      *ngIf="row.assignedToName; else unassigned"
+                      class="text-xs font-medium text-slate-700 truncate"
+                      >{{ row.assignedToName }}</span
+                    >
+                    <ng-template #unassigned
+                      ><span class="text-xs text-slate-400 italic"
+                        >Unassigned</span
+                      ></ng-template
+                    >
+                  </div>
+
+                  <!-- 7. Last Message -->
+                  <div
+                    class="flex items-center gap-1.5 text-xs text-slate-500 min-w-0"
+                    [matTooltip]="
+                      'Last message: ' +
+                      (row.lastMessageAt | date: 'dd-MM-yyyy, HH:mm')
+                    "
+                  >
+                    <mat-icon
+                      class="icon-size-3.5 text-slate-400 flex-shrink-0"
+                      svgIcon="heroicons_solid:clock"
+                    ></mat-icon>
+                    <span
+                      *ngIf="getUnreadCount(row) > 0"
+                      class="w-2 h-2 rounded-full flex-shrink-0 animate-pulse"
+                      style="background-color: var(--fuse-primary, #3b82f6)"
+                    ></span>
+                    <span class="text-xs font-medium text-slate-600 truncate">{{
+                      row.lastMessageAt | date: "dd-MM-yyyy, HH:mm"
+                    }}</span>
+                  </div>
+
+                  <!-- 8. Updated -->
+                  <div
+                    class="flex items-center gap-1.5 text-xs text-slate-500 min-w-0"
+                    [matTooltip]="
+                      'Updated at: ' +
+                      (row.updatedAt | date: 'dd-MM-yyyy, HH:mm')
+                    "
+                  >
+                    <mat-icon
+                      class="icon-size-3.5 text-slate-400 flex-shrink-0"
+                      svgIcon="heroicons_solid:refresh"
+                    ></mat-icon>
+                    <span class="text-xs font-medium text-slate-600 truncate">{{
+                      row.updatedAt | date: "dd-MM-yyyy, HH:mm"
+                    }}</span>
+                  </div>
+
+                  <!-- 9. Actions -->
+                  <div class="flex items-center justify-end">
+                    <button
+                      type="button"
+                      mat-icon-button
+                      [matMenuTriggerFor]="menu"
+                      [id]="'ticket-menu-' + row._id"
+                      class="text-slate-500"
+                      matTooltip="Actions"
+                      (click)="$event.stopPropagation()"
+                    >
+                      <mat-icon>more_horiz</mat-icon>
+                    </button>
+                    <mat-menu #menu="matMenu">
+                      <button
+                        type="button"
+                        mat-menu-item
+                        (click)="openTicket(row)"
+                      >
+                        <mat-icon class="icon-size-4">open_in_new</mat-icon
+                        ><span>View Ticket</span>
+                      </button>
+                    </mat-menu>
+                  </div>
+                </div>
+              }
+            }
+            @if (!tickets || tickets.length === 0) {
+              <!-- Global Page Empty State (Centered across the screen) -->
+              <div class="page-empty-state col-span-full">
+                <div class="icon-wrapper">
+                  <mat-icon
+                    class="icon-size-10"
+                    [svgIcon]="'heroicons_outline:ticket'"
+                  ></mat-icon>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">
+                  No tickets found
+                </h3>
+                <p class="text-slate-500 max-w-sm font-medium">
+                  Get started by creating your first support ticket or adjusting
+                  your search filters.
+                </p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Bottom Sticky Pagination Bar & Summary Stats -->
+      <div
+        class="pagination-bar flex flex-col lg:flex-row items-center justify-between px-4 border-t border-slate-200 bg-gray-50 dark:bg-transparent gap-2 lg:gap-3 flex-shrink-0 w-full"
+      >
+        @if (tickets?.length) {
+          <mat-paginator
+            [length]="
+              ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+              (tickets?.length || 0) +
+              (pagination?.hasNextPage ? 1 : 0)
+            "
+            [pageSize]="pageLimit"
+            [pageSizeOptions]="pageOptions"
+            (page)="onPage($event)"
+            [showFirstLastButtons]="false"
+            class="bg-transparent"
+          ></mat-paginator>
+        }
+
+        <!-- Summary Stats Badges (Responsive: Row 2 on sm/md, Right Side on lg) -->
+        <div
+          class="flex items-center justify-start lg:justify-end flex-nowrap overflow-x-auto sm:mb-2 lg:mb-0 mb-2 w-full lg:w-auto gap-1.5 flex-shrink-0 min-w-0 py-0.5 max-w-full"
+        >
+          <!-- ALL -->
+          <div
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 cursor-pointer shadow-xs transition-all flex-shrink-0 hover:-translate-y-0.5"
+            (click)="filterByStatus('')"
+            matTooltip="View all tickets"
+          >
+            <mat-icon class="icon-size-3.5 text-slate-500 font-normal"
+              >confirmation_number</mat-icon
+            >
+            <span class="text-xs font-extrabold text-slate-900 leading-none">{{
+              summary?.all || 0
+            }}</span>
+            <span
+              class="text-[10px] font-bold text-slate-500 uppercase tracking-wide"
+              >ALL</span
+            >
+          </div>
+
+          <!-- OPEN -->
+          <div
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 cursor-pointer shadow-xs transition-all flex-shrink-0 hover:-translate-y-0.5"
+            (click)="filterByStatus(TICKET_STATUS.OPEN)"
+            matTooltip="View open & assigned tickets"
+          >
+            <mat-icon class="icon-size-3.5 text-blue-600 font-normal"
+              >pending_actions</mat-icon
+            >
+            <span class="text-xs font-extrabold text-blue-900 leading-none">{{
+              summary?.open || 0
+            }}</span>
+            <span
+              class="text-[10px] font-bold text-blue-600 uppercase tracking-wide"
+              >OPEN</span
+            >
+          </div>
+
+          <!-- PENDING -->
+          <div
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-amber-200 bg-amber-50/80 hover:bg-amber-100/80 cursor-pointer shadow-xs transition-all flex-shrink-0 hover:-translate-y-0.5"
+            (click)="filterByStatus(TICKET_STATUS.PENDING_CUSTOMER)"
+            matTooltip="View pending tickets"
+          >
+            <mat-icon class="icon-size-3.5 text-amber-600 font-normal"
+              >hourglass_empty</mat-icon
+            >
+            <span class="text-xs font-extrabold text-amber-900 leading-none">{{
+              summary?.pending || 0
+            }}</span>
+            <span
+              class="text-[10px] font-bold text-amber-600 uppercase tracking-wide"
+              >PENDING</span
+            >
+          </div>
+
+          <!-- RESOLVED -->
+          <div
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50/80 hover:bg-emerald-100/80 cursor-pointer shadow-xs transition-all flex-shrink-0 hover:-translate-y-0.5"
+            (click)="filterByStatus(TICKET_STATUS.RESOLVED)"
+            matTooltip="View resolved tickets"
+          >
+            <mat-icon class="icon-size-3.5 text-emerald-600 font-normal"
+              >check_circle_outline</mat-icon
+            >
+            <span
+              class="text-xs font-extrabold text-emerald-900 leading-none"
+              >{{ summary?.resolved || 0 }}</span
+            >
+            <span
+              class="text-[10px] font-bold text-emerald-600 uppercase tracking-wide"
+              >RESOLVED</span
+            >
+          </div>
+
+          <!-- CLOSED -->
+          <div
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-300 bg-slate-100/80 hover:bg-slate-200/80 cursor-pointer shadow-xs transition-all flex-shrink-0 hover:-translate-y-0.5"
+            (click)="filterByStatus(TICKET_STATUS.CLOSED)"
+            matTooltip="View closed tickets"
+          >
+            <mat-icon class="icon-size-3.5 text-slate-500 font-normal"
+              >lock_outline</mat-icon
+            >
+            <span class="text-xs font-extrabold text-slate-800 leading-none">{{
+              summary?.closed || 0
+            }}</span>
+            <span
+              class="text-[10px] font-bold text-slate-500 uppercase tracking-wide"
+              >CLOSED</span
+            >
+          </div>
+
+          <!-- UNASSIGNED -->
+          <div
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50/80 hover:bg-rose-100/80 cursor-pointer shadow-xs transition-all flex-shrink-0 hover:-translate-y-0.5"
+            *ngIf="isAdmin"
+            (click)="filterByStatus('')"
+            matTooltip="View unassigned tickets"
+          >
+            <mat-icon class="icon-size-3.5 text-rose-600 font-normal"
+              >person_outline</mat-icon
+            >
+            <span class="text-xs font-extrabold text-rose-900 leading-none">{{
+              summary?.unassigned || 0
+            }}</span>
+            <span
+              class="text-[10px] font-bold text-rose-600 uppercase tracking-wide"
+              >UNASSIGNED</span
+            >
+          </div>
+
+          <!-- UNREAD -->
+          <div
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-purple-200 bg-purple-50/80 hover:bg-purple-100/80 cursor-pointer shadow-xs transition-all flex-shrink-0 hover:-translate-y-0.5"
+            matTooltip="View unread tickets"
+          >
+            <mat-icon class="icon-size-3.5 text-purple-600 font-normal"
+              >mark_chat_unread</mat-icon
+            >
+            <span class="text-xs font-extrabold text-purple-900 leading-none">{{
+              summary?.unread || 0
+            }}</span>
+            <span
+              class="text-[10px] font-bold text-purple-600 uppercase tracking-wide"
+              >UNREAD</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

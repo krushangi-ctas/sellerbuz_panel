@@ -1,0 +1,630 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white"
+>
+  <!-- Header -->
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_solid:information-circle'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">
+            System Logs
+          </h1>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-48 -mb-5"
+        >
+          <mat-icon
+            svgIcon="mat_outline:filter_alt"
+            class="icon-size-5 text-gray-400"
+            matPrefix
+          ></mat-icon>
+          <mat-select
+            placeholder="Operation"
+            [(ngModel)]="selectedOperation"
+            (selectionChange)="onChangeFilter($event.value, 'operation')"
+          >
+            <mat-option value="">All Operations</mat-option>
+            @for (operation of operationList; track operation) {
+              <mat-option [value]="operation.operation">
+                {{ operation.operation }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        @if (true) {
+          <mat-form-field
+            class="fuse-mat-dense fuse-mat-no-subscript min-w-44 -mb-5"
+          >
+            <mat-icon
+              svgIcon="heroicons_outline:user"
+              class="icon-size-5 text-gray-400"
+              matPrefix
+            ></mat-icon>
+            <mat-select
+              placeholder="Updated By"
+              [(ngModel)]="selectedOperationBy"
+              (selectionChange)="onChangeFilter($event.value, 'operation_by')"
+            >
+              <mat-option value="">All Users</mat-option>
+              @for (type of users; track type) {
+                <mat-option [value]="type.id">
+                  {{ type.first_name + " " + type.last_name }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-52 -mb-5"
+        >
+          <mat-icon
+            svgIcon="heroicons_outline:calendar"
+            class="icon-size-5 text-gray-400"
+            matPrefix
+          ></mat-icon>
+          <mat-date-range-input [rangePicker]="datePicker" [max]="maxDate">
+            <input
+              matStartDate
+              [formControl]="startDate"
+              [autocomplete]="'off'"
+              placeholder="Start"
+            />
+            <input
+              matEndDate
+              [formControl]="endDate"
+              [autocomplete]="'off'"
+              placeholder="End"
+              (dateChange)="onDateClickFilter()"
+            />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="datePicker"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #datePicker></mat-date-range-picker>
+          @if (isResetDate) {
+            <button type="button" mat-icon-button (click)="clearDate()">
+              <mat-icon class="icon-size-4">clear</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+        <!-- Search -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-52 -mb-5"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="searchInputControl"
+            [autocomplete]="'off'"
+            [placeholder]="'Search logs...'"
+          />
+        </mat-form-field>
+        <!-- Refresh Button -->
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refresh()"
+          matTooltip="Refresh"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+        @if (isSuperAdmin || permission?.view) {
+          <button
+            type="button"
+            class="btn-primary-action"
+            mat-flat-button
+            (click)="exportexcel()"
+          >
+            <mat-icon
+              class="icon-size-5 text-white"
+              svgIcon="mat_solid:download"
+            ></mat-icon>
+            <span>Export</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Main -->
+    @if (isSuperAdmin || permission?.view) {
+      <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+        <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+          <div class="grid">
+            <!-- Header Matrix -->
+            <div
+              class="system-log-grid table-header-row"
+              matSort
+              matSortDisableClear
+            >
+              <div class="flex items-center" [mat-sort-header]="'operation'">
+                Operation Key
+              </div>
+              <div class="flex items-center" [mat-sort-header]="'first_name'">
+                Updated By
+              </div>
+              <div class="flex items-center" [mat-sort-header]="'ip_adress'">
+                IP Address
+              </div>
+              <div class="flex items-center" [mat-sort-header]="'createdAt'">
+                Created Date
+              </div>
+              <div class="flex items-center justify-end">Action</div>
+            </div>
+
+            <!-- SKELETON LOADER STATE (10 Rows) -->
+            @if (isLoading) {
+              @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                <div class="system-log-grid table-data-row animate-pulse">
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-36"
+                  ></div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                  ></div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                  ></div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"
+                  ></div>
+                  <div class="flex items-center justify-end">
+                    <div
+                      class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                    ></div>
+                  </div>
+                </div>
+              }
+            } @else {
+              <!-- ACTUAL DATA STATE -->
+              @if (isSuperAdmin || permission?.view) {
+                @if (systemLogFormInput | async; as systemLogList) {
+                  @if (systemLogList.length > 0) {
+                    @for (
+                      systemLog of systemLogList;
+                      track $index;
+                      let i = $index
+                    ) {
+                      <div
+                        class="system-log-grid table-data-row"
+                        [ngClass]="{
+                          '!bg-blue-50/50 border-blue-200':
+                            systemLog._id === selectedRow,
+                        }"
+                      >
+                        <div
+                          class="truncate text-slate-800 font-semibold text-sm"
+                        >
+                          {{ systemLog.key || "-" }}
+                        </div>
+                        <div
+                          class="truncate text-slate-600 font-medium text-sm"
+                        >
+                          {{ systemLog.first_name || "-" }}
+                          {{ systemLog.last_name || "-" }}
+                        </div>
+                        <div class="truncate text-slate-600 text-sm font-mono">
+                          {{ systemLog.ip_address || "-" }}
+                        </div>
+                        <div class="truncate text-slate-600 text-sm">
+                          {{
+                            systemLog.createdAt
+                              | date: "dd-MM-yyyy, HH:mm" || "-"
+                          }}
+                        </div>
+                        <div class="flex items-center justify-end">
+                          <button
+                            type="button"
+                            class="table-action-btn"
+                            (click)="
+                              openDialog(
+                                systemLog._id,
+                                systemLog.key,
+                                systemLog.operation
+                              )
+                            "
+                            matTooltip="View details"
+                          >
+                            <mat-icon
+                              class="icon-size-5"
+                              [svgIcon]="'heroicons_outline:eye'"
+                            ></mat-icon>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  } @else {
+                    <ng-container
+                      [ngTemplateOutlet]="noSystemLog"
+                    ></ng-container>
+                  }
+                } @else {
+                  <ng-container [ngTemplateOutlet]="noSystemLog"></ng-container>
+                }
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Footer Paginator Element -->
+        @if (isSuperAdmin || permission?.view) {
+          @if (systemLogFormInput | async; as systemLogList) {
+            @if (systemLogList?.length) {
+              <div class="pagination-bar">
+                <mat-paginator
+                  [ngClass]="{ 'pointer-events-none': isLoading }"
+                  [length]="
+                    ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                    (systemLogList?.length || 0) +
+                    (pagination?.hasNextPage ? 1 : 0)
+                  "
+                  [pageSize]="pagination?.size || 100"
+                  [pageSizeOptions]="[5, 25, 50, 100]"
+                  [pageIndex]="(pagination?.page || 1) - 1"
+                  [showFirstLastButtons]="false"
+                ></mat-paginator>
+              </div>
+            }
+          }
+        }
+
+        <!-- No Records Template -->
+        <ng-template #noSystemLog>
+          <div class="page-empty-state">
+            <div class="icon-wrapper">
+              <mat-icon
+                class="icon-size-10"
+                [svgIcon]="'heroicons_outline:document-text'"
+              ></mat-icon>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">No logs found</h3>
+            <p class="text-slate-500 max-w-sm font-medium">
+              System logs will appear here once operations are recorded.
+            </p>
+          </div>
+        </ng-template>
+      </div>
+    } @else {
+      <ng-container [ngTemplateOutlet]="noSystemLogPermission"></ng-container>
+    }
+
+    <ng-template #noSystemLogPermission>
+      <div class="page-empty-state">
+        <div class="icon-wrapper bg-amber-50 border-amber-200">
+          <mat-icon
+            class="icon-size-10 text-amber-600"
+            [svgIcon]="'heroicons_outline:lock-closed'"
+          ></mat-icon>
+        </div>
+        <h3 class="text-xl font-bold text-slate-800 mb-2">
+          No permission to view system log
+        </h3>
+        <p class="text-slate-500 max-w-sm font-medium">
+          This seller role does not have view access for the system log section.
+        </p>
+      </div>
+    </ng-template>
+
+    <ng-template #viewDataTemplate>
+      <div
+        class="flex flex-col max-h-240 md:min-w-160 -m-6 overflow-hidden bg-white rounded-xl"
+      >
+        <div
+          class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+        >
+          <div class="text-lg font-semibold flex items-center gap-2">
+            <mat-icon
+              class="icon-size-5 text-white"
+              [svgIcon]="'heroicons_outline:information-circle'"
+            ></mat-icon>
+            <span class="text-white"
+              >{{ data?.first_name || "" }} {{ data?.last_name || "" }}</span
+            >
+            <span class="text-white/70 text-sm font-normal">{{
+              data?.createdAt | date: "dd-MM-yy HH:mm:ss"
+            }}</span>
+          </div>
+          <button
+            type="button"
+            mat-icon-button
+            (click)="closeDialog()"
+            class="text-white"
+          >
+            <mat-icon
+              class="text-white"
+              [svgIcon]="'heroicons_outline:x'"
+            ></mat-icon>
+          </button>
+        </div>
+
+        @if (!isLoadingData) {
+          <div
+            role="status"
+            class="flex flex-auto items-center justify-center mt-10"
+          >
+            <mat-icon
+              aria-hidden="true"
+              class="w-8 h-8 icon-size-9 text-blue-600 animate-spin"
+              >autorenew</mat-icon
+            >
+            <span class="sr-only">Loading...</span>
+          </div>
+        }
+
+        @if (
+          data?.operation !== "UPDATE" && data?.operation !== "BULK_UPDATE"
+        ) {
+          <div class="mt-2 p-4 max-h-100 max-w-200 overflow-auto">
+            @if (data?.operation_data?.length) {
+              @for (item of data?.operation_data[0] | keyvalue; track item) {
+                @if (
+                  item.value !== null &&
+                  item.value !== undefined &&
+                  item.value !== "" &&
+                  item.key !== "_id" &&
+                  item.key !== "__v" &&
+                  item.key !== "seller_id" &&
+                  item.key !== "password"
+                ) {
+                  <div
+                    class="text-sm flex flex-col sm:flex-row py-1.5 border-b border-slate-100 last:border-b-0"
+                  >
+                    <div
+                      class="w-full sm:w-1/3 font-semibold text-slate-500 min-w-24 shrink-0"
+                    >
+                      {{ item.key }}
+                    </div>
+                    <div
+                      class="w-full sm:w-2/3 text-slate-800 font-medium overflow-hidden"
+                      [innerHTML]="getNestedKeyValuePairs(item.value, item.key)"
+                    ></div>
+                  </div>
+                }
+              }
+            }
+          </div>
+        }
+
+        @if (
+          (data?.operation === "UPDATE" || data?.operation === "BULK_UPDATE") &&
+          data?.key !== "update-role"
+        ) {
+          <div class="text-sm p-4 max-w-200 max-h-100 overflow-auto">
+            <table
+              class="w-full border-collapse border border-slate-200 rounded-lg overflow-hidden"
+            >
+              <thead class="bg-slate-50">
+                <tr>
+                  <th
+                    class="border border-slate-200 p-2 text-left text-slate-600 font-semibold"
+                  >
+                    Old Data
+                  </th>
+                  <th
+                    class="border border-slate-200 p-2 text-left text-slate-600 font-semibold"
+                  >
+                    New Data
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                @if (!isLoadingData) {
+                  <tr>
+                    <td colspan="2" class="text-center py-5">
+                      <div
+                        role="status"
+                        class="flex flex-auto items-center justify-center"
+                      >
+                        <mat-icon
+                          aria-hidden="true"
+                          class="w-8 h-8 icon-size-9 text-blue-600 animate-spin"
+                          >autorenew</mat-icon
+                        >
+                        <span class="sr-only">Loading...</span>
+                      </div>
+                    </td>
+                  </tr>
+                }
+                <tr>
+                  @if (oldData) {
+                    <td class="border border-slate-200 p-3 vertical-align-top">
+                      @for (item of oldData | keyvalue; track item) {
+                        @if (
+                          item.value !== null &&
+                          item.value !== undefined &&
+                          item.value !== "" &&
+                          item.key !== "_id" &&
+                          item.key !== "__v" &&
+                          item.key !== "password"
+                        ) {
+                          <div
+                            class="text-xs flex flex-col sm:flex-row items-start py-1.5 border-b border-slate-100 last:border-0"
+                          >
+                            <span
+                              class="font-semibold text-slate-500 mr-2 shrink-0 min-w-24 mt-0.5"
+                              >{{ item.key }}:</span
+                            >
+                            <div
+                              class="text-slate-800 font-medium w-full overflow-hidden"
+                              [innerHTML]="
+                                getNestedKeyValuePairs(item.value, item.key)
+                              "
+                            ></div>
+                          </div>
+                        }
+                      }
+                    </td>
+                  }
+                  @if (updateData) {
+                    <td class="border border-slate-200 p-3 vertical-align-top">
+                      @for (item of updateData | keyvalue; track item) {
+                        @if (
+                          item.value !== null &&
+                          item.value !== undefined &&
+                          item.value !== "" &&
+                          item.key !== "_id" &&
+                          item.key !== "__v" &&
+                          item.key !== "password"
+                        ) {
+                          <div
+                            class="text-xs flex flex-col sm:flex-row items-start py-1.5 border-b border-slate-100 last:border-0"
+                          >
+                            <span
+                              class="font-semibold text-slate-500 mr-2 shrink-0 min-w-24 mt-0.5"
+                              >{{ item.key }}:</span
+                            >
+                            <div
+                              class="text-slate-800 font-medium w-full overflow-hidden"
+                              [innerHTML]="
+                                getNestedKeyValuePairs(item.value, item.key)
+                              "
+                            ></div>
+                          </div>
+                        }
+                      }
+                    </td>
+                  }
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        }
+
+        @if (data?.operation === "UPDATE" && data?.key === "update-role") {
+          <div class="text-sm p-4 max-w-200 max-h-100 overflow-auto">
+            <table
+              class="w-full border-collapse border border-slate-200 rounded-lg overflow-hidden"
+            >
+              <thead class="bg-slate-50">
+                <tr>
+                  <th
+                    class="border border-slate-200 p-2 text-left text-slate-600 font-semibold"
+                  >
+                    Old Data
+                  </th>
+                  <th
+                    class="border border-slate-200 p-2 text-left text-slate-600 font-semibold"
+                  >
+                    New Data
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                @if (!isLoadingData) {
+                  <tr>
+                    <td colspan="2" class="text-center py-5">
+                      <div
+                        role="status"
+                        class="flex flex-auto items-center justify-center"
+                      >
+                        <mat-icon
+                          aria-hidden="true"
+                          class="w-8 h-8 icon-size-9 text-blue-600 animate-spin"
+                          >autorenew</mat-icon
+                        >
+                        <span class="sr-only">Loading...</span>
+                      </div>
+                    </td>
+                  </tr>
+                }
+                <tr>
+                  @if (oldData) {
+                    <td class="border border-slate-200 p-3 vertical-align-top">
+                      @for (item of oldData | keyvalue; track item) {
+                        @if (
+                          item.value !== null &&
+                          item.value !== undefined &&
+                          item.value !== "" &&
+                          item.key !== "_id" &&
+                          item.key !== "__v" &&
+                          item.key !== "password"
+                        ) {
+                          <div class="text-xs py-1">
+                            <div class="font-bold text-slate-600 mb-0.5">
+                              {{ item.key }}:
+                            </div>
+                            <div
+                              class="text-slate-800 pl-2"
+                              [innerHTML]="
+                                getNestedKeyValuePairRole(item.value)
+                              "
+                            ></div>
+                          </div>
+                        }
+                      }
+                    </td>
+                  }
+                  @if (updateData) {
+                    <td class="border border-slate-200 p-3 vertical-align-top">
+                      @for (item of updateData | keyvalue; track item) {
+                        @if (
+                          item.value !== null &&
+                          item.value !== undefined &&
+                          item.value !== "" &&
+                          item.key !== "_id" &&
+                          item.key !== "__v" &&
+                          item.key !== "password"
+                        ) {
+                          <div class="text-xs py-1">
+                            <div class="font-bold text-slate-600 mb-0.5">
+                              {{ item.key }}:
+                            </div>
+                            <div
+                              class="text-slate-800 pl-2"
+                              [innerHTML]="
+                                getNestedKeyValuePairRole(item.value)
+                              "
+                            ></div>
+                          </div>
+                        }
+                      }
+                    </td>
+                  }
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-end p-4 border-t bg-slate-50 mt-5"
+        >
+          <button
+            type="button"
+            class="bg-slate-800 text-white font-medium rounded-lg px-4 py-2 hover:bg-slate-900 transition-colors"
+            mat-flat-button
+            (click)="closeDialog()"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+</div>

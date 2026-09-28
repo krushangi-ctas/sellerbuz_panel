@@ -1,0 +1,148 @@
+<div
+  class="flex flex-col -m-6 rounded-xl shadow-2xl min-w-140 max-w-200 bg-white overflow-hidden"
+>
+  <!-- Dialog Header with Primary Branding -->
+  <div
+    class="sticky top-0 z-10 flex items-center justify-between bg-primary text-white px-6 py-4 rounded-t-xl shadow-sm"
+  >
+    <div class="flex items-center gap-3">
+      <mat-icon
+        class="icon-size-6 text-white"
+        svgIcon="heroicons_outline:question-mark-circle"
+      ></mat-icon>
+      <span class="text-xl font-bold tracking-tight text-white">
+        {{ isEditMode ? "Edit FAQ" : "Add New FAQ" }}
+      </span>
+    </div>
+    <button
+      type="button"
+      mat-icon-button
+      (click)="cancel()"
+      [tabIndex]="-1"
+      class="text-white hover:bg-white/10 rounded-full transition-colors"
+    >
+      <mat-icon class="icon-size-5" svgIcon="heroicons_outline:x"></mat-icon>
+    </button>
+  </div>
+
+  <!-- Form Content -->
+  <div class="p-6 max-h-[75vh] overflow-y-auto">
+    <form [formGroup]="form" class="flex flex-col gap-4">
+      <!-- Category Selection from Seller Support Ticket Categories -->
+      <mat-form-field class="w-full" appearance="outline">
+        <mat-label>Category</mat-label>
+        <mat-select
+          formControlName="category"
+          placeholder="Select seller support category"
+          (openedChange)="triggerCategoryEvent()"
+        >
+          <mat-option>
+            <ngx-mat-select-search
+              [formControl]="categoryFilterCtrl"
+              placeholderLabel="Search category..."
+              (keyup)="filterCategories($event.target.value)"
+              noEntriesFoundLabel="'No category found'"
+            >
+            </ngx-mat-select-search>
+          </mat-option>
+          @for (cat of filteredSellerCategories; track cat) {
+            <mat-option [value]="cat">{{ cat }}</mat-option>
+          }
+        </mat-select>
+        @if (form.get("category")?.hasError("required")) {
+          <mat-error>Category is required</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Question Input -->
+      <mat-form-field class="w-full" appearance="outline">
+        <mat-label>Question</mat-label>
+        <input
+          matInput
+          formControlName="question"
+          placeholder="Enter the question..."
+          maxlength="1000"
+        />
+        @if (form.get("question")?.hasError("required")) {
+          <mat-error>Question is required</mat-error>
+        }
+        @if (form.get("question")?.hasError("minlength")) {
+          <mat-error>Question must be at least 3 characters</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Answer Input (Multi-line text area) -->
+      <mat-form-field class="w-full" appearance="outline">
+        <mat-label>Answer</mat-label>
+        <textarea
+          matInput
+          formControlName="answer"
+          rows="6"
+          placeholder="Enter the detailed answer..."
+          maxlength="10000"
+        ></textarea>
+        @if (form.get("answer")?.hasError("required")) {
+          <mat-error>Answer is required</mat-error>
+        }
+        @if (form.get("answer")?.hasError("minlength")) {
+          <mat-error>Answer must be at least 3 characters</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Status Toggle Switch (1 = Active, 0 = Inactive) -->
+      <div
+        class="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50"
+      >
+        <div class="flex flex-col">
+          <span class="text-sm font-semibold text-slate-800">Status</span>
+          <span class="text-xs text-slate-500"
+            >Enable to make this FAQ visible to sellers</span
+          >
+        </div>
+        <mat-slide-toggle
+          [checked]="form.get('status')?.value === 1"
+          (change)="form.get('status')?.setValue($event.checked ? 1 : 0)"
+          color="primary"
+        >
+          <span class="font-medium text-xs text-slate-700">
+            {{ form.get("status")?.value === 1 ? "Active" : "Inactive" }}
+          </span>
+        </mat-slide-toggle>
+      </div>
+    </form>
+  </div>
+
+  <!-- Dialog Actions -->
+  <div
+    class="flex items-center justify-end gap-3 px-6 py-4 bg-slate-50 border-t border-slate-200 rounded-b-xl"
+  >
+    <button
+      type="button"
+      mat-button
+      (click)="cancel()"
+      [disabled]="isSubmitting"
+      class="text-slate-600 hover:bg-slate-200"
+    >
+      Cancel
+    </button>
+
+    <button
+      type="button"
+      mat-flat-button
+      color="primary"
+      (click)="save()"
+      [disabled]="isFormInvalid || isSubmitting"
+      class="bg-primary text-white hover:bg-primary-600 px-6 py-2 rounded-xl font-medium shadow-md transition-all flex items-center gap-2"
+    >
+      @if (isSubmitting) {
+        <mat-spinner diameter="18" color="accent"></mat-spinner>
+      } @else {
+        <mat-icon
+          svgIcon="heroicons_outline:check"
+          class="icon-size-4"
+        ></mat-icon>
+      }
+      <span>{{ isEditMode ? "Update FAQ" : "Create FAQ" }}</span>
+    </button>
+  </div>
+</div>

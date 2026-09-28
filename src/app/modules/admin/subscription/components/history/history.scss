@@ -1,0 +1,81 @@
+.merged-grid {
+  display: grid;
+  align-items: center;
+  gap: 12px;
+  grid-template-columns: 1fr; // Mobile: single column
+
+  // Hide header on mobile
+  &.table-header-row {
+    display: none;
+  }
+
+  // Card layout for mobile data rows
+  &.table-data-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    border-bottom: 1px solid var(--fuse-border);
+    padding: 16px;
+    gap: 8px;
+
+    .gateway-cell,
+    .sub-status-cell,
+    .pay-status-cell {
+      padding-top: 4px;
+    }
+
+    .invoice-cell {
+      border-top: 1px solid var(--fuse-border);
+      padding-top: 8px;
+      margin-top: 4px;
+    }
+  }
+
+  // Tablet & Desktop: 8-column grid
+  // Plan Name | Billing | Amount | Gateway | Period | Sub Status | Pay Status | Invoice
+  @media (min-width: 640px) {
+    grid-template-columns: 1.6fr 0.9fr 1fr 1fr 2fr 1.1fr 1.1fr 0.9fr;
+    gap: 14px;
+    padding-left: 16px;
+    padding-right: 16px;
+
+    &.table-header-row {
+      display: grid;
+    }
+
+    &.table-data-row {
+      display: grid;
+      flex-direction: row;
+      border-bottom: 1px solid var(--fuse-border);
+      padding-top: 10px;
+      padding-bottom: 10px;
+      gap: 14px;
+
+      .invoice-cell {
+        border-top: none;
+        padding-top: 0;
+        margin-top: 0;
+      }
+    }
+  }
+
+  // Wider screens: give more space to period
+  @media (min-width: 1024px) {
+    grid-template-columns: 1.8fr 1fr 1fr 1fr 2.2fr 1.1fr 1.1fr 1fr;
+    gap: 16px;
+  }
+}
+
+// Mobile label helper
+.label-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--fuse-text-hint);
+  margin-right: 6px;
+  min-width: 60px;
+  flex-shrink: 0;
+
+  @media (min-width: 640px) {
+    display: none;
+  }
+}

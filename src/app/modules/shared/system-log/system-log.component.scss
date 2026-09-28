@@ -1,0 +1,32 @@
+.system-log-grid {
+  grid-template-columns: auto 250px 110px 150px 50px;
+
+  @screen sm {
+    grid-template-columns: auto 250px 110px 150px 50px;
+  }
+
+  @screen md {
+    grid-template-columns: auto 250px 110px 150px 50px;
+  }
+
+  @screen lg {
+    grid-template-columns: auto 250px 110px 150px 50px;
+  }
+}
+
+::ng-deep .custom-field .mat-mdc-form-field-subscript-wrapper {
+  height: 0px;
+}
+
+// Date picker styling to ensure white background
+::ng-deep .mat-datepicker-content {
+  background-color: white !important;
+}
+
+::ng-deep .mat-calendar {
+  background-color: white !important;
+}
+
+::ng-deep .mat-calendar-body-cell {
+  background-color: white !important;
+}

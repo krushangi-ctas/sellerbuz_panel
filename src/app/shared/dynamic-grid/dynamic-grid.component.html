@@ -1,0 +1,175 @@
+<div class="grid lg:mb-14">
+  <!-- Header Row -->
+  <div
+    [style.gridTemplateColumns]="gridStyle.lg"
+    class="z-10 sticky top-0 grid gap-4 py-2 px-6 md:px-8 shadow text-md font-semibold bg-gray-200 dark:bg-black dark:bg-opacity-5"
+    matSort
+    matSortDisableClear
+    (matSortChange)="sortData($event)"
+  >
+    @for (header of headers; track header) {
+      <div [mat-sort-header]="header.sortKey" class="header-item mx-auto">
+        {{ header.label }}
+      </div>
+    }
+    <!-- Conditionally render the action button column -->
+    @if (showActionButton) {
+      <div class="header-item text-center">Action</div>
+    }
+  </div>
+
+  <!-- Data Rows -->
+  @for (item of data; track item; let i = $index) {
+    <div
+      [style.gridTemplateColumns]="gridStyle.lg"
+      class="grid items-center hover:bg-gray-100 gap-4 py-1 px-6 md:px-8 border-b"
+      [ngClass]="{
+        'bg-green-100 dark:bg-green-500': item.process_status === 'COMPLETED',
+        'bg-red-100 dark:bg-red-500': item.process_status === 'PROCESSING',
+      }"
+    >
+      @for (header of headers; track header) {
+        <span
+          class="{{ header.class }}"
+          [matTooltip]="item[header.key]"
+          matTooltipPosition="above"
+        >
+          @if (header.pipe) {
+            {{ item[header.key] | date: "dd-MM-yyyy HH:mm" }}
+          } @else {
+            @if (header.key === "stock") {
+              <div
+                class="py-0.5 text-center font-semibold"
+                [ngClass]="{
+                  'text-lime-900 bg-lime-50':
+                    item.stock !== undefined && item.stock !== 0,
+                  'text-red-800 text-xl font-bold': item.stock === 0,
+                }"
+              >
+                {{
+                  item.stock !== undefined
+                    ? item.stock === 0
+                      ? "0"
+                      : item.stock
+                    : "-"
+                }}
+              </div>
+            } @else {
+              @switch (header.key) {
+                @case ("size.color") {
+                  <span
+                    matTooltip="{{ item.size?.color }}{{
+                      item.size?.colorName
+                        ? ' (' + item.size?.colorName + ')'
+                        : ''
+                    }}"
+                  >
+                    {{ item.size?.color }}
+                    @if (item.size?.colorName) {
+                      <span> ({{ item.size?.colorName }})</span>
+                    }
+                  </span>
+                }
+                @case ("size.size") {
+                  <span matTooltip="{{ item.size?.size || '-' }}">
+                    {{ item.size?.size || "-" }}
+                  </span>
+                }
+                @default {
+                  @if (item[header.key]) {
+                    @if (header.url) {
+                      <a
+                        [href]="replacePlaceholders(header.url, item)"
+                        target="_blank"
+                      >
+                        {{ item[header.key] }}
+                      </a>
+                    } @else {
+                      {{ item[header.key] }}
+                    }
+                    <!-- Copy button displayed if isCopy is true and item[header.key] exists -->
+                    @if (header.isCopy && item[header.key]) {
+                      <span>
+                        <button
+                          type="button"
+                          [cdkCopyToClipboard]="item[header.key]"
+                          class="text-secondary text-md font-serif"
+                        >
+                          <mat-icon
+                            svgIcon="mat_outline:content_copy"
+                            class="icon-size-3 mr-0.5"
+                          ></mat-icon>
+                        </button>
+                      </span>
+                    }
+                  } @else {
+                    -
+                  }
+                }
+              }
+            }
+          }
+        </span>
+      }
+      <!-- Action Buttons -->
+      <div class="flex justify-center space-x-2">
+        <!-- View Button -->
+        @if (showView) {
+          <button
+            type="button"
+            class="min-w-10 min-h-7 h-7 leading-6"
+            matTooltip="View"
+            (click)="viewItemDetails(item)"
+          >
+            <mat-icon
+              class="ml-1.5 icon-size-5 text-blue-400"
+              svgIcon="feather:eye"
+              title="View"
+            ></mat-icon>
+          </button>
+        }
+        <!-- Edit Button -->
+        @if (showEdit && permission?.isUpdate) {
+          <button
+            type="button"
+            matTooltip="Edit"
+            class="min-w-10 min-h-7 h-7 leading-6"
+            (click)="editItemDetails(item)"
+          >
+            <mat-icon
+              class="ml-1.5 icon-size-5 text-green-400"
+              svgIcon="feather:edit"
+            ></mat-icon>
+          </button>
+        }
+        <!-- Delete Button -->
+        @if (showDelete && permission?.isDelete) {
+          <button
+            type="button"
+            (click)="deleteItemDetails(item)"
+            matTooltip="Delete"
+          >
+            <mat-icon
+              class="ml-1.5 icon-size-5 text-red-400"
+              svgIcon="heroicons_solid:trash"
+            ></mat-icon>
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Paginator -->
+@if (data?.length) {
+  <mat-paginator
+    class="sm:absolute sm:inset-x-0 sm:bottom-0 border-b sm:border-t sm:border-b-0 z-10 bg-gray-200 dark:bg-transparent"
+    [length]="pagination?.length || 0"
+    [pageSize]="pagination?.size || 100"
+    [pageSizeOptions]="[5, 25, 50, 100]"
+    [pageIndex]="(pagination?.page || 1) - 1"
+    [showFirstLastButtons]="false"
+    (page)="changePage($event)"
+  >
+  </mat-paginator>
+}

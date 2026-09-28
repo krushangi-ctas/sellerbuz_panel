@@ -1,0 +1,726 @@
+<div
+  class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden bg-white dark:bg-gray-900"
+>
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a (click)="$event.preventDefault()" mat-icon-button>
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_outline:document-text'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">Blogs</h1>
+        </div>
+      </div>
+
+      <!-- Actions / Filters -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <!-- Search -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="searchInputControl"
+            maxlength="100"
+            [autocomplete]="'off'"
+            [placeholder]="'Search blogs...'"
+          />
+        </mat-form-field>
+
+        <!-- Status Filter -->
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+        >
+          <mat-icon
+            svgIcon="mat_outline:filter_alt"
+            class="icon-size-5 text-gray-400"
+            matPrefix
+          ></mat-icon>
+          <mat-select [formControl]="statusFilterControl" placeholder="Status">
+            <mat-option value="">All Status</mat-option>
+            <mat-option value="1">Active</mat-option>
+            <mat-option value="0">Inactive</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Refresh Button -->
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refresh()"
+          matTooltip="Refresh"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+
+        <!-- Add Blog Button -->
+        @if (isSuperAdmin || canAdd) {
+          <button
+            type="button"
+            class="btn-primary-action"
+            mat-flat-button
+            (click)="addBlog()"
+          >
+            <mat-icon
+              class="icon-size-5 text-white"
+              [svgIcon]="'heroicons_outline:plus'"
+            ></mat-icon>
+            <span>Add Blog</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+        <div class="grid">
+          <!-- Table Header with MatSort -->
+          <div class="table-header-row blog-grid" matSort matSortDisableClear>
+            <div class="flex items-center" mat-sort-header="blog_title">
+              Title
+            </div>
+            <div>Short Description</div>
+            <div>Images</div>
+            <div class="flex items-center" mat-sort-header="status">Status</div>
+            <div>Preview</div>
+            <div class="flex items-center" mat-sort-header="createdAt">
+              Created At
+            </div>
+            <div class="text-right">Actions</div>
+          </div>
+
+          <!-- SKELETON LOADING STATE -->
+          @if (isLoading) {
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+              <div class="table-data-row animate-pulse blog-grid">
+                <!-- Title Skeleton -->
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48"
+                ></div>
+                <!-- Description Skeleton -->
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-64"
+                ></div>
+                <!-- Images count Skeleton -->
+                <div
+                  class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-12"
+                ></div>
+                <!-- Status Skeleton -->
+                <div
+                  class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16"
+                ></div>
+                <!-- Preview Skeleton -->
+                <div
+                  class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                ></div>
+                <!-- Date Skeleton -->
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                ></div>
+                <!-- Actions Skeleton -->
+                <div class="flex items-center gap-1 justify-end">
+                  <div
+                    class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                  ></div>
+                  <div
+                    class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                  ></div>
+                </div>
+              </div>
+            }
+          } @else {
+            <!-- ACTUAL DATA STATE -->
+            @if (blogs$ | async; as blogs) {
+              @if (blogs.length > 0) {
+                <!-- Table Rows -->
+                @for (blog of blogs; track trackByFn($index, blog)) {
+                  <div class="table-data-row blog-grid py-2">
+                    <!-- Title -->
+                    <div class="min-w-0">
+                      <span
+                        class="font-semibold text-sm text-gray-900 dark:text-white line-clamp-2 hover:text-primary cursor-pointer transition-colors"
+                        (click)="editBlog(blog)"
+                        [matTooltip]="blog.blog_title"
+                      >
+                        {{ blog.blog_title }}
+                      </span>
+                    </div>
+
+                    <!-- Short Description -->
+                    <div class="min-w-0">
+                      <span
+                        class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2"
+                        [matTooltip]="blog.short_description"
+                      >
+                        {{ blog.short_description || "—" }}
+                      </span>
+                    </div>
+
+                    <!-- Images Count -->
+                    <div>
+                      <span
+                        class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                      >
+                        <mat-icon
+                          class="icon-size-3.5"
+                          [svgIcon]="'heroicons_outline:photograph'"
+                        ></mat-icon>
+                        {{ blog.description_images?.length || 0 }}
+                      </span>
+                    </div>
+
+                    <!-- Status Toggle -->
+                    <div class="flex items-center gap-2">
+                      @if (isSuperAdmin || canUpdate) {
+                        <mat-slide-toggle
+                          [checked]="blog.status === 1"
+                          color="primary"
+                          (change)="toggleStatus(blog, $event)"
+                          [matTooltip]="
+                            blog.status === 1
+                              ? 'Active (click to deactivate)'
+                              : 'Inactive (click to activate)'
+                          "
+                        >
+                        </mat-slide-toggle>
+                      } @else {
+                        @if (blog.status === 1) {
+                          <span
+                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                          >
+                            Active
+                          </span>
+                        } @else {
+                          <span
+                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                          >
+                            Inactive
+                          </span>
+                        }
+                      }
+                    </div>
+
+                    <!-- Preview Button (Placed after Status) -->
+                    <div class="flex items-center">
+                      <button
+                        type="button"
+                        mat-icon-button
+                        (click)="openPreview(blog, previewDialogTemplate)"
+                        matTooltip="Preview Website View"
+                        class="w-8 h-8 text-primary hover:bg-primary-50 dark:hover:bg-gray-800 rounded-full transition-colors"
+                      >
+                        <mat-icon
+                          class="icon-size-4.5"
+                          [svgIcon]="'heroicons_outline:eye'"
+                        ></mat-icon>
+                      </button>
+                    </div>
+
+                    <!-- Created At -->
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ blog.createdAt | date: "dd MMM yyyy, hh:mm a" }}
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center justify-end gap-1">
+                      @if (isSuperAdmin || canUpdate) {
+                        <button
+                          mat-icon-button
+                          (click)="editBlog(blog)"
+                          matTooltip="Edit Blog"
+                          class="w-8 h-8 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-full"
+                        >
+                          <mat-icon
+                            class="icon-size-4"
+                            [svgIcon]="'heroicons_outline:pencil'"
+                          ></mat-icon>
+                        </button>
+                      }
+
+                      @if (isSuperAdmin || canDelete) {
+                        <button
+                          mat-icon-button
+                          color="warn"
+                          (click)="deleteBlog(blog)"
+                          matTooltip="Delete Blog"
+                          class="w-8 h-8 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-full"
+                        >
+                          <mat-icon
+                            class="icon-size-4"
+                            [svgIcon]="'heroicons_outline:trash'"
+                          ></mat-icon>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              } @else {
+                <!-- EMPTY STATE -->
+                <div
+                  class="col-span-full flex flex-col items-center justify-center p-12 text-center"
+                >
+                  <div
+                    class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-4"
+                  >
+                    <mat-icon
+                      class="icon-size-8"
+                      [svgIcon]="'heroicons_outline:document-text'"
+                    ></mat-icon>
+                  </div>
+                  <h3
+                    class="text-lg font-semibold text-gray-900 dark:text-white"
+                  >
+                    No blogs found
+                  </h3>
+                  <p
+                    class="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm"
+                  >
+                    No blogs match your current search or filter criteria. Click
+                    "Add Blog" to create a new one.
+                  </p>
+                  @if (isSuperAdmin || canAdd) {
+                    <button
+                      type="button"
+                      class="btn-primary-action mt-4"
+                      mat-flat-button
+                      (click)="addBlog()"
+                    >
+                      <mat-icon
+                        class="icon-size-5 text-white"
+                        [svgIcon]="'heroicons_outline:plus'"
+                      ></mat-icon>
+                      <span>Create First Blog</span>
+                    </button>
+                  }
+                </div>
+              }
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Paginator Footer (Exact Seller List UI & Logic) -->
+      @if (blogs$ | async; as blogs) {
+        @if (blogs.length) {
+          <div class="pagination-bar">
+            <mat-paginator
+              class="seller-list-paginator"
+              [ngClass]="{ 'pointer-events-none': isLoading }"
+              [length]="
+                ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+                (blogs?.length || 0) +
+                (pagination?.hasNextPage ? 1 : 0)
+              "
+              [pageSize]="pagination?.size || 100"
+              [pageSizeOptions]="[5, 25, 50, 100]"
+              [pageIndex]="(pagination?.page || 1) - 1"
+              [showFirstLastButtons]="false"
+            >
+            </mat-paginator>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- BLOG WEBSITE LIVE PREVIEW MODAL DIALOG TEMPLATE                       -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<ng-template #previewDialogTemplate>
+  @if (selectedPreviewBlog) {
+    <div
+      class="flex flex-col h-full max-h-[92vh] bg-white overflow-hidden text-slate-900"
+    >
+      <!-- ── Modal Top Header Bar ─────────────────────────────────────────── -->
+      <div
+        class="flex items-center justify-between px-6 py-3.5 bg-slate-900 text-white border-b border-slate-800 shrink-0 z-20"
+      >
+        <div class="flex items-center gap-3 min-w-0">
+          <div
+            class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-xs text-white shadow-sm shrink-0"
+          >
+            SB
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold truncate"
+                >Website Live Preview</span
+              >
+              <span
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-primary-100/20 text-blue-300 border border-primary-400/40"
+              >
+                Live View
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 truncate max-w-lg">
+              {{ selectedPreviewBlog.blog_title }}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            mat-icon-button
+            class="w-8 h-8 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
+            (click)="closePreview()"
+            matTooltip="Close Preview"
+          >
+            <mat-icon
+              class="icon-size-5"
+              [svgIcon]="'heroicons_outline:x'"
+            ></mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Modal Scrollable Body: Exact Replica of Website Screen ───────── -->
+      <div class="flex-1 overflow-y-auto bg-slate-50">
+        <!-- ── Top Hero Canvas (Guide-Style) ──────────────────────────────── -->
+        <section
+          class="w-full relative overflow-hidden bg-gradient-to-b from-blue-50/60 via-slate-50 to-slate-100 border-b border-slate-200 pt-10 pb-16 px-6 sm:px-12 lg:px-16"
+        >
+          <div class="max-w-5xl mx-auto">
+            <!-- Back to all articles link -->
+            <div
+              class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary mb-5"
+            >
+              <mat-icon
+                class="icon-size-3.5"
+                [svgIcon]="'heroicons_outline:arrow-left'"
+              ></mat-icon>
+              <span>Back to all articles</span>
+            </div>
+
+            <!-- Category Badge -->
+            <div class="mb-3.5">
+              <span
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white text-primary border border-blue-200 shadow-sm"
+              >
+                <mat-icon
+                  class="icon-size-3.5 text-primary"
+                  [svgIcon]="'heroicons_outline:book-open'"
+                ></mat-icon>
+                {{
+                  selectedPreviewBlog.category ||
+                    "AI Catalog & Inventory Strategy"
+                }}
+              </span>
+            </div>
+
+            <!-- Blog Title -->
+            <h1
+              class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 mb-4 leading-tight"
+            >
+              {{ selectedPreviewBlog.blog_title }}
+            </h1>
+
+            <!-- Blog Subtitle / Excerpt -->
+            @if (selectedPreviewBlog.short_description) {
+              <p
+                class="text-base sm:text-lg text-slate-600 leading-relaxed font-normal mb-6 max-w-3xl"
+              >
+                {{ selectedPreviewBlog.short_description }}
+              </p>
+            }
+
+            <!-- Author & Publication Date Row -->
+            <div
+              class="flex flex-wrap items-center justify-between gap-4 pt-5 border-t border-slate-200/80"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0"
+                >
+                  SB
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-sm font-bold text-slate-900">
+                      {{
+                        selectedPreviewBlog.author || "SellerBuz Editorial Team"
+                      }}
+                    </span>
+                    <mat-icon
+                      class="icon-size-3.5 text-primary"
+                      [svgIcon]="'heroicons_solid:check-circle'"
+                    ></mat-icon>
+                  </div>
+                  <div class="text-xs text-slate-500">
+                    AI Catalog &amp; Multichannel Specialists
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="flex items-center gap-5 text-xs text-slate-500 font-medium"
+              >
+                <div class="flex items-center gap-1.5">
+                  <mat-icon
+                    class="icon-size-3.5 text-primary"
+                    [svgIcon]="'heroicons_outline:calendar'"
+                  ></mat-icon>
+                  <span>{{
+                    selectedPreviewBlog.createdAt | date: "MMMM dd, yyyy"
+                  }}</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <mat-icon
+                    class="icon-size-3.5 text-primary"
+                    [svgIcon]="'heroicons_outline:clock'"
+                  ></mat-icon>
+                  <span>{{
+                    calculateReadTime(
+                      selectedPreviewBlog.description,
+                      selectedPreviewBlog.short_description
+                    )
+                  }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Main Article Layout (Grid: 8 cols Article, 4 cols Sidebar) ── -->
+        <section class="py-12 px-6 sm:px-12 lg:px-16">
+          <div class="max-w-5xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              <!-- ── LEFT COLUMN (8 cols): Gallery + Body + CTA ─────────── -->
+              <div class="lg:col-span-8 flex flex-col gap-8 min-w-0">
+                <!-- Multi-image Carousel / Gallery -->
+                @if (
+                  selectedPreviewBlog.description_images &&
+                  selectedPreviewBlog.description_images.length > 0
+                ) {
+                  <div
+                    class="w-full bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden p-3 sm:p-4"
+                  >
+                    <div
+                      class="relative w-full h-64 sm:h-80 md:h-96 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center"
+                    >
+                      <img
+                        [src]="
+                          selectedPreviewBlog.description_images[
+                            activePreviewImageIndex
+                          ] | mediaUrl: ''
+                        "
+                        [alt]="selectedPreviewBlog.blog_title"
+                        class="max-w-full max-h-full object-contain mx-auto transition-all duration-300"
+                      />
+
+                      <!-- Navigation Arrows (if 2+ images) -->
+                      @if (selectedPreviewBlog.description_images.length > 1) {
+                        <button
+                          type="button"
+                          (click)="prevPreviewImage()"
+                          class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-sm transition-all shadow-md"
+                          matTooltip="Previous image"
+                        >
+                          <mat-icon
+                            class="icon-size-4"
+                            [svgIcon]="'heroicons_outline:chevron-left'"
+                          ></mat-icon>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="nextPreviewImage()"
+                          class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-sm transition-all shadow-md"
+                          matTooltip="Next image"
+                        >
+                          <mat-icon
+                            class="icon-size-4"
+                            [svgIcon]="'heroicons_outline:chevron-right'"
+                          ></mat-icon>
+                        </button>
+
+                        <!-- Counter Badge -->
+                        <div
+                          class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-slate-900/80 text-white text-[11px] font-semibold tracking-wider"
+                        >
+                          {{ activePreviewImageIndex + 1 }} /
+                          {{ selectedPreviewBlog.description_images.length }}
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Thumbnail Indicator Dots (if 2+ images) -->
+                    @if (selectedPreviewBlog.description_images.length > 1) {
+                      <div class="flex items-center justify-center gap-2 pt-3">
+                        @for (
+                          img of selectedPreviewBlog.description_images;
+                          track $index
+                        ) {
+                          <button
+                            type="button"
+                            (click)="setPreviewImageIndex($index)"
+                            [class.bg-primary]="
+                              activePreviewImageIndex === $index
+                            "
+                            [class.w-6]="activePreviewImageIndex === $index"
+                            [class.bg-slate-300]="
+                              activePreviewImageIndex !== $index
+                            "
+                            [class.w-2]="activePreviewImageIndex !== $index"
+                            class="h-2 rounded-full transition-all duration-200"
+                          ></button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Article Body Container -->
+                <div
+                  class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm min-w-0"
+                >
+                  <div
+                    class="preview-prose break-words [overflow-wrap:anywhere] whitespace-normal"
+                    [innerHTML]="getSafeHtml(selectedPreviewBlog.description)"
+                  ></div>
+                </div>
+
+                <!-- In-Article CTA Box -->
+                <div
+                  class="bg-gradient-to-br from-blue-50 via-slate-50 to-white rounded-2xl p-6 sm:p-8 border border-blue-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
+                >
+                  <div class="space-y-1 max-w-md">
+                    <h3 class="text-base sm:text-lg font-bold text-primary">
+                      Ready to automate your catalog &amp; inventory in real
+                      time?
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-600">
+                      SellerBuz synchronizes stock across Amazon and Shopify
+                      with AI-powered listing tools.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    class="px-5 py-2.5 rounded-full text-xs font-bold text-white bg-primary hover:bg-primary-700 shadow-md flex items-center gap-1.5 shrink-0 transition-colors"
+                  >
+                    <span>START FREE</span>
+                    <mat-icon
+                      class="icon-size-3.5"
+                      [svgIcon]="'heroicons_outline:arrow-right'"
+                    ></mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- ── RIGHT COLUMN (4 cols): Dynamic Sidebar Insights ──────── -->
+              <div class="lg:col-span-4 flex flex-col gap-6 sticky top-6">
+                <!-- More Seller Insights Card -->
+                <div
+                  class="bg-white rounded-2xl p-5 border border-blue-100 shadow-sm"
+                >
+                  <div
+                    class="flex items-center gap-2 pb-3 mb-4 border-b border-slate-100"
+                  >
+                    <mat-icon
+                      class="icon-size-4 text-primary"
+                      [svgIcon]="'heroicons_outline:sparkles'"
+                    ></mat-icon>
+                    <h3 class="text-sm font-bold text-primary">
+                      More Seller Insights
+                    </h3>
+                  </div>
+
+                  @if (getRelatedBlogs(selectedPreviewBlog, blogs).length > 0) {
+                    <div class="space-y-4">
+                      @for (
+                        relBlog of getRelatedBlogs(selectedPreviewBlog, blogs);
+                        track trackByFn($index, relBlog)
+                      ) {
+                        <div
+                          (click)="selectPreviewBlog(relBlog)"
+                          class="group pb-3 border-b border-slate-100 last:border-0 last:pb-0 cursor-pointer"
+                        >
+                          <h4
+                            class="text-xs font-bold text-slate-900 group-hover:text-primary transition-colors leading-snug line-clamp-2"
+                          >
+                            {{ relBlog.blog_title }}
+                          </h4>
+                          <div
+                            class="flex items-center justify-between mt-2 text-[11px] text-slate-500"
+                          >
+                            <span>{{
+                              relBlog.createdAt | date: "MMMM dd, yyyy"
+                            }}</span>
+                            <span
+                              class="text-primary font-semibold group-hover:translate-x-0.5 transition-transform"
+                              >Read ➔</span
+                            >
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <p class="text-xs text-slate-400 py-2">
+                      No other articles found.
+                    </p>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Website Bottom Banner CTA ──────────────────────────────────── -->
+        <section
+          class="w-full bg-primary text-white py-12 px-6 sm:px-12 text-center"
+        >
+          <div class="max-w-2xl mx-auto space-y-4">
+            <div
+              class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mx-auto text-blue-200"
+            >
+              <mat-icon
+                class="icon-size-5"
+                [svgIcon]="'heroicons_outline:book-open'"
+              ></mat-icon>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight">
+              Ready to Automate Your Catalog &amp; Sync Inventory Across
+              Channels?
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-200 max-w-lg mx-auto">
+              Join thousands of Amazon and Shopify sellers using SellerBuz to
+              eliminate stockouts, launch AI-optimized listings in minutes, and
+              scale profitably.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                class="px-5 py-2 rounded-full text-xs font-bold text-primary bg-white hover:bg-slate-100 transition-colors shadow-sm"
+              >
+                Get started
+              </button>
+              <button
+                type="button"
+                class="px-5 py-2 rounded-full text-xs font-bold text-white border border-white/30 hover:bg-white/10 transition-colors"
+              >
+                Talk to our team
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  }
+</ng-template>

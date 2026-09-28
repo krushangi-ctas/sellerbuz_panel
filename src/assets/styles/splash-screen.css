@@ -1,0 +1,48 @@
+body fuse-splash-screen {
+    pointer-events: none;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body fuse-splash-screen img {
+    animation: splash-logo-entrance 600ms ease-out;
+}
+
+/* Primary color based loader bar animation */
+body fuse-splash-screen .splash-loader-bar {
+    background-color: var(--fuse-primary);
+    animation: splash-loader-progress 2s ease-in-out infinite;
+}
+
+@keyframes splash-logo-entrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes splash-loader-progress {
+    0% {
+        transform: translateX(-100%);
+    }
+    50% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+body:not(.fuse-splash-screen-hidden) {
+    overflow: hidden;
+}
+
+body.fuse-splash-screen-hidden fuse-splash-screen {
+    visibility: hidden;
+    opacity: 0;
+}

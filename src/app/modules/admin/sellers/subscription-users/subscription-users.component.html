@@ -1,0 +1,729 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden">
+  <mat-drawer-container class="flex-auto h-full bg-card dark:bg-transparent">
+    <mat-drawer-content class="flex flex-col">
+      <div class="flex flex-col flex-auto overflow-hidden">
+        <!-- ============================================================ -->
+        <!-- HEADER BAR                                                     -->
+        <!-- ============================================================ -->
+        <div class="page-header">
+          <div class="flex items-center gap-3">
+            <a
+              (click)="$event.preventDefault()"
+              mat-icon-button
+              [matTooltip]="tooltip"
+            >
+              <mat-icon
+                class="icon-size-7 mb-0 mr-1 text-white"
+                [svgIcon]="'heroicons_solid:credit-card'"
+              ></mat-icon>
+            </a>
+            <h1 class="text-2xl font-bold tracking-tight text-white">
+              Subscription Users
+            </h1>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+            <!-- Search -->
+            <mat-form-field
+              class="fuse-mat-dense fuse-mat-no-subscript min-w-48 -mb-5"
+            >
+              <mat-icon
+                class="icon-size-5 text-gray-400"
+                matPrefix
+                [svgIcon]="'heroicons_solid:search'"
+              ></mat-icon>
+              <input
+                matInput
+                [formControl]="searchControl"
+                [autocomplete]="'off'"
+                placeholder="Search subscriptions..."
+              />
+            </mat-form-field>
+
+            <!-- Filter: Status -->
+            <form [formGroup]="filterForm" class="flex-shrink-0 -mb-5">
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-32"
+              >
+                <mat-icon
+                  svgIcon="mat_outline:filter_alt"
+                  class="icon-size-5 text-gray-400"
+                  matPrefix
+                ></mat-icon>
+                <mat-select formControlName="status" placeholder="Status">
+                  <mat-option value="">All</mat-option>
+                  <mat-option value="active">Active</mat-option>
+                  <mat-option value="future">Future</mat-option>
+                  <mat-option value="expired">Expired</mat-option>
+                  <mat-option value="cancelled">Cancelled</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </form>
+
+            <!-- Filter: Billing Cycle -->
+            <form [formGroup]="filterForm" class="flex-shrink-0 -mb-5">
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-36"
+              >
+                <mat-icon
+                  svgIcon="mat_outline:date_range"
+                  class="icon-size-5 text-gray-400"
+                  matPrefix
+                ></mat-icon>
+                <mat-select
+                  formControlName="billing_cycle"
+                  placeholder="Billing Cycle"
+                >
+                  <mat-option value="">All</mat-option>
+                  <mat-option value="monthly">Monthly</mat-option>
+                  <mat-option value="quarterly">Quarterly</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </form>
+
+            <!-- Filter: Gateway -->
+            <form [formGroup]="filterForm" class="flex-shrink-0 -mb-5">
+              <mat-form-field
+                class="fuse-mat-dense fuse-mat-no-subscript min-w-36"
+              >
+                <mat-icon
+                  svgIcon="mat_outline:payment"
+                  class="icon-size-5 text-gray-400"
+                  matPrefix
+                ></mat-icon>
+                <mat-select formControlName="gateway" placeholder="Gateway">
+                  <mat-option value="">All</mat-option>
+                  <mat-option value="stripe">Stripe</mat-option>
+                  <mat-option value="razorpay">Razorpay</mat-option>
+                  <mat-option value="manual">Manual</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </form>
+
+            <!-- Refresh -->
+            <button
+              type="button"
+              class="btn-secondary-action"
+              (click)="refresh()"
+              matTooltip="Refresh"
+            >
+              <mat-icon
+                class="icon-size-5"
+                svgIcon="mat_outline:refresh"
+              ></mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TABLE                                                          -->
+        <!-- ============================================================ -->
+        <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+          <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+            <div class="grid">
+              <!-- Table Header -->
+              <div
+                class="sub-users-grid table-header-row"
+                matSort
+                matSortDisableClear
+              >
+                @for (header of headers; track header) {
+                  @if (header?.sortBy) {
+                    <div
+                      class="flex items-center"
+                      [mat-sort-header]="header.sortBy"
+                    >
+                      {{ header.key }}
+                    </div>
+                  } @else {
+                    <div class="flex items-center">{{ header.key }}</div>
+                  }
+                }
+              </div>
+
+              <!-- Skeleton Loader -->
+              @if (isLoading) {
+                @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+                  <div class="sub-users-grid table-data-row animate-pulse">
+                    <!-- 1. Name -->
+                    <div class="flex items-center min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                      ></div>
+                    </div>
+                    <!-- 2. Email -->
+                    <div class="flex items-center gap-2 min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 max-w-full"
+                      ></div>
+                      <div
+                        class="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded-full flex-shrink-0"
+                      ></div>
+                    </div>
+                    <!-- 3. Phone -->
+                    <div class="flex items-center gap-2 min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 max-w-full"
+                      ></div>
+                      <div
+                        class="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded-full flex-shrink-0"
+                      ></div>
+                    </div>
+                    <!-- 4. Company -->
+                    <div class="flex items-center min-w-0">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                      ></div>
+                    </div>
+                    <!-- 5. Plan -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"
+                      ></div>
+                    </div>
+                    <!-- 6. Billing Cycle -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                      ></div>
+                    </div>
+                    <!-- 7. Gateway -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                      ></div>
+                    </div>
+                    <!-- 8. Amount -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-14"
+                      ></div>
+                    </div>
+                    <!-- 9. Start Date -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                      ></div>
+                    </div>
+                    <!-- 10. Expiry Date -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                      ></div>
+                    </div>
+                    <!-- 11. Status -->
+                    <div class="flex items-center">
+                      <div
+                        class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16"
+                      ></div>
+                    </div>
+                    <!-- 12. Actions -->
+                    <div class="flex items-center justify-end">
+                      <div
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"
+                      ></div>
+                    </div>
+                  </div>
+                }
+              } @else {
+                <!-- Data Rows -->
+                @if (subscriptions.length) {
+                  @for (sub of subscriptions; track trackByFn($index, sub)) {
+                    <div class="sub-users-grid table-data-row">
+                      <!-- Name -->
+                      <div class="flex items-center gap-3 min-w-0">
+                        <div
+                          class="min-w-0 cursor-pointer flex items-center gap-2 flex-wrap sm:flex-nowrap"
+                        >
+                          <div
+                            class="font-medium truncate"
+                            [matTooltip]="
+                              (sub?.user?.first_name || sub?.first_name || '') +
+                              ' ' +
+                              (sub?.user?.last_name || sub?.last_name || '')
+                            "
+                          >
+                            {{
+                              (sub?.user?.first_name ||
+                                sub?.first_name ||
+                                "-") +
+                                " " +
+                                (sub?.user?.last_name || sub?.last_name || "")
+                            }}
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Email -->
+                      <div class="flex items-center gap-1 min-w-0">
+                        <span
+                          class="text-sm text-gray-600 truncate"
+                          [matTooltip]="sub?.user?.email || sub?.email"
+                          >{{ sub?.user?.email || sub?.email || "-" }}</span
+                        >
+                        @if (sub?.user?.email || sub?.email) {
+                          <button
+                            type="button"
+                            mat-icon-button
+                            class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-primary transition-colors"
+                            [cdkCopyToClipboard]="
+                              sub?.user?.email || sub?.email
+                            "
+                            matTooltip="Copy email"
+                          >
+                            <mat-icon
+                              svgIcon="mat_outline:content_copy"
+                              class="icon-size-3"
+                            ></mat-icon>
+                          </button>
+                        }
+                      </div>
+                      <!-- Phone -->
+                      <div class="flex items-center gap-1 min-w-0">
+                        <span
+                          class="text-sm text-gray-600 truncate"
+                          [matTooltip]="
+                            sub?.user?.contact_no ||
+                            sub?.contact_no ||
+                            sub?.phone
+                          "
+                          >{{
+                            sub?.user?.contact_no ||
+                              sub?.contact_no ||
+                              sub?.phone ||
+                              "-"
+                          }}</span
+                        >
+                        @if (
+                          sub?.user?.contact_no || sub?.contact_no || sub?.phone
+                        ) {
+                          <button
+                            type="button"
+                            mat-icon-button
+                            class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-primary transition-colors"
+                            [cdkCopyToClipboard]="
+                              sub?.user?.contact_no ||
+                              sub?.contact_no ||
+                              sub?.phone
+                            "
+                            matTooltip="Copy phone"
+                          >
+                            <mat-icon
+                              svgIcon="mat_outline:content_copy"
+                              class="icon-size-3"
+                            ></mat-icon>
+                          </button>
+                        }
+                      </div>
+                      <!-- Company -->
+                      <div class="flex items-center min-w-0">
+                        <span
+                          class="text-sm text-gray-600 truncate"
+                          [matTooltip]="
+                            sub?.user?.company_name || sub?.company_name
+                          "
+                          >{{
+                            sub?.user?.company_name || sub?.company_name || "-"
+                          }}</span
+                        >
+                      </div>
+                      <!-- Plan -->
+                      <div class="flex items-center">
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded bg-blue-50 text-blue-700 border border-blue-100"
+                        >
+                          {{
+                            sub?.plan?.name ||
+                              sub?.plan_name ||
+                              sub?.plan_id?.name ||
+                              "-"
+                          }}
+                        </span>
+                      </div>
+                      <!-- Billing Cycle -->
+                      <div class="flex items-center">
+                        <span class="text-sm capitalize">{{
+                          sub?.billing_cycle || sub?.billingCycle || "-"
+                        }}</span>
+                      </div>
+                      <!-- Gateway -->
+                      <div class="flex items-center">
+                        <span class="text-sm capitalize">{{
+                          sub?.gateway || sub?.payment_gateway || "-"
+                        }}</span>
+                      </div>
+                      <!-- Amount -->
+                      <div class="flex items-center">
+                        <span class="text-sm font-semibold">
+                          {{ fromCent(sub?.amount) }}
+                          {{
+                            sub?.currency_code || sub?.currency || ""
+                              | uppercase
+                          }}
+                        </span>
+                      </div>
+                      <!-- Start Date -->
+                      <div class="flex items-center">
+                        @if (
+                          (sub?.status_effective || sub?.status) === "future"
+                        ) {
+                          <span class="text-xs text-amber-500 font-medium"
+                            >Upcoming</span
+                          >
+                        } @else {
+                          <span class="text-xs text-gray-600">
+                            {{
+                              sub?.current_period_start ||
+                                sub?.started_at ||
+                                sub?.created_at | date: "mediumDate"
+                            }}
+                          </span>
+                        }
+                      </div>
+                      <!-- Expiry Date -->
+                      <div class="flex items-center">
+                        @if (
+                          (sub?.status_effective || sub?.status) === "future"
+                        ) {
+                          <span class="text-xs text-amber-500 font-medium"
+                            >Upcoming</span
+                          >
+                        } @else {
+                          <span class="text-xs text-gray-600">
+                            {{
+                              sub?.current_period_end ||
+                                sub?.expired_at ||
+                                sub?.expiry_date | date: "mediumDate"
+                            }}
+                          </span>
+                        }
+                      </div>
+                      <!-- Status -->
+                      <div class="flex items-center">
+                        <span
+                          class="status-badge status-badge--{{
+                            sub?.status_effective || sub?.status || ''
+                              | lowercase
+                          }} capitalize"
+                        >
+                          {{ sub?.status_effective || sub?.status || "-" }}
+                        </span>
+                      </div>
+                      <!-- Actions -->
+                      <div class="flex items-center gap-1">
+                        <button
+                          type="button"
+                          class="table-action-btn"
+                          matTooltip="View details"
+                          (click)="openDetails(sub)"
+                        >
+                          <mat-icon
+                            class="icon-size-5 text-yellow-500"
+                            [svgIcon]="'heroicons_outline:eye'"
+                          ></mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <!-- Empty State -->
+                  <div class="page-empty-state">
+                    <div class="icon-wrapper">
+                      <mat-icon
+                        class="icon-size-10"
+                        [svgIcon]="'heroicons_outline:credit-card'"
+                      ></mat-icon>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">
+                      No subscription users found
+                    </h3>
+                    <p class="text-slate-500 max-w-sm">
+                      No subscription records match the current filters.
+                    </p>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Paginator -->
+          @if (subscriptions.length) {
+            <div class="pagination-bar">
+              <mat-paginator
+                class="sub-users-paginator"
+                [ngClass]="{ 'pointer-events-none': isLoading }"
+                [length]="totalCount"
+                [pageSize]="pageSize"
+                [pageSizeOptions]="pageSizeOptions"
+                [pageIndex]="page - 1"
+                [showFirstLastButtons]="false"
+              >
+              </mat-paginator>
+            </div>
+          }
+        </div>
+      </div>
+    </mat-drawer-content>
+  </mat-drawer-container>
+
+  <!-- ================================================================ -->
+  <!-- VIEW DETAILS DIALOG (read-only, system-log reference)              -->
+  <!-- ================================================================ -->
+  <ng-template #viewDataTemplate>
+    @if (selectedSub) {
+      <div
+        class="flex flex-col max-h-240 md:min-w-160 -m-6 overflow-hidden bg-white rounded-xl"
+      >
+        <!-- Header -->
+        <div
+          class="sticky top-0 z-10 flex items-center justify-between bg-slate-800 text-white px-4 py-3 rounded-t-xl"
+        >
+          <div class="text-lg font-semibold flex items-center gap-2 min-w-0">
+            <mat-icon
+              class="icon-size-5 text-white flex-shrink-0"
+              [svgIcon]="'heroicons_outline:user'"
+            ></mat-icon>
+            <span class="text-white truncate">{{ fullName }}</span>
+          </div>
+          <button
+            type="button"
+            mat-icon-button
+            (click)="closeDialog()"
+            class="text-white flex-shrink-0"
+          >
+            <mat-icon
+              class="text-white"
+              [svgIcon]="'heroicons_outline:x'"
+            ></mat-icon>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="mt-2 p-4 max-h-100 overflow-auto">
+          <!-- Customer Information -->
+          <div
+            class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1"
+          >
+            Customer Information
+          </div>
+          <div class="mb-4">
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Full Name</div>
+              <div class="w-2/3 text-slate-800 font-medium break-words">
+                {{ fullName }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Email</div>
+              <div class="w-2/3 text-slate-800 font-medium break-all">
+                {{ selectedSub?.email || "-" }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Phone Number</div>
+              <div class="w-2/3 text-slate-800 font-medium">
+                {{ selectedSub?.contact_no || "-" }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Company Name</div>
+              <div class="w-2/3 text-slate-800 font-medium break-words">
+                {{ selectedSub?.company_name || "-" }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Subscription Information -->
+          <div
+            class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1"
+          >
+            Subscription Information
+          </div>
+          <div class="mb-4">
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Plan</div>
+              <div class="w-2/3 text-slate-800 font-medium">
+                {{
+                  selectedSub?.plan_name ||
+                    selectedSub?.plan?.name ||
+                    selectedSub?.plan_id?.name ||
+                    "-"
+                }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">
+                Billing Cycle
+              </div>
+              <div class="w-2/3 text-slate-800 font-medium capitalize">
+                {{ selectedSub?.billing_cycle || "-" }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">
+                Subscription Status
+              </div>
+              <div class="w-2/3 text-slate-800 font-medium">
+                @if (selectedSub?.status_effective || selectedSub?.status) {
+                  <span
+                    class="status-badge status-badge--{{
+                      selectedSub?.status_effective || selectedSub?.status || ''
+                        | lowercase
+                    }} capitalize"
+                  >
+                    {{
+                      selectedSub?.status_effective ||
+                        selectedSub?.status ||
+                        "-"
+                    }}
+                  </span>
+                } @else {
+                  <span>-</span>
+                }
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Started Date</div>
+              <div class="w-2/3 text-slate-800 font-medium">
+                {{
+                  selectedSub?.started_at
+                    ? (selectedSub?.started_at | date: "mediumDate")
+                    : "-"
+                }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Expiry Date</div>
+              <div class="w-2/3 text-slate-800 font-medium">
+                {{
+                  selectedSub?.expired_at
+                    ? (selectedSub?.expired_at | date: "mediumDate")
+                    : "-"
+                }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Information -->
+          <div
+            class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1"
+          >
+            Payment Information
+          </div>
+          <div class="mb-4">
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">
+                Payment Gateway
+              </div>
+              <div class="w-2/3 text-slate-800 font-medium capitalize">
+                {{
+                  selectedSub?.payment?.gateway || selectedSub?.gateway || "-"
+                }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">
+                Payment Status
+              </div>
+              <div class="w-2/3 text-slate-800 font-medium capitalize">
+                {{ selectedSub?.payment?.payment_status || "-" }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Amount</div>
+              <div class="w-2/3 text-slate-800 font-medium">
+                {{
+                  fromCent(selectedSub?.payment?.amount ?? selectedSub?.amount)
+                }}
+                {{
+                  selectedSub?.payment?.currency_code ||
+                    selectedSub?.currency_code ||
+                    "" | uppercase
+                }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Currency</div>
+              <div class="w-2/3 text-slate-800 font-medium">
+                {{
+                  selectedSub?.payment?.currency_code ||
+                    selectedSub?.currency_code ||
+                    "-"
+                }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Paid At</div>
+              <div class="w-2/3 text-slate-800 font-medium">
+                {{
+                  selectedSub?.payment?.paid_at
+                    ? (selectedSub?.payment?.paid_at | date: "mediumDate")
+                    : "-"
+                }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Transaction Details -->
+          <div
+            class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1"
+          >
+            Transaction Details
+          </div>
+          <div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Payment ID</div>
+              <div class="w-2/3 text-slate-800 font-medium break-all">
+                {{
+                  selectedSub?.payment?.payment_id ||
+                    selectedSub?.subscription?.payment_id ||
+                    "-"
+                }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Order ID</div>
+              <div class="w-2/3 text-slate-800 font-medium break-all">
+                {{ selectedSub?.payment?.order_id || "-" }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">
+                Transaction ID
+              </div>
+              <div class="w-2/3 text-slate-800 font-medium break-all">
+                {{ selectedSub?.payment?.transaction_id || "-" }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Created At</div>
+              <div class="w-2/3 text-slate-800 font-medium">
+                {{
+                  selectedSub?.payment?.created_at
+                    ? (selectedSub?.payment?.created_at | date: "mediumDate")
+                    : "-"
+                }}
+              </div>
+            </div>
+            <div class="text-sm flex flex-row py-1 border-b border-slate-100">
+              <div class="w-1/3 font-semibold text-slate-500">Updated At</div>
+              <div class="w-2/3 text-slate-800 font-medium">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-end p-4 border-t bg-slate-50 mt-5"
+        >
+          <button
+            type="button"
+            class="bg-slate-800 text-white font-medium rounded-lg px-4 py-2 hover:bg-slate-900 transition-colors"
+            mat-flat-button
+            (click)="closeDialog()"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    }
+  </ng-template>
+</div>

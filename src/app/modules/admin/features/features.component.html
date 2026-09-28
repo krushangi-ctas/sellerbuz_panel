@@ -1,0 +1,204 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-white"
+>
+  <div class="flex flex-col flex-auto overflow-hidden">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div
+          class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+        >
+          <a
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-7 mb-0 mr-1 text-white"
+              [svgIcon]="'heroicons_solid:cube'"
+            ></mat-icon>
+          </a>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">Features</h1>
+        </div>
+      </div>
+
+      <!-- Actions in Page Header -->
+      <div class="flex flex-wrap items-center gap-2 mt-3 sm:mt-0">
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-56 -mb-5"
+        >
+          <mat-icon
+            class="icon-size-5 text-gray-400"
+            matPrefix
+            [svgIcon]="'heroicons_solid:search'"
+          ></mat-icon>
+          <input
+            matInput
+            [formControl]="featureSearchInputControl"
+            maxlength="80"
+            [autocomplete]="'off'"
+            [placeholder]="'Search feature name, desc, section...'"
+          />
+        </mat-form-field>
+
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-32 -mb-5"
+        >
+          <mat-select [formControl]="featureStatusControl" placeholder="Status">
+            <mat-option [value]="">All Status</mat-option>
+            <mat-option [value]="1">Active</mat-option>
+            <mat-option [value]="0">Inactive</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button
+          type="button"
+          class="btn-secondary-action"
+          (click)="refreshFeatures()"
+          matTooltip="Refresh Features"
+        >
+          <mat-icon
+            class="icon-size-5"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+
+        <button
+          type="button"
+          class="btn-primary-action"
+          mat-flat-button
+          (click)="openAddFeatureDialog()"
+        >
+          <mat-icon
+            class="icon-size-5"
+            [svgIcon]="'heroicons_outline:plus'"
+          ></mat-icon>
+          <span>Add Feature</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Features Content -->
+    <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+      <!-- Features Table -->
+      <div class="flex-1 min-h-0 overflow-auto sm:overflow-y-auto lg:mb-14">
+        <div class="grid">
+          <div
+            class="table-header-row features-grid"
+            matSort
+            #featuresSort="matSort"
+            matSortDisableClear
+          >
+            <div class="flex items-center" [mat-sort-header]="'name'">
+              Feature Name
+            </div>
+            <div class="flex items-center" [mat-sort-header]="'desc'">
+              Description
+            </div>
+            <div class="flex items-center" [mat-sort-header]="'sectionName'">
+              Section
+            </div>
+            <div class="flex items-center" [mat-sort-header]="'status'">
+              Status
+            </div>
+            <div class="flex items-center justify-end">Action</div>
+          </div>
+
+          @if (featuresIsLoading) {
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+              <div class="table-data-row animate-pulse features-grid">
+                <div class="h-4 bg-gray-200 rounded w-36"></div>
+                <div class="h-4 bg-gray-200 rounded w-64"></div>
+                <div class="h-4 bg-gray-200 rounded w-28"></div>
+                <div class="h-4 bg-gray-200 rounded w-16"></div>
+                <div class="h-4 bg-gray-200 rounded w-20 ml-auto"></div>
+              </div>
+            }
+          } @else {
+            @for (
+              row of features$ | async;
+              track trackByFeatureFn($index, row)
+            ) {
+              <div class="table-data-row features-grid">
+                <div class="font-semibold text-slate-800 dark:text-slate-200">
+                  {{ row.name }}
+                </div>
+                <div
+                  class="text-sm text-slate-600 dark:text-slate-400 truncate"
+                  [title]="row.desc || ''"
+                >
+                  {{ row.desc || "-" }}
+                </div>
+                <div
+                  class="text-sm font-medium text-slate-700 dark:text-slate-300"
+                >
+                  {{ row.sectionName || "-" }}
+                </div>
+                <div>
+                  @if (row.status === 1) {
+                    <span class="text-xs font-semibold text-emerald-700"
+                      >Active</span
+                    >
+                  } @else {
+                    <span class="text-xs font-semibold text-amber-700"
+                      >Inactive</span
+                    >
+                  }
+                </div>
+                <div class="flex items-center justify-end gap-1">
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matTooltip="Edit Feature"
+                    (click)="openEditFeatureDialog(row)"
+                  >
+                    <mat-icon
+                      class="icon-size-5"
+                      svgIcon="heroicons_outline:pencil"
+                    ></mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matTooltip="Delete Feature"
+                    (click)="deleteFeature(row)"
+                  >
+                    <mat-icon
+                      class="icon-size-5 text-warn"
+                      svgIcon="heroicons_outline:trash"
+                    ></mat-icon>
+                  </button>
+                </div>
+              </div>
+            } @empty {
+              <div class="p-8 text-center text-secondary">
+                No features created yet.
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Features Paginator -->
+      @if (features$ | async; as featuresList) {
+        @if (featuresList?.length) {
+          <div class="pagination-bar">
+            <mat-paginator
+              #featuresPaginator
+              [ngClass]="{ 'pointer-events-none': featuresIsLoading }"
+              [length]="
+                featuresPagination?.length ?? (featuresList?.length || 0)
+              "
+              [pageIndex]="(featuresPagination?.page || 1) - 1"
+              [pageSize]="featuresPagination?.size || pageLimit"
+              [pageSizeOptions]="pageOptions"
+              [showFirstLastButtons]="false"
+            ></mat-paginator>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,432 @@
+<div class="absolute inset-0 flex flex-col min-w-0 sm:overflow-hidden bg-white">
+  <!-- Header -->
+  <div
+    class="page-header flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3"
+  >
+    <!-- Title -->
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="text-3xl font-extrabold tracking-tight flex items-center">
+        <mat-icon
+          class="icon-size-7 mb-0 mr-2 text-white cursor-pointer"
+          [svgIcon]="'heroicons_outline:ban'"
+          [matTooltip]="tooltip"
+        ></mat-icon>
+        <span
+          class="text-xl sm:text-2xl font-bold tracking-tight text-white whitespace-nowrap"
+        >
+          Banned Items({{
+            marketplaceData ? marketplaceData.countryCode : "-"
+          }})
+        </span>
+      </div>
+    </div>
+
+    <!-- Marketplace Selection Tabs -->
+    @if (sellerMarketplaces && sellerMarketplaces.length > 0) {
+      <div
+        class="flex items-center gap-2 max-w-full sm:max-w-[280px] md:max-w-[380px] lg:max-w-[500px] xl:max-w-[620px] min-w-0 flex-shrink overflow-hidden rounded-xl bg-white/10 border border-white/20 p-1 mx-0 md:mx-2"
+      >
+        <span
+          class="text-[11px] font-semibold text-white/80 uppercase tracking-wider px-2 flex-shrink-0 flex items-center gap-1 select-none"
+        >
+          Marketplaces:
+        </span>
+        <div
+          class="flex items-center gap-1.5 overflow-x-auto min-w-0 py-0.5 custom-header-scrollbar"
+        >
+          @for (m of sellerMarketplaces; track m.id) {
+            <button
+              type="button"
+              (click)="onMarketplaceTabSelect(m.id)"
+              [class.bg-white]="selectedMarketplaceId === m.id"
+              [class.text-blue-900]="selectedMarketplaceId === m.id"
+              [class.font-bold]="selectedMarketplaceId === m.id"
+              [class.shadow-md]="selectedMarketplaceId === m.id"
+              [class.bg-white\/15]="selectedMarketplaceId !== m.id"
+              [class.text-white]="selectedMarketplaceId !== m.id"
+              [class.hover:bg-white\/25]="selectedMarketplaceId !== m.id"
+              class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border border-white/20 transition-all cursor-pointer flex-shrink-0 whitespace-nowrap select-none"
+              [matTooltip]="'Select Marketplace: ' + m.countryName"
+            >
+              <img
+                [src]="'assets/images/flags/' + m.countryCode + '.svg'"
+                [alt]="m.countryCode"
+                class="w-4 h-4 rounded-full object-cover flex-shrink-0"
+              />
+              <span>{{ m.countryName }} ({{ m.countryCode }})</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Actions & Filters -->
+    <div class="flex flex-wrap items-center gap-2 flex-shrink-0 lg:ml-auto">
+      <!-- Source Filter -->
+      <mat-form-field
+        class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+      >
+        <mat-select
+          [formControl]="sourceControl"
+          placeholder="Source"
+          [matTooltip]="'Filter by Inventory Source'"
+        >
+          <mat-option value="all">All Sources</mat-option>
+          <mat-option value="Catalog Sync">Catalog Sync</mat-option>
+          <mat-option value="File Import">File Import</mat-option>
+          <mat-option value="Manual Add">Manual Add</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Reason Filter -->
+      <mat-form-field
+        class="fuse-mat-dense fuse-mat-no-subscript min-w-36 -mb-5"
+      >
+        <mat-select
+          [formControl]="reasonControl"
+          placeholder="Reason"
+          [matTooltip]="'Filter by Banned Type / Reason'"
+        >
+          <mat-option value="all">All Reasons</mat-option>
+          <mat-option value="Banned ASIN">Banned ASIN</mat-option>
+          <mat-option value="Banned Keyword">Banned Keyword</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Search Field -->
+      <mat-form-field
+        class="fuse-mat-dense fuse-mat-no-subscript min-w-48 sm:min-w-56 -mb-5"
+      >
+        <mat-icon
+          class="icon-size-5 text-gray-400"
+          matPrefix
+          [svgIcon]="'heroicons_solid:search'"
+        ></mat-icon>
+        <input
+          matInput
+          [formControl]="searchInputControl"
+          maxlength="50"
+          [autocomplete]="'off'"
+          [placeholder]="'Search SKU, ASIN, Title...'"
+          [matTooltip]="'Search SKU, ASIN, Title'"
+        />
+      </mat-form-field>
+
+      <!-- Refresh Button -->
+      <button
+        type="button"
+        class="btn-secondary-action"
+        (click)="resetFiltersAndRefresh()"
+        matTooltip="Refresh"
+      >
+        <mat-icon class="icon-size-5" svgIcon="mat_outline:refresh"></mat-icon>
+      </button>
+    </div>
+  </div>
+
+  @if (isSuperAdmin || permission?.view) {
+    <!-- Table Container -->
+    <div class="flex flex-col flex-auto min-h-0 overflow-hidden">
+      <div class="flex-1 min-h-0 overflow-auto lg:mb-14">
+        <div class="grid min-w-max mb-8 pb-8 sm:pb-8">
+          <!-- Table Header -->
+          <div
+            matSort
+            matSortDisableClear
+            class="banned-item-grid sticky top-0 z-10 grid items-center gap-2 py-2 px-3 shadow text-sm font-semibold text-secondary bg-gray-100 dark:bg-black dark:bg-opacity-5"
+          >
+            <div
+              mat-sort-header="createdAt"
+              [matTooltip]="'Creation Date & Time'"
+            >
+              Created
+            </div>
+            <div [matTooltip]="'Product Image'">Image</div>
+            <div mat-sort-header="sku" [matTooltip]="'Product SKU'">SKU</div>
+            <div mat-sort-header="asin" [matTooltip]="'Amazon ASIN'">ASIN</div>
+            <div mat-sort-header="title" [matTooltip]="'Product Title / Name'">
+              Title / Name
+            </div>
+            <div mat-sort-header="brand" [matTooltip]="'Brand Name'">Brand</div>
+            <div
+              mat-sort-header="source"
+              [matTooltip]="'Inventory Origin Source'"
+            >
+              Source
+            </div>
+            <div
+              mat-sort-header="banned_reason"
+              [matTooltip]="'Banned Rule Type (ASIN / Keyword)'"
+            >
+              Banned Type
+            </div>
+            <div
+              mat-sort-header="matched_rule"
+              [matTooltip]="'Matched Rule / Banned Reason Detail'"
+            >
+              Banned Reason
+            </div>
+            <div class="text-center" [matTooltip]="'Release Action'">
+              Action
+            </div>
+          </div>
+
+          <!-- Table Body -->
+          @if (isLoading) {
+            <!-- Skeleton Loader -->
+            @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+              <div
+                class="banned-item-grid grid items-center gap-2 py-3 px-3 border-b animate-pulse bg-white"
+              >
+                <div class="h-4 bg-gray-200 rounded w-20"></div>
+                <div class="w-10 h-10 bg-gray-200 rounded"></div>
+                <div class="h-4 bg-gray-200 rounded w-24"></div>
+                <div class="h-4 bg-gray-200 rounded w-20"></div>
+                <div class="h-4 bg-gray-200 rounded w-48"></div>
+                <div class="h-4 bg-gray-200 rounded w-16"></div>
+                <div class="h-4 bg-gray-200 rounded w-20"></div>
+                <div class="h-4 bg-gray-200 rounded w-24"></div>
+                <div class="h-4 bg-gray-200 rounded w-28"></div>
+                <div
+                  class="h-8 bg-gray-200 rounded w-8 justify-self-center"
+                ></div>
+              </div>
+            }
+          } @else {
+            @if (bannedItems && bannedItems.length > 0) {
+              @for (item of bannedItems; track trackByFn($index, item)) {
+                <div
+                  class="banned-item-grid grid items-center gap-2 py-1.5 px-3 border-b hover:bg-slate-50 transition-colors text-xs font-medium text-slate-700 bg-white"
+                >
+                  <!-- Created Date -->
+                  <div
+                    class="text-slate-500 text-[11px] font-semibold truncate"
+                    [matTooltip]="
+                      item.createdAt
+                        ? (item.createdAt | date: 'dd-MM-yyyy, HH:mm:ss')
+                        : '-'
+                    "
+                  >
+                    {{
+                      item.createdAt
+                        ? (item.createdAt | date: "dd-MM-yyyy, HH:mm")
+                        : "-"
+                    }}
+                  </div>
+
+                  <!-- Image -->
+                  <div [matTooltip]="item.title || item.sku || 'Product Image'">
+                    @if (
+                      item.main_image_url && item.main_image_url.length > 0
+                    ) {
+                      <img
+                        [src]="item.main_image_url[0] | mediaUrl"
+                        [alt]="item.title"
+                        class="w-10 h-10 object-contain rounded border bg-white p-0.5"
+                      />
+                    } @else {
+                      <div
+                        class="w-10 h-10 rounded border bg-slate-100 flex items-center justify-center text-slate-400"
+                      >
+                        <mat-icon
+                          class="icon-size-5"
+                          [svgIcon]="'heroicons_outline:photograph'"
+                        ></mat-icon>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- SKU -->
+                  <div
+                    class="flex items-center min-w-0"
+                    [matTooltip]="item.sku || '-'"
+                  >
+                    @if (item.sku) {
+                      <div
+                        class="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold text-indigo-600 max-w-full truncate"
+                      >
+                        <span class="truncate select-all tracking-tight">{{
+                          item.sku
+                        }}</span>
+                        <button
+                          type="button"
+                          class="inline-flex items-center text-indigo-400 hover:text-indigo-700 transition-colors cursor-pointer flex-shrink-0"
+                          [cdkCopyToClipboard]="item.sku"
+                          (click)="copyToClipboard(item.sku, 'SKU')"
+                          [matTooltip]="'Copy SKU'"
+                        >
+                          <mat-icon
+                            svgIcon="mat_outline:content_copy"
+                            class="icon-size-3.5"
+                          ></mat-icon>
+                        </button>
+                      </div>
+                    } @else {
+                      <span class="text-slate-400 text-[11px] font-semibold"
+                        >-</span
+                      >
+                    }
+                  </div>
+
+                  <!-- ASIN -->
+                  <div
+                    class="flex items-center min-w-0"
+                    [matTooltip]="item.asin || '-'"
+                  >
+                    @if (item.asin) {
+                      <div
+                        class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 text-amber-900 font-mono text-[11px] font-bold border border-amber-200/80 max-w-full truncate shadow-2xs"
+                      >
+                        <span>{{ item.asin }}</span>
+
+                        <button
+                          type="button"
+                          class="inline-flex items-center text-amber-500/80 hover:text-amber-900 transition-colors cursor-pointer flex-shrink-0"
+                          [cdkCopyToClipboard]="item.asin"
+                          (click)="copyToClipboard(item.asin, 'ASIN')"
+                          [matTooltip]="'Copy ASIN'"
+                        >
+                          <mat-icon
+                            svgIcon="mat_outline:content_copy"
+                            class="icon-size-3.5"
+                          ></mat-icon>
+                        </button>
+                      </div>
+                    } @else {
+                      <span class="text-slate-400 text-[11px] font-semibold"
+                        >-</span
+                      >
+                    }
+                  </div>
+
+                  <!-- Title -->
+                  <div
+                    class="truncate max-w-xs text-slate-900 text-[11px] font-semibold"
+                    [matTooltip]="item.title || '-'"
+                  >
+                    {{ item.title || "-" }}
+                  </div>
+
+                  <!-- Brand -->
+                  <div
+                    class="truncate text-slate-600 text-[11px] font-semibold"
+                    [matTooltip]="item.brand || '-'"
+                  >
+                    {{ item.brand || "-" }}
+                  </div>
+
+                  <!-- Source -->
+                  <div>
+                    <span
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                      [class.bg-purple-100]="item.source === 'Catalog Sync'"
+                      [class.text-purple-800]="item.source === 'Catalog Sync'"
+                      [class.bg-blue-100]="item.source === 'File Import'"
+                      [class.text-blue-800]="item.source === 'File Import'"
+                      [class.bg-teal-100]="item.source === 'Manual Add'"
+                      [class.text-teal-800]="item.source === 'Manual Add'"
+                      [matTooltip]="item.source || '-'"
+                    >
+                      {{ item.source || "-" }}
+                    </span>
+                  </div>
+
+                  <!-- Banned Type (Badge) -->
+                  <div>
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-100 text-rose-800 whitespace-nowrap"
+                      [matTooltip]="item.banned_reason || 'Banned'"
+                    >
+                      <mat-icon
+                        class="icon-size-3.5 text-rose-600"
+                        [svgIcon]="'heroicons_solid:exclamation-circle'"
+                      ></mat-icon>
+                      <span>{{ item.banned_reason || "Banned" }}</span>
+                    </span>
+                  </div>
+
+                  <!-- Banned Reason (Rule / Detail) -->
+                  <div class="truncate" [matTooltip]="item.matched_rule || '-'">
+                    @if (item.matched_rule) {
+                      <span
+                        class="font-mono text-[11px] text-slate-700 font-semibold break-all"
+                        >Rule: {{ item.matched_rule }}</span
+                      >
+                    } @else {
+                      <span class="text-slate-400 text-[11px] font-semibold"
+                        >-</span
+                      >
+                    }
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="text-center">
+                    <button
+                      type="button"
+                      mat-icon-button
+                      class="text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                      (click)="confirmRelease(item)"
+                      [matTooltip]="'Release to Amazon Inventory'"
+                    >
+                      <mat-icon
+                        class="icon-size-5 text-blue-600"
+                        [svgIcon]="'mat_outline:inventory'"
+                      ></mat-icon>
+                    </button>
+                  </div>
+                </div>
+              }
+            } @else {
+              <!-- Empty State -->
+              <div
+                class="flex flex-col flex-auto items-center justify-center p-12 text-center bg-white min-h-[300px]"
+              >
+                <mat-icon
+                  class="icon-size-16 text-slate-300 mb-2"
+                  [svgIcon]="'heroicons_outline:ban'"
+                ></mat-icon>
+                <div class="text-lg font-semibold text-slate-600">
+                  No Banned Items Found
+                </div>
+                <div class="text-sm text-slate-400 max-w-sm mt-1">
+                  There are no items currently blocked by Banned ASIN or Banned
+                  Keyword rules for this selection.
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Paginator -->
+      @if (bannedItems?.length) {
+        <mat-paginator
+          class="sm:inset-x-0 border-b sm:border-t sm:border-b-0 z-10 bg-white dark:bg-transparent"
+          [length]="
+            ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+            (bannedItems?.length || 0) +
+            (pagination?.hasNextPage ? 1 : 0)
+          "
+          [pageIndex]="(pagination?.page || 1) - 1"
+          [pageSize]="pagination?.size || 100"
+          [pageSizeOptions]="[5, 25, 50, 100]"
+          [showFirstLastButtons]="false"
+        ></mat-paginator>
+      }
+    </div>
+  } @else {
+    <!-- Permission Denied -->
+    <div
+      class="flex flex-col flex-auto items-center justify-center p-8 text-center bg-white"
+    >
+      <mat-icon
+        class="icon-size-16 text-red-400 mb-2"
+        [svgIcon]="'heroicons_outline:lock-closed'"
+      ></mat-icon>
+      <div class="text-lg font-bold text-slate-800">Permission Denied</div>
+      <div class="text-sm text-slate-500 max-w-md mt-1">
+        You do not have permission to view Banned Items.
+      </div>
+    </div>
+  }
+</div>

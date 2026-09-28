@@ -1,0 +1,23 @@
+@if (imageLoaded) {
+  <figure>
+    <img
+      loading="lazy"
+      [src]="src"
+      [alt]="alt"
+      [style.width]="calculatedImageDimension?.width + 'px'"
+      [style.height]="calculatedImageDimension?.height + 'px'"
+    />
+  </figure>
+} @else {
+  <div class="img-loading-spinner-container">
+    <mat-spinner></mat-spinner>
+  </div>
+}
+
+@if (!hideCloseBtn) {
+  <div class="image-view-close-button">
+    <button type="button" mat-icon-button mat-dialog-close>
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+}

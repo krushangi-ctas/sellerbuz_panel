@@ -1,0 +1,618 @@
+<div
+  class="sm:relative sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden overflow-auto"
+>
+  <!-- Header -->
+  <div
+    class="relative flex flex-col sm:flex-row flex-0 sm:items-center bg-card sm:justify-between px-6 py-4 md:px-8 border-b border-gray-200 dark:border-gray-700"
+  >
+    <div
+      class="text-3xl font-extrabold tracking-tight lg:mr-auto flex items-center"
+    >
+      <a
+        (click)="$event.preventDefault()"
+        mat-icon-button
+        [matTooltip]="tooltip"
+      >
+        <mat-icon
+          class="icon-size-7 mb-0 mr-1 text-gray-900 dark:text-gray-100"
+          [svgIcon]="'mat_outline:settings'"
+        ></mat-icon>
+      </a>
+      <span class="text-2xl font-bold tracking-tight">General Settings</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  @if (isSuperAdmin || rolePermission?.view) {
+    <div
+      class="flex-auto overflow-auto p-4 sm:p-6 md:p-8 bg-gray-50 dark:bg-gray-900/50"
+    >
+      <div
+        class="max-w-7xl mx-auto bg-card rounded-2xl border border-gray-250 dark:border-gray-800 shadow-sm p-4 sm:p-6 md:p-8"
+      >
+        @if (isLoading) {
+          <!-- SKELETON LOADER FOR GENERAL SETTINGS -->
+          <div class="animate-pulse flex flex-col gap-8">
+            <!-- Header status block skeleton -->
+            <div
+              class="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full pb-6 border-b border-gray-200 dark:border-gray-700 gap-4 mb-8"
+            >
+              <div class="flex items-center">
+                <div
+                  class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex-shrink-0"
+                ></div>
+                <div class="ml-3 space-y-2">
+                  <div
+                    class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-40"
+                  ></div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 sm:w-64"
+                  ></div>
+                </div>
+              </div>
+              <div
+                class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-48"
+              ></div>
+            </div>
+
+            <!-- Grid Layout Skeleton -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
+              <!-- Left side skeleton -->
+              <div class="lg:col-span-6 flex flex-col gap-8">
+                <!-- Section 1 Skeleton -->
+                <div>
+                  <div
+                    class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-2"
+                  ></div>
+                  <div
+                    class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-72 mb-4"
+                  ></div>
+                  <div
+                    class="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-gray-50/50 dark:bg-gray-800/30 p-4 rounded-xl border border-gray-100 dark:border-gray-800"
+                  >
+                    <div class="space-y-3">
+                      <div
+                        class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                      ></div>
+                      <div
+                        class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                      ></div>
+                      <div
+                        class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                      ></div>
+                    </div>
+                    <div class="space-y-3">
+                      <div
+                        class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                      ></div>
+                      <div
+                        class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24"
+                      ></div>
+                      <div
+                        class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Section 2 Skeleton -->
+                <div>
+                  <div
+                    class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-44 mb-2"
+                  ></div>
+                  <div
+                    class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-64 mb-4"
+                  ></div>
+                  <div
+                    class="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-gray-50/50 dark:bg-gray-800/30 p-4 rounded-xl border border-gray-100 dark:border-gray-800"
+                  >
+                    <div class="space-y-3">
+                      <div
+                        class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                      ></div>
+                      <div class="flex gap-4">
+                        <div
+                          class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                        ></div>
+                        <div
+                          class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-20"
+                        ></div>
+                      </div>
+                      <div
+                        class="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg w-full mt-2"
+                      ></div>
+                    </div>
+                    <div class="flex flex-col justify-end">
+                      <div
+                        class="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right side skeleton -->
+              <div class="lg:col-span-6 flex flex-col gap-4">
+                <div>
+                  <div
+                    class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-56 mb-2"
+                  ></div>
+                  <div
+                    class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-80 mb-4"
+                  ></div>
+                  <div
+                    class="flex flex-col border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto bg-white dark:bg-gray-800"
+                  >
+                    <div class="min-w-[460px]">
+                      <div
+                        class="w-full bg-gray-100 dark:bg-gray-700 px-4 py-3 grid manage-grid gap-3"
+                      >
+                        <div
+                          class="h-3 bg-gray-200 dark:bg-gray-600 rounded w-24"
+                        ></div>
+                        <div
+                          class="h-3 bg-gray-200 dark:bg-gray-600 rounded w-24"
+                        ></div>
+                        <div
+                          class="h-3 bg-gray-200 dark:bg-gray-600 rounded w-12"
+                        ></div>
+                      </div>
+                      @for (row of [1, 2, 3]; track row) {
+                        <div
+                          class="border-b border-gray-100 dark:border-gray-700/50 py-3.5 px-4 grid manage-grid gap-3 items-center"
+                        >
+                          <div
+                            class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"
+                          ></div>
+                          <div class="flex gap-3">
+                            <div
+                              class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                            ></div>
+                            <div
+                              class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"
+                            ></div>
+                          </div>
+                          <div
+                            class="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg w-20"
+                          ></div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer button skeleton -->
+            <div
+              class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <div
+                class="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl w-full sm:w-44"
+              ></div>
+            </div>
+          </div>
+        } @else {
+          <!-- Header status block -->
+          <div
+            class="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full pb-6 border-b border-gray-200 dark:border-gray-700 gap-4 mb-8"
+          >
+            <div class="flex items-center">
+              <img
+                src="assets/amazon-white.jpg"
+                class="w-10 h-10 rounded-lg shadow-sm flex-shrink-0"
+              />
+              <div class="ml-3">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  Amazon Settings
+                </h2>
+                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                  Configure global product parameters and shipping profiles
+                </p>
+              </div>
+            </div>
+            @if (isFormVisible && (isSuperAdmin || rolePermission?.update)) {
+              <mat-slide-toggle
+                id="accountStatusToggle"
+                [checked]="getStatus(amzStatus)"
+                [matTooltip]="
+                  getStatus(amzStatus) ? 'Active Account' : 'Deactivate Account'
+                "
+                (change)="toggleCompleted($event)"
+                aria-label="Toggle account status"
+              >
+                <span
+                  class="px-2 font-semibold text-xs sm:text-sm transition-colors duration-150"
+                  [ngClass]="{
+                    'text-green-600 dark:text-green-400': getStatus(amzStatus),
+                    'text-red-600 dark:text-red-400': !getStatus(amzStatus),
+                  }"
+                >
+                  {{
+                    getStatus(amzStatus)
+                      ? "Your account is currently active."
+                      : "Your account is currently inactive."
+                  }}
+                </span>
+              </mat-slide-toggle>
+            }
+          </div>
+
+          @if (!isFormVisible) {
+            <!-- Authorize Screen -->
+            <div
+              class="bg-gray-100 dark:bg-gray-800 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-700 text-center max-w-2xl mx-auto my-6"
+            >
+              <mat-icon
+                class="icon-size-16 text-primary mb-4"
+                [svgIcon]="'heroicons_outline:key'"
+              ></mat-icon>
+              <h3
+                class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2"
+              >
+                Amazon Account Authorization Required
+              </h3>
+              <p
+                class="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-6"
+              >
+                To proceed with configuring your marketplace settings, you must
+                first link your Amazon Seller account.
+              </p>
+              <button
+                type="button"
+                mat-flat-button
+                class="bg-primary hover:bg-primary-600 text-white font-semibold py-2.5 px-6 rounded-xl shadow transition duration-200 w-full sm:w-auto"
+                [routerLink]="'/authorization-workflow'"
+              >
+                Authorize Amazon Account
+              </button>
+            </div>
+          }
+
+          @if (isFormVisible) {
+            <form
+              [formGroup]="marketPlaceFormGroup"
+              class="flex flex-col gap-8"
+            >
+              <!-- Split Layout (Grid) -->
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
+                <!-- Left side: General configurations -->
+                <div class="lg:col-span-6 flex flex-col gap-8">
+                  <!-- Section 1: Product Classification -->
+                  <div>
+                    <h3
+                      class="text-base font-bold text-gray-900 dark:text-gray-100 mb-1"
+                    >
+                      Product Classification
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                      Define default product classification and fulfillment
+                      strategy
+                    </p>
+
+                    <div
+                      class="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-gray-50/50 dark:bg-gray-800/30 p-4 rounded-xl border border-gray-100 dark:border-gray-800"
+                    >
+                      <mat-radio-group
+                        formControlName="amz_product_type"
+                        class="flex flex-col gap-2"
+                      >
+                        <span
+                          class="text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                          >Product Type</span
+                        >
+                        <mat-radio-button value="retail" class="text-sm"
+                          >Retail</mat-radio-button
+                        >
+                        <mat-radio-button value="white_label" class="text-sm"
+                          >White Label</mat-radio-button
+                        >
+                      </mat-radio-group>
+
+                      <mat-radio-group
+                        formControlName="amz_fullfillment_by"
+                        class="flex flex-col gap-2"
+                      >
+                        <span
+                          class="text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                          >Fulfillment Method</span
+                        >
+                        <mat-radio-button value="FBM" class="text-sm"
+                          >FBM (Merchant)</mat-radio-button
+                        >
+                        <mat-radio-button value="FBA" class="text-sm"
+                          >FBA (Amazon)</mat-radio-button
+                        >
+                      </mat-radio-group>
+                    </div>
+                  </div>
+
+                  <!-- Section 2: Margin & Handling Settings -->
+                  <div>
+                    <h3
+                      class="text-base font-bold text-gray-900 dark:text-gray-100 mb-1"
+                    >
+                      Financials & Logistics
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                      Adjust default repricing margins and logistics handling
+                      time
+                    </p>
+
+                    <div
+                      class="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-gray-50/50 dark:bg-gray-800/30 p-4 rounded-xl border border-gray-100 dark:border-gray-800"
+                    >
+                      <div class="flex flex-col gap-4">
+                        <mat-radio-group
+                          formControlName="amz_margin_mode"
+                          class="flex flex-col gap-2"
+                        >
+                          <span
+                            class="text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                            >Margin Mode</span
+                          >
+                          <div class="flex flex-wrap gap-4">
+                            <mat-radio-button value="FIX" class="text-sm"
+                              >Fix</mat-radio-button
+                            >
+                            <mat-radio-button value="PERCENTAGE" class="text-sm"
+                              >Percentage</mat-radio-button
+                            >
+                          </div>
+                        </mat-radio-group>
+
+                        <mat-form-field
+                          class="fuse-mat-dense w-full mt-1"
+                          floatLabel="always"
+                        >
+                          <mat-label>Default Margin</mat-label>
+                          <input
+                            matInput
+                            formControlName="amz_margin"
+                            type="number"
+                            placeholder="Margin"
+                            min="0"
+                            (wheel)="stopScrollingWheel($event)"
+                            (input)="onMarginInput($event, 'amz_margin')"
+                          />
+                          @if (
+                            marketPlaceFormGroup
+                              .get("amz_margin")
+                              ?.hasError("required")
+                          ) {
+                            <mat-error>Margin is required!</mat-error>
+                          }
+                          @if (
+                            marketPlaceFormGroup
+                              .get("amz_margin")
+                              ?.hasError("max")
+                          ) {
+                            <mat-error>
+                              {{
+                                marketPlaceFormGroup.get("amz_margin_mode")
+                                  ?.value === "PERCENTAGE"
+                                  ? "Percentage cannot exceed 100!"
+                                  : "Fixed margin cannot exceed 1000!"
+                              }}
+                            </mat-error>
+                          }
+                        </mat-form-field>
+                      </div>
+
+                      <div class="flex flex-col sm:justify-end">
+                        <mat-form-field
+                          class="fuse-mat-dense w-full"
+                          floatLabel="always"
+                        >
+                          <mat-label>Handling Time (Days)</mat-label>
+                          <input
+                            matInput
+                            formControlName="amz_handling_time"
+                            type="number"
+                            placeholder="Days"
+                            min="1"
+                            (wheel)="stopScrollingWheel($event)"
+                            (input)="onMarginInput($event, 'amz_handling_time')"
+                          />
+                          @if (
+                            marketPlaceFormGroup
+                              .get("amz_handling_time")
+                              ?.hasError("required")
+                          ) {
+                            <mat-error>Required!</mat-error>
+                          }
+                          @if (
+                            marketPlaceFormGroup
+                              .get("amz_handling_time")
+                              ?.hasError("min")
+                          ) {
+                            <mat-error>Must be at least 1 day.</mat-error>
+                          }
+                          @if (
+                            marketPlaceFormGroup
+                              .get("amz_handling_time")
+                              ?.hasError("max")
+                          ) {
+                            <mat-error>Cannot exceed 50 days.</mat-error>
+                          }
+                        </mat-form-field>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right side: Shipping configurations -->
+                <div class="lg:col-span-6 flex flex-col gap-4">
+                  <div>
+                    <h3
+                      class="text-base font-bold text-gray-900 dark:text-gray-100 mb-1"
+                    >
+                      Marketplace Shipping Channels
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                      Manage regional fulfillment charges and shipping
+                      configuration profiles
+                    </p>
+
+                    <div
+                      formArrayName="marketplaces"
+                      class="flex flex-col border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto bg-white dark:bg-gray-800"
+                    >
+                      <div class="min-w-[460px]">
+                        <div
+                          class="w-full font-bold bg-gray-100 dark:bg-gray-700 px-4 border-b border-gray-200 dark:border-gray-600 grid manage-grid py-3 gap-3 text-gray-750 dark:text-gray-200"
+                        >
+                          <div class="uppercase tracking-wider text-[10px]">
+                            Marketplace ID
+                          </div>
+                          <div class="uppercase tracking-wider text-[10px]">
+                            Configuration
+                          </div>
+                          <div class="uppercase tracking-wider text-[10px]">
+                            Rate
+                          </div>
+                        </div>
+                        @for (
+                          item of marketplaces.controls;
+                          track item;
+                          let i = $index
+                        ) {
+                          <div
+                            class="border-b border-gray-100 dark:border-gray-700/50 py-3 last:border-0 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors duration-150"
+                          >
+                            <div
+                              class="w-full grid manage-grid gap-3 items-center px-4"
+                              [formGroupName]="i"
+                            >
+                              <div
+                                class="text-left font-semibold text-gray-800 dark:text-gray-200 text-xs sm:text-sm truncate"
+                                [matTooltip]="
+                                  getOriginalCountyNameAndCurrency(
+                                    item.get('marketplace_name').value
+                                  )
+                                "
+                              >
+                                #{{
+                                  getOriginalCountyNameAndCurrency(
+                                    item.get("marketplace_name").value
+                                  )
+                                }}
+                              </div>
+                              <mat-radio-group
+                                formControlName="shipping_config"
+                                class="flex flex-row gap-3 items-center"
+                              >
+                                <mat-radio-button
+                                  value="inclusive"
+                                  class="text-xs"
+                                  >Inclusive</mat-radio-button
+                                >
+                                <mat-radio-button
+                                  value="exclusive"
+                                  class="text-xs"
+                                  >Exclusive</mat-radio-button
+                                >
+                              </mat-radio-group>
+
+                              <div
+                                class="flex items-center gap-2 w-full min-h-[40px]"
+                              >
+                                @if (
+                                  item.get("shipping_config").value ===
+                                  "exclusive"
+                                ) {
+                                  <mat-form-field
+                                    class="fuse-mat-dense fuse-mat-no-subscript w-full max-w-[90px] m-0"
+                                    floatLabel="always"
+                                  >
+                                    <input
+                                      matInput
+                                      formControlName="shipping_rate"
+                                      type="number"
+                                      placeholder="Rate"
+                                      min="0"
+                                      max="100"
+                                      (wheel)="stopScrollingWheel($event)"
+                                    />
+                                  </mat-form-field>
+                                  <div
+                                    class="text-[10px] font-semibold text-red-600 dark:text-red-400 whitespace-normal leading-tight"
+                                  >
+                                    @if (
+                                      item
+                                        .get("shipping_rate")
+                                        ?.hasError("required") &&
+                                      item.get("shipping_rate")?.touched
+                                    ) {
+                                      <span>Required!</span>
+                                    }
+                                    @if (
+                                      item.get("shipping_rate")?.hasError("min")
+                                    ) {
+                                      <span>Min 0.</span>
+                                    }
+                                    @if (
+                                      item.get("shipping_rate")?.hasError("max")
+                                    ) {
+                                      <span>Max 100.</span>
+                                    }
+                                  </div>
+                                } @else {
+                                  <span
+                                    class="text-xs text-gray-800 dark:text-gray-200 font-semibold"
+                                  >
+                                    {{ item.get("shipping_rate").value ?? 0 }}
+                                  </span>
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer Save block -->
+              <div
+                class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700"
+              >
+                @if (isSuperAdmin || rolePermission?.update) {
+                  <button
+                    type="button"
+                    mat-flat-button
+                    class="bg-primary hover:bg-primary-600 text-white font-semibold py-2.5 px-8 rounded-xl shadow-sm hover:shadow transition-all duration-200 w-full sm:w-auto"
+                    [disabled]="marketPlaceFormGroup.invalid || isLoading"
+                    (click)="updateSettingBySeller()"
+                  >
+                    Save Configuration
+                  </button>
+                }
+              </div>
+            </form>
+          }
+        }
+      </div>
+    </div>
+  } @else {
+    <!-- Unauthorized access template -->
+    <div
+      class="flex flex-col items-center justify-center p-12 sm:p-20 text-center flex-auto"
+    >
+      <div
+        class="w-24 h-24 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4"
+      >
+        <mat-icon
+          class="icon-size-12 text-amber-600 dark:text-amber-400"
+          [svgIcon]="'heroicons_outline:lock-closed'"
+        ></mat-icon>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+        Access Denied
+      </h3>
+      <p class="text-gray-500 dark:text-gray-400 max-w-sm">
+        Your role does not have authorization to view the settings dashboard.
+      </p>
+    </div>
+  }
+</div>

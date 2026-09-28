@@ -1,0 +1,608 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col min-w-0 overflow-hidden bg-slate-50 dark:bg-slate-900"
+>
+  <!-- Header (using page-header class matching all listing & detail pages) -->
+  <div class="page-header shrink-0 !py-3 px-4 sm:px-8">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-2"
+    >
+      <div class="flex items-center gap-3">
+        <mat-icon
+          class="icon-size-8 text-white shrink-0"
+          svgIcon="heroicons_outline:document-text"
+        ></mat-icon>
+        <div>
+          <div
+            class="flex items-center gap-1.5 text-[11px] font-semibold text-white/80 uppercase tracking-wider"
+          >
+            <span>Admin</span>
+            <span>/</span>
+            <span class="text-white font-bold">Technical Documentation</span>
+          </div>
+          <h1
+            class="text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight mt-0.5"
+          >
+            SellerBuz API Technical & System Architecture
+          </h1>
+          <p class="text-xs text-white/80 leading-tight hidden sm:block mt-0.5">
+            Interactive reference documentation for REST APIs, MongoDB Schemas,
+            Utilities, Middlewares, Configuration, and System Plugins.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="flex flex-1 flex-col lg:flex-row min-w-0 min-h-0 overflow-hidden">
+    <!-- Left Collapsible Sidebar -->
+    <aside
+      class="w-full lg:w-72 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col min-h-0"
+    >
+      <div class="shrink-0 p-4 border-b border-slate-100 dark:border-slate-800">
+        <div
+          class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2"
+        >
+          Sections
+        </div>
+        <!-- Search bar -->
+        <div class="relative">
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Search docs & modules..."
+            class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+          />
+          <mat-icon
+            class="absolute left-2.5 top-2.5 icon-size-4 text-slate-400"
+            svgIcon="heroicons_outline:search"
+          ></mat-icon>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-3 space-y-1">
+        <ng-container *ngFor="let section of sections">
+          <div>
+            <button
+              type="button"
+              class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-colors"
+              [ngClass]="{
+                'bg-primary/10 text-primary font-bold [&_mat-icon]:text-primary':
+                  selectedSection === section.id,
+                'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800':
+                  selectedSection !== section.id,
+              }"
+              (click)="selectSection(section.id)"
+            >
+              <div class="flex items-center gap-2.5">
+                <mat-icon
+                  class="icon-size-4 text-primary"
+                  [svgIcon]="section.icon"
+                ></mat-icon>
+                <span>{{ section.label }}</span>
+              </div>
+
+              <button
+                *ngIf="section.children?.length"
+                type="button"
+                class="w-5 h-5 flex items-center justify-center rounded-md text-xs font-bold text-slate-400 hover:text-primary hover:bg-slate-200 dark:hover:bg-slate-800"
+                (click)="toggleSection(section.id); $event.stopPropagation()"
+              >
+                {{ expandedSection === section.id ? "−" : "+" }}
+              </button>
+            </button>
+
+            <!-- Sub items -->
+            <div
+              *ngIf="section.children?.length && expandedSection === section.id"
+              class="ml-6 mt-1 pl-2 border-l-2 border-primary/20 space-y-1"
+            >
+              <button
+                *ngFor="let child of section.children"
+                type="button"
+                class="sidebar-sub-item w-full text-left px-3 py-1.5 rounded-lg transition-colors"
+                [ngClass]="{
+                  'is-selected bg-primary text-white shadow-xs':
+                    selectedSection === section.id &&
+                    selectedChild === child.id,
+                  'text-slate-600 dark:text-slate-400 font-medium hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800':
+                    !(
+                      selectedSection === section.id &&
+                      selectedChild === child.id
+                    ),
+                }"
+                [style.fontSize]="'12px'"
+                [style.lineHeight]="
+                  selectedSection === section.id && selectedChild === child.id
+                    ? '1.25'
+                    : '1.35'
+                "
+                (click)="
+                  selectSection(section.id, child.id); $event.stopPropagation()
+                "
+              >
+                {{ child.label }}
+              </button>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main
+      class="flex-1 flex flex-col xl:flex-row min-w-0 min-h-0 overflow-hidden bg-white dark:bg-slate-900"
+    >
+      <div class="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
+        <!-- Section Header -->
+        <div
+          class="shrink-0 px-6 pt-6 sm:px-8 sm:pt-8 pb-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10"
+        >
+          <span
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20"
+          >
+            {{ selectedSection }}
+          </span>
+          <h3
+            class="text-2xl font-extrabold text-slate-900 dark:text-slate-100 mt-2"
+          >
+            {{
+              selectedSection === "api-docs"
+                ? "API Endpoint Reference"
+                : selectedSectionLabelWithChild
+            }}
+          </h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            {{
+              selectedSection === "api-docs"
+                ? "Explore REST API request & response schemas for SellerBuz
+            services."
+                : "Detailed architecture, usage guidelines, and implementation notes."
+            }}
+          </p>
+        </div>
+
+        <!-- Scrollable Documentation Content Container (Red Box Area) -->
+        <div class="flex-1 overflow-y-auto min-h-0 p-6 sm:p-8">
+          <!-- 1. UTILITIES SECTION -->
+          <div *ngIf="selectedSection === 'utilities'" class="space-y-6">
+            <div
+              class="bg-gradient-to-br from-primary/5 to-primary/[0.01] p-6 rounded-2xl border border-slate-200 dark:border-slate-800"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <span
+                    class="text-xs font-extrabold uppercase tracking-wider text-primary"
+                    >Utility Function</span
+                  >
+                  <h4
+                    class="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1"
+                  >
+                    {{ selectedUtility().title }}
+                  </h4>
+                  <p
+                    class="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed"
+                  >
+                    {{ selectedUtility().overview }}
+                  </p>
+                </div>
+                <span
+                  class="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold shadow-xs"
+                >
+                  Shared Utility
+                </span>
+              </div>
+
+              <!-- Highlights -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+                <div
+                  *ngFor="let h of selectedUtility().highlights"
+                  class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs"
+                >
+                  <div
+                    class="text-[10px] font-bold uppercase tracking-wider text-slate-400"
+                  >
+                    {{ h.label }}
+                  </div>
+                  <div
+                    class="text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5"
+                  >
+                    {{ h.value }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div
+              class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800"
+            >
+              <h4
+                class="text-base font-bold text-slate-900 dark:text-slate-100 mb-3"
+              >
+                Usage Guidelines & Notes
+              </h4>
+              <ul class="space-y-2">
+                <li
+                  *ngFor="let note of selectedUtility().notes"
+                  class="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-400"
+                >
+                  <mat-icon
+                    class="icon-size-4 text-primary flex-shrink-0 mt-0.5"
+                    svgIcon="heroicons_outline:check-circle"
+                  ></mat-icon>
+                  <span>{{ note }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 2. PLUGINS SECTION -->
+          <div *ngIf="selectedSection === 'plugins'" class="space-y-6">
+            <div
+              class="bg-gradient-to-br from-primary/5 to-primary/[0.01] p-6 rounded-2xl border border-slate-200 dark:border-slate-800"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <span
+                    class="text-xs font-extrabold uppercase tracking-wider text-primary"
+                    >Plugin Module</span
+                  >
+                  <h4
+                    class="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1"
+                  >
+                    {{ selectedPlugin().title }}
+                  </h4>
+                  <p
+                    class="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed"
+                  >
+                    {{ selectedPlugin().overview }}
+                  </p>
+                </div>
+                <span
+                  class="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold shadow-xs"
+                >
+                  Mongoose / GridFS Plugin
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+                <div
+                  *ngFor="let h of selectedPlugin().highlights"
+                  class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs"
+                >
+                  <div
+                    class="text-[10px] font-bold uppercase tracking-wider text-slate-400"
+                  >
+                    {{ h.label }}
+                  </div>
+                  <div
+                    class="text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5"
+                  >
+                    {{ h.value }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800"
+            >
+              <h4
+                class="text-base font-bold text-slate-900 dark:text-slate-100 mb-3"
+              >
+                Plugin Behavior Notes
+              </h4>
+              <ul class="space-y-2">
+                <li
+                  *ngFor="let note of selectedPlugin().notes"
+                  class="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-400"
+                >
+                  <mat-icon
+                    class="icon-size-4 text-primary flex-shrink-0 mt-0.5"
+                    svgIcon="heroicons_outline:puzzle"
+                  ></mat-icon>
+                  <span>{{ note }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 3. MIDDLEWARES SECTION -->
+          <div *ngIf="selectedSection === 'middlewares'" class="space-y-6">
+            <div
+              class="bg-gradient-to-br from-primary/5 to-primary/[0.01] p-6 rounded-2xl border border-slate-200 dark:border-slate-800"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <span
+                    class="text-xs font-extrabold uppercase tracking-wider text-primary"
+                    >Guard / Pipe / Interceptor</span
+                  >
+                  <h4
+                    class="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1"
+                  >
+                    {{ selectedMiddleware().title }}
+                  </h4>
+                  <p
+                    class="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed"
+                  >
+                    {{ selectedMiddleware().overview }}
+                  </p>
+                </div>
+                <span
+                  class="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold shadow-xs"
+                >
+                  NestJS Guard / Pipe
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+                <div
+                  *ngFor="let h of selectedMiddleware().highlights"
+                  class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs"
+                >
+                  <div
+                    class="text-[10px] font-bold uppercase tracking-wider text-slate-400"
+                  >
+                    {{ h.label }}
+                  </div>
+                  <div
+                    class="text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5"
+                  >
+                    {{ h.value }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800"
+            >
+              <h4
+                class="text-base font-bold text-slate-900 dark:text-slate-100 mb-3"
+              >
+                Enforcement Notes
+              </h4>
+              <ul class="space-y-2">
+                <li
+                  *ngFor="let note of selectedMiddleware().notes"
+                  class="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-400"
+                >
+                  <mat-icon
+                    class="icon-size-4 text-primary flex-shrink-0 mt-0.5"
+                    svgIcon="heroicons_outline:shield-check"
+                  ></mat-icon>
+                  <span>{{ note }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 4. CONFIGURATION SECTION -->
+          <div *ngIf="selectedSection === 'configuration'" class="space-y-6">
+            <div
+              class="bg-gradient-to-br from-primary/5 to-primary/[0.01] p-6 rounded-2xl border border-slate-200 dark:border-slate-800"
+            >
+              <h4 class="text-xl font-bold text-slate-900 dark:text-slate-100">
+                Application Configuration Overview
+              </h4>
+              <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                Runtime environment variables, database cluster settings, and
+                session expiration windows.
+              </p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
+                <div
+                  class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center shadow-2xs"
+                >
+                  <div
+                    class="text-[10px] font-bold uppercase tracking-wider text-slate-400"
+                  >
+                    Server Port
+                  </div>
+                  <div class="text-2xl font-extrabold text-primary mt-1">
+                    {{ configOverview.serverPort }}
+                  </div>
+                </div>
+                <div
+                  class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center shadow-2xs"
+                >
+                  <div
+                    class="text-[10px] font-bold uppercase tracking-wider text-slate-400"
+                  >
+                    Environment
+                  </div>
+                  <div
+                    class="text-2xl font-extrabold text-primary mt-1 capitalize"
+                  >
+                    {{ configOverview.environment }}
+                  </div>
+                </div>
+                <div
+                  class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center shadow-2xs"
+                >
+                  <div
+                    class="text-[10px] font-bold uppercase tracking-wider text-slate-400"
+                  >
+                    Auth Window
+                  </div>
+                  <div class="text-2xl font-extrabold text-primary mt-1">
+                    {{ configOverview.authWindow }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div
+                *ngFor="let group of configurationDocs"
+                class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs"
+              >
+                <h4
+                  class="text-base font-bold text-slate-900 dark:text-slate-100"
+                >
+                  {{ group.title }}
+                </h4>
+                <p
+                  class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 mb-4"
+                >
+                  {{ group.summary }}
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div
+                    *ngFor="let entry of group.entries"
+                    class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                  >
+                    <code class="text-xs font-bold text-primary">{{
+                      entry.key
+                    }}</code>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                      {{ entry.description }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. MODELS SECTION -->
+          <div *ngIf="selectedSection === 'models'" class="space-y-6">
+            <div
+              class="bg-gradient-to-br from-primary/5 to-primary/[0.01] p-6 rounded-2xl border border-slate-200 dark:border-slate-800"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <span
+                    class="text-xs font-extrabold uppercase tracking-wider text-primary"
+                    >Mongoose Schema</span
+                  >
+                  <h4
+                    class="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1"
+                  >
+                    {{ selectedModel().title }}
+                  </h4>
+                  <p
+                    class="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed"
+                  >
+                    {{ selectedModel().overview }}
+                  </p>
+                  <p class="text-xs text-primary font-semibold mt-2">
+                    {{ selectedModel().purpose }}
+                  </p>
+                </div>
+                <span
+                  class="px-3 py-1 bg-primary text-white rounded-lg text-xs font-mono font-bold shadow-xs"
+                >
+                  {{ selectedModel().badge }}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+                <div
+                  *ngFor="let h of selectedModel().highlights"
+                  class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs"
+                >
+                  <div
+                    class="text-[10px] font-bold uppercase tracking-wider text-slate-400"
+                  >
+                    {{ h.label }}
+                  </div>
+                  <div
+                    class="text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5"
+                  >
+                    {{ h.value }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. API DOCS (REDOC) SECTION -->
+          <div *ngIf="selectedSection === 'api-docs'">
+            <div
+              *ngIf="isLoading"
+              class="flex flex-col items-center justify-center p-12"
+            >
+              <mat-progress-bar
+                mode="indeterminate"
+                class="w-64 mb-4"
+              ></mat-progress-bar>
+              <p class="text-sm font-medium text-slate-500">
+                Loading OpenAPI Specification...
+              </p>
+            </div>
+
+            <div
+              *ngIf="loadError"
+              class="p-6 bg-red-50 text-red-700 rounded-xl border border-red-200"
+            >
+              <p class="font-semibold mb-1">Unable to Load API Documentation</p>
+              <p class="text-sm">{{ loadError }}</p>
+            </div>
+
+            <div id="redoc-container" class="w-full bg-white"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right-side Dark Code Preview Panel -->
+      <div
+        *ngIf="selectedSection !== 'api-docs'"
+        class="w-full xl:w-[520px] 2xl:w-[580px] flex-shrink-0 bg-slate-950 text-slate-100 border-t xl:border-t-0 xl:border-l border-slate-800 flex flex-col min-h-0"
+      >
+        <!-- Panel Header -->
+        <div
+          class="shrink-0 flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-900/60"
+        >
+          <div class="flex items-center gap-2">
+            <span
+              class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"
+            ></span>
+            <span
+              class="text-xs font-bold uppercase tracking-wider text-slate-300"
+              >Code Preview</span
+            >
+          </div>
+
+          <button
+            type="button"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-colors shadow-xs border border-slate-700"
+            (click)="copyCode()"
+          >
+            <mat-icon
+              class="icon-size-4 text-white"
+              svgIcon="mat_outline:content_copy"
+            ></mat-icon>
+            <span>{{ copied ? "Copied!" : "Copy Code" }}</span>
+          </button>
+        </div>
+
+        <!-- Content Type Indicator -->
+        <div
+          class="shrink-0 px-5 py-3 border-b border-slate-800/80 bg-slate-900/30 flex items-center justify-between text-xs text-slate-400"
+        >
+          <span
+            >Language:
+            <strong class="text-white font-semibold"
+              >TypeScript / JSON</strong
+            ></span
+          >
+          <span
+            >Target:
+            <strong class="text-slate-300">{{ selectedSection }}</strong></span
+          >
+        </div>
+
+        <!-- Code Box -->
+        <div class="flex-1 p-5 overflow-auto min-h-0">
+          <pre
+            class="text-xs font-mono text-slate-200 leading-relaxed whitespace-pre font-normal"
+            >{{ activeCodeSnippet() }}</pre
+          >
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

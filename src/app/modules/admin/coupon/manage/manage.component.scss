@@ -1,0 +1,26 @@
+// Custom styles for coupon manage component
+:host {
+  display: block;
+}
+
+// Make datepicker inputs look consistent
+::ng-deep .mat-datepicker-toggle-default-icon {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+// Form field density adjustments
+.fuse-mat-dense {
+  .mat-mdc-form-field-infix {
+    min-height: 44px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .grid-cols-1.md\\:grid-cols-2,
+  .grid-cols-1.md\\:grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+}

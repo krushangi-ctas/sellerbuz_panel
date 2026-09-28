@@ -1,0 +1,313 @@
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden bg-slate-50">
+  <!-- Header Bar -->
+  <div class="page-header shrink-0 border-b border-slate-700/30">
+    <div class="flex items-center gap-3">
+      <button
+        type="button"
+        mat-icon-button
+        (click)="goBack()"
+        matTooltip="Back"
+        class="text-white hover:bg-white/10 rounded-full transition-colors"
+      >
+        <mat-icon
+          class="icon-size-5 text-white"
+          svgIcon="heroicons_outline:arrow-left"
+        ></mat-icon>
+      </button>
+      <div>
+        <h1
+          class="text-base font-semibold tracking-tight text-white leading-tight"
+        >
+          {{ mappingId ? "Edit" : "Add" }} Seller Route ACL
+        </h1>
+        <p class="text-xs text-blue-200">
+          Bind an API path to a seller section permission action
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Content Area -->
+  <div class="flex-auto overflow-hidden p-3 sm:p-4 flex flex-col">
+    <div class="w-full h-full flex flex-col">
+      @if (isLoading) {
+        <div
+          class="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-sm animate-pulse flex-auto"
+        >
+          <div class="h-6 bg-slate-200 rounded w-1/4 mb-2"></div>
+          <div class="h-9 bg-slate-200 rounded w-full"></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="h-9 bg-slate-200 rounded"></div>
+            <div class="h-9 bg-slate-200 rounded"></div>
+          </div>
+          <div class="h-9 bg-slate-200 rounded w-full"></div>
+        </div>
+      } @else {
+        <form
+          class="bg-white rounded-xl border border-slate-200/80 shadow-sm flex flex-col flex-auto overflow-hidden"
+          [formGroup]="form"
+          (ngSubmit)="save()"
+        >
+          <!-- Form Header Banner -->
+          <div
+            class="px-5 py-2.5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between shrink-0"
+          >
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"
+              >
+                <mat-icon
+                  class="icon-size-4"
+                  svgIcon="heroicons_outline:shield-check"
+                ></mat-icon>
+              </div>
+              <div>
+                <h2
+                  class="text-xs font-bold text-slate-800 uppercase tracking-wider"
+                >
+                  {{
+                    mappingId
+                      ? "Update Seller Route ACL Configuration"
+                      : "Configure New Seller Route ACL"
+                  }}
+                </h2>
+                <p class="text-[11px] text-slate-500">
+                  Bind an API path to a seller section permission action
+                </p>
+              </div>
+            </div>
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+              [ngClass]="
+                form.get('status')?.value === 1
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-slate-100 text-slate-600 border border-slate-200'
+              "
+            >
+              {{ form.get("status")?.value === 1 ? "Active" : "Inactive" }}
+            </span>
+          </div>
+
+          <!-- Main Grid (Full Width, Compact Vertical Space) -->
+          <div class="p-4 md:p-5 flex-auto overflow-y-auto space-y-4">
+            <div class="grid grid-cols-12 gap-3">
+              <!-- Pick Discovered Route -->
+              <mat-form-field
+                class="col-span-12 fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Pick discovered API route</mat-label>
+                <mat-select
+                  formControlName="route_picker"
+                  (openedChange)="onRouteSelectOpened($event)"
+                >
+                  <mat-option>
+                    <ngx-mat-select-search
+                      [formControl]="routeSearchControl"
+                      placeholderLabel="Search..."
+                      noEntriesFoundLabel="'No route found'"
+                    >
+                    </ngx-mat-select-search>
+                  </mat-option>
+
+                  <mat-option value="">Manual entry</mat-option>
+                  @for (
+                    route of filteredRoutes;
+                    track route.method + route.path
+                  ) {
+                    <mat-option [value]="route.method + ' ' + route.path">
+                      <span
+                        class="font-semibold text-slate-700 [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white me-2"
+                      >
+                        {{ route.method }}
+                      </span>
+                      <span
+                        class="font-mono text-xs text-slate-600 [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white me-2"
+                      >
+                        {{ route.path }}
+                      </span>
+                      <span
+                        class="text-xs text-slate-400 [.mat-mdc-option-selected_&]:!text-white/80 [.mat-mdc-option-active_&]:!text-white/80"
+                      >
+                        ({{ route.controller }}.{{ route.handler }})
+                      </span>
+                    </mat-option>
+                  }
+                </mat-select>
+                <mat-hint class="text-[11px] text-slate-400 font-normal"
+                  >Selecting fills method and path pattern</mat-hint
+                >
+              </mat-form-field>
+
+              <!-- Scope (Fixed to Seller) -->
+              <mat-form-field
+                class="col-span-12 md:col-span-6 fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Scope</mat-label>
+                <mat-select formControlName="scope">
+                  <mat-option value="seller">Seller</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- HTTP Method -->
+              <mat-form-field
+                class="col-span-12 md:col-span-6 fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>HTTP method</mat-label>
+                <mat-select
+                  formControlName="method"
+                  (openedChange)="onMethodSelectOpened($event)"
+                >
+                  <mat-option>
+                    <ngx-mat-select-search
+                      [formControl]="methodSearchControl"
+                      placeholderLabel="Search method..."
+                      (keyup)="filterMethods($event.target.value)"
+                      noEntriesFoundLabel="'No method found'"
+                    >
+                    </ngx-mat-select-search>
+                  </mat-option>
+                  @for (method of filteredMethods; track method) {
+                    <mat-option [value]="method">
+                      <span
+                        class="font-semibold [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white"
+                        [ngClass]="{
+                          'text-blue-600': method === 'GET',
+                          'text-emerald-600': method === 'POST',
+                          'text-amber-600': method === 'PUT',
+                          'text-purple-600': method === 'PATCH',
+                          'text-rose-600': method === 'DELETE',
+                        }"
+                      >
+                        {{ method }}
+                      </span>
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Path Pattern -->
+              <mat-form-field
+                class="col-span-12 fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Path pattern</mat-label>
+                <input
+                  matInput
+                  formControlName="path_pattern"
+                  placeholder="/inventory/move-catalog-in-amazon/:seller_id"
+                  autocomplete="off"
+                  class="font-mono text-xs"
+                />
+                <mat-hint class="text-[11px] text-slate-400 font-normal"
+                  >No /v1 prefix. Use :param for path variables.</mat-hint
+                >
+              </mat-form-field>
+
+              <!-- Seller Section -->
+              <mat-form-field
+                class="col-span-12 md:col-span-6 fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Seller Section</mat-label>
+                <mat-select
+                  formControlName="section_id"
+                  (openedChange)="onSectionSelectOpened($event)"
+                >
+                  <mat-option>
+                    <ngx-mat-select-search
+                      [formControl]="sectionSearchControl"
+                      placeholderLabel="Search section..."
+                      (keyup)="filterSections($event.target.value)"
+                      noEntriesFoundLabel="'No section found'"
+                    >
+                    </ngx-mat-select-search>
+                  </mat-option>
+                  @for (section of filteredSections; track sectionId(section)) {
+                    <mat-option [value]="sectionId(section)">
+                      {{ section.name }}
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Permission Action -->
+              <mat-form-field
+                class="col-span-12 md:col-span-6 fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Permission action</mat-label>
+                <mat-select formControlName="action">
+                  @for (action of actions; track action) {
+                    <mat-option [value]="action">
+                      <span class="capitalize">{{ action }}</span>
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Status -->
+              <mat-form-field
+                class="col-span-12 md:col-span-6 fuse-mat-dense"
+                appearance="outline"
+              >
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  <mat-option [value]="1">
+                    <span
+                      class="inline-flex items-center gap-1.5 text-emerald-600 [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white font-medium"
+                    >
+                      <span
+                        class="w-2 h-2 rounded-full bg-emerald-500 [.mat-mdc-option-selected_&]:!bg-white [.mat-mdc-option-active_&]:!bg-white"
+                      ></span>
+                      Active
+                    </span>
+                  </mat-option>
+                  <mat-option [value]="0">
+                    <span
+                      class="inline-flex items-center gap-1.5 text-slate-500 [.mat-mdc-option-selected_&]:!text-white [.mat-mdc-option-active_&]:!text-white font-medium"
+                    >
+                      <span
+                        class="w-2 h-2 rounded-full bg-slate-400 [.mat-mdc-option-selected_&]:!bg-white [.mat-mdc-option-active_&]:!bg-white"
+                      ></span>
+                      Inactive
+                    </span>
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Form Actions Footer (Pinned at Bottom) -->
+          <div
+            class="px-5 py-3 bg-slate-50/80 border-t border-slate-200/80 flex items-center justify-end gap-3 shrink-0"
+          >
+            <button
+              type="button"
+              mat-stroked-button
+              (click)="goBack()"
+              class="px-5 text-slate-600 border-slate-300 hover:bg-slate-100"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              mat-flat-button
+              color="primary"
+              [disabled]="btnDisable || form.invalid"
+            >
+              <mat-icon
+                class="icon-size-4 text-white me-1.5"
+                svgIcon="heroicons_outline:check"
+              ></mat-icon>
+              <span>{{ mappingId ? "Update" : "Create" }}</span>
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>

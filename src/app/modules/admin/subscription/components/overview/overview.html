@@ -1,0 +1,979 @@
+<div
+  class="overflow-y-auto w-full bg-gray-50/60 dark:bg-gray-900/50 flex flex-col gap-6 p-4 sm:p-6 pb-8 flex-1 min-h-0"
+>
+  <!-- ── LOADING SKELETON ──────────────────────────────────────────────── -->
+  @if (isLoading) {
+  <div class="animate-pulse space-y-6 select-none">
+    <!-- Row 1: 3 Stat Cards Skeleton -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      @for (i of [1, 2, 3]; track i) {
+      <div
+        class="bg-white dark:bg-gray-950 border border-slate-200/70 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between gap-4 h-32"
+      >
+        <div class="flex items-center gap-4 flex-1">
+          <div
+            class="w-14 h-14 rounded-2xl bg-slate-200/60 dark:bg-slate-800/60 shrink-0"
+          ></div>
+          <div class="flex-1 space-y-2">
+            <div
+              class="h-3 w-20 bg-slate-200/60 dark:bg-slate-800/60 rounded"
+            ></div>
+            <div
+              class="h-6 w-32 bg-slate-200/60 dark:bg-slate-800/60 rounded-lg"
+            ></div>
+            <div
+              class="h-3 w-24 bg-slate-200/60 dark:bg-slate-800/60 rounded"
+            ></div>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Row 2: Notification Flow Timeline Skeleton -->
+    <div
+      class="bg-white dark:bg-gray-950 border border-slate-200/70 dark:border-slate-800 rounded-2xl p-6 space-y-5"
+    >
+      <div class="flex items-center gap-3">
+        <div
+          class="w-3.5 h-3.5 rounded-full bg-slate-200/60 dark:bg-slate-800/60"
+        ></div>
+        <div
+          class="h-4 w-52 bg-slate-200/60 dark:bg-slate-800/60 rounded"
+        ></div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-6 pt-2">
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+        <div
+          class="flex flex-row md:flex-col items-start md:items-center gap-4 md:gap-3"
+        >
+          <div
+            class="w-10 h-10 rounded-full bg-slate-200/60 dark:bg-slate-800/60 shrink-0"
+          ></div>
+          <div class="space-y-2 flex-1 w-full md:text-center">
+            <div
+              class="h-4 w-28 bg-slate-200/60 dark:bg-slate-800/60 rounded mx-auto md:mx-auto"
+            ></div>
+            <div
+              class="h-3 w-20 bg-slate-200/60 dark:bg-slate-800/60 rounded mx-auto md:mx-auto"
+            ></div>
+            <div
+              class="h-5 w-16 bg-slate-200/60 dark:bg-slate-800/60 rounded-md mx-auto md:mx-auto"
+            ></div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Row 3: Charts Skeleton -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div
+        class="bg-white dark:bg-gray-950 border border-slate-200/70 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between h-[380px] lg:col-span-3"
+      >
+        <div
+          class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
+        >
+          <div
+            class="h-4 w-32 bg-slate-200/60 dark:bg-slate-800/60 rounded"
+          ></div>
+          <div
+            class="h-6 w-28 bg-slate-200/60 dark:bg-slate-800/60 rounded-md"
+          ></div>
+        </div>
+        <div class="flex gap-2 py-3">
+          <div
+            class="h-7 w-24 bg-slate-200/60 dark:bg-slate-800/60 rounded-full"
+          ></div>
+          <div
+            class="h-7 w-28 bg-slate-200/60 dark:bg-slate-800/60 rounded-full"
+          ></div>
+          <div
+            class="h-7 w-20 bg-slate-200/60 dark:bg-slate-800/60 rounded-full"
+          ></div>
+        </div>
+        <div
+          class="flex-1 bg-slate-100/60 dark:bg-slate-900/40 rounded-xl my-2"
+        ></div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-gray-950 border border-slate-200/70 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between h-[380px] lg:col-span-2"
+      >
+        <div
+          class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
+        >
+          <div
+            class="h-4 w-36 bg-slate-200/60 dark:bg-slate-800/60 rounded"
+          ></div>
+          <div
+            class="h-6 w-20 bg-slate-200/60 dark:bg-slate-800/60 rounded-md"
+          ></div>
+        </div>
+        <div
+          class="flex-1 bg-slate-100/60 dark:bg-slate-900/40 rounded-xl my-2 flex items-center justify-center"
+        >
+          <div
+            class="w-40 h-40 rounded-full border-4 border-dashed border-slate-200/80 dark:border-slate-800/60"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 4: Data Lists Skeleton -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div
+        class="bg-white dark:bg-gray-950 border border-slate-200/70 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between h-[380px]"
+      >
+        <div
+          class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
+        >
+          <div
+            class="h-4 w-36 bg-slate-200/60 dark:bg-slate-800/60 rounded"
+          ></div>
+          <div
+            class="h-6 w-24 bg-slate-200/60 dark:bg-slate-800/60 rounded-md"
+          ></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 py-3 flex-1">
+          <div
+            class="h-28 bg-slate-100/60 dark:bg-slate-900/40 rounded-xl"
+          ></div>
+          <div
+            class="h-28 bg-slate-100/60 dark:bg-slate-900/40 rounded-xl"
+          ></div>
+          <div
+            class="h-28 bg-slate-100/60 dark:bg-slate-900/40 rounded-xl"
+          ></div>
+          <div
+            class="h-28 bg-slate-100/60 dark:bg-slate-900/40 rounded-xl"
+          ></div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-gray-950 border border-slate-200/70 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between h-[380px]"
+      >
+        <div
+          class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
+        >
+          <div
+            class="h-4 w-44 bg-slate-200/60 dark:bg-slate-800/60 rounded"
+          ></div>
+          <div
+            class="h-6 w-20 bg-slate-200/60 dark:bg-slate-800/60 rounded-md"
+          ></div>
+        </div>
+        <div class="space-y-3 py-3 flex-1">
+          <div
+            class="h-16 bg-slate-100/60 dark:bg-slate-900/40 rounded-xl"
+          ></div>
+          <div
+            class="h-16 bg-slate-100/60 dark:bg-slate-900/40 rounded-xl"
+          ></div>
+          <div
+            class="h-16 bg-slate-100/60 dark:bg-slate-900/40 rounded-xl"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NO PLAN ───────────────────────────────────────────────────────── -->
+  } @else if (!currentPlan) {
+  <div
+    class="bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-10 flex items-center justify-center min-h-[350px]"
+  >
+    <div class="text-center max-w-sm">
+      <div
+        class="w-24 h-24 rounded-full bg-indigo-50 dark:bg-indigo-950/20 flex items-center justify-center mx-auto mb-6 shadow-inner"
+      >
+        <mat-icon
+          class="icon-size-14 text-indigo-400 dark:text-indigo-300"
+          [svgIcon]="'heroicons_outline:credit-card'"
+        ></mat-icon>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        No Active Subscription
+      </h3>
+      <p
+        class="text-sm text-gray-500 dark:text-gray-405 leading-relaxed font-medium"
+      >
+        This seller does not have an active subscription yet. Go to the
+        <strong>Plans &amp; Billing</strong> tab to get started.
+      </p>
+      @if (getNextUpSub(); as nextUp) {
+      <div
+        class="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30"
+      >
+        <mat-icon
+          class="icon-size-4 text-blue-500"
+          [svgIcon]="'heroicons_outline:clock'"
+        ></mat-icon>
+        <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">
+          Next up: {{ nextUp.plan_name || 'Queued plan' }} — starts
+          automatically
+        </span>
+      </div>
+      }
+    </div>
+  </div>
+
+  } @else {
+
+  <!-- ═══ ROW 1: 3 CARDS BLOCK (Plan, Days, Renewal) ═══════════════════ -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Card 1: Current Plan -->
+    <div
+      class="bg-white dark:bg-gray-950 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:h-32"
+    >
+      <!-- Left Info: Icon, Plan Name, Status -->
+      <div class="flex items-center gap-4 min-w-0">
+        <div
+          class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center shrink-0 shadow-sm"
+        >
+          <mat-icon class="text-emerald-555 dark:text-emerald-400 icon-size-7"
+            >card_membership</mat-icon
+          >
+        </div>
+        <div class="min-w-0">
+          <div
+            class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5"
+          >
+            Current Plan
+          </div>
+          <div class="flex items-center gap-2">
+            <h3
+              class="text-xl font-black text-slate-800 dark:text-gray-150 truncate leading-snug"
+            >
+              {{ getPlanName() }}
+            </h3>
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/30 shrink-0"
+            >
+              Active
+            </span>
+          </div>
+          <div class="text-[11px] text-slate-400 mt-1 truncate">
+            Started:
+            <span class="font-bold text-slate-700 dark:text-gray-300"
+              >{{ formatDate(currentPlan.started_at || currentPlan.startedAt)
+              }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Info: Price, Cycle, Expiry date -->
+      <div class="text-left sm:text-right shrink-0 mt-1 sm:mt-0">
+        <div
+          class="text-2xl font-black text-slate-900 dark:text-gray-100 leading-none"
+        >
+          {{ formatAmount(currentPlan.plan_price ?? currentPlan.plan?.price ??
+          currentPlan.price ?? 0) }}
+        </div>
+        <div
+          class="text-[10px] text-slate-405 font-bold uppercase tracking-wider mt-0.5"
+        >
+          Per {{ currentPlan.billing_cycle || 'month' }}
+        </div>
+        <div class="text-[10px] text-slate-400 mt-2">
+          Renewal:
+          <span class="font-bold text-slate-700 dark:text-gray-350"
+            >{{ formatDate(currentPlan.expired_at || currentPlan.expiredAt)
+            }}</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Days Left Progress Gauge -->
+    <div
+      class="bg-white dark:bg-gray-950 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:h-32"
+    >
+      <!-- Left Info: Radial Progress -->
+      <div class="flex items-center gap-4 min-w-0">
+        <div
+          class="relative w-18 h-18 flex items-center justify-center shrink-0"
+        >
+          <svg class="w-full h-full -rotate-90" viewBox="0 0 80 80">
+            <circle
+              cx="40"
+              cy="40"
+              r="35"
+              stroke="#e2e8f0"
+              stroke-width="6.5"
+              fill="transparent"
+              class="dark:stroke-gray-800"
+            />
+            <circle
+              cx="40"
+              cy="40"
+              r="35"
+              stroke="#10b981"
+              stroke-width="6.5"
+              fill="transparent"
+              stroke-linecap="round"
+              [attr.stroke-dasharray]="188.5"
+              [attr.stroke-dashoffset]="188.5 - (188.5 * getDaysLeftPercent() / 100)"
+            />
+          </svg>
+          <div
+            class="absolute inset-0 flex flex-col items-center justify-center"
+          >
+            <span
+              class="text-lg font-black text-slate-800 dark:text-gray-150 leading-none"
+              >{{ getDaysLeft() }}</span
+            >
+            <span
+              class="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-0.5"
+              >Days</span
+            >
+          </div>
+        </div>
+        <div class="min-w-0">
+          <div
+            class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5"
+          >
+            Plan Validity
+          </div>
+          <h3
+            class="text-xl font-black text-slate-850 dark:text-gray-150 leading-snug"
+          >
+            {{ getDaysLeft() }} Days Left
+          </h3>
+          <div
+            class="text-[10px] text-slate-450 dark:text-slate-500 font-medium leading-normal max-w-[200px] mt-0.5"
+          >
+            Your current plan is active and has remaining time.
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Info: Progress stats -->
+      <div class="text-left sm:text-right shrink-0 mt-1 sm:mt-0">
+        <div
+          class="text-2xl font-black text-emerald-500 dark:text-emerald-450 leading-none"
+        >
+          {{ getDaysLeftPercent() | number:'1.0-0' }}%
+        </div>
+        <div
+          class="text-[10px] text-slate-405 font-bold uppercase tracking-wider mt-0.5"
+        >
+          Remaining
+        </div>
+        <div class="text-[10px] text-slate-400 mt-2">
+          Status: <span class="font-bold text-emerald-600">Active</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Next Renewal Details -->
+    <div
+      class="bg-white dark:bg-gray-950 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:h-32"
+    >
+      <!-- Left Info: Icon, Title & Date -->
+      <div class="flex items-center gap-4 min-w-0">
+        <div
+          class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center shrink-0 shadow-sm"
+        >
+          <mat-icon class="text-emerald-555 dark:text-emerald-400 icon-size-7"
+            >calendar_today</mat-icon
+          >
+        </div>
+        <div class="min-w-0">
+          <div
+            class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5"
+          >
+            Next Renewal
+          </div>
+          <h3
+            class="text-xl font-black text-slate-800 dark:text-gray-150 leading-snug"
+          >
+            {{ formatDate(currentPlan.expired_at || currentPlan.expiredAt) }}
+          </h3>
+          <div class="text-[10px] text-slate-400 mt-1 truncate">
+            Cycle:
+            <span class="font-bold text-slate-700 dark:text-gray-300 capitalize"
+              >{{ currentPlan.billing_cycle || 'Monthly' }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Info: Auto Renewal Banner -->
+      <div
+        class="text-left sm:text-right shrink-0 flex flex-col items-start sm:items-end mt-1 sm:mt-0"
+      >
+        <div>
+          <span
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/30"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Enabled
+          </span>
+        </div>
+        <div
+          class="text-[10px] text-slate-405 font-bold uppercase tracking-wider mt-1.5"
+        >
+          Auto Renewal
+        </div>
+        <div class="text-[10px] text-slate-400 mt-2">
+          Payment:
+          <span class="font-bold text-slate-700 dark:text-gray-350"
+            >Automatic</span
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ROW 2: SUBSCRIPTION NOTIFICATION FLOW TIMELINE ═════════ -->
+  <div
+    class="bg-white dark:bg-gray-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm px-6 py-5"
+  >
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>
+        <h3 class="font-semibold text-base text-gray-800 dark:text-gray-200">
+          Subscription Notification Flow
+        </h3>
+        <mat-icon
+          class="icon-size-4 text-gray-400 cursor-pointer"
+          [matTooltip]="'Timeline of upcoming subscription notifications'"
+          >info_outline</mat-icon
+        >
+      </div>
+    </div>
+
+    <!-- Timeline Wrapper -->
+    <div
+      class="relative flex flex-col md:flex-row items-start justify-between gap-6 md:gap-2 px-2"
+    >
+      @for (step of getNotificationSteps(); track step.label; let i = $index,
+      last = $last) {
+      <div
+        class="relative flex flex-row md:flex-col items-start md:items-center flex-1 z-10 w-full md:w-auto gap-4 md:gap-3"
+      >
+        <!-- Dashed connector line segment to next step -->
+        @if (!last) {
+        <div
+          class="absolute z-0 border-dashed transition-colors duration-300 left-[19px] top-[20px] bottom-[-44px] border-l-2 md:border-l-0 md:left-[50%] md:w-full md:top-[20px] md:bottom-auto md:border-t-2"
+          [ngClass]="getStepLineClass(i)"
+        ></div>
+        }
+
+        <!-- Circle indicator -->
+        <div
+          class="relative z-10 w-10 h-10 rounded-full flex items-center justify-center border-[3px] bg-white dark:bg-gray-900 transition-all duration-300 shadow-sm shrink-0"
+          [ngClass]="{
+            'border-emerald-500 text-emerald-600 ring-4 ring-emerald-100 dark:ring-emerald-950/20': (step.status === 'done' || step.status === 'active') && step.color === 'green',
+            'border-amber-500 text-amber-600 ring-4 ring-amber-100 dark:ring-amber-950/20': (step.status === 'done' || step.status === 'active') && step.color === 'amber',
+            'border-orange-500 text-orange-600 ring-4 ring-orange-100 dark:ring-orange-950/20': (step.status === 'done' || step.status === 'active') && step.color === 'orange',
+            'border-red-400 text-red-500 ring-4 ring-red-100 dark:ring-red-950/10': step.status === 'expired' || step.color === 'red',
+            'border-slate-250 text-slate-400 dark:border-slate-700': step.status === 'upcoming'
+          }"
+        >
+          @if (step.status === 'done') {
+          <mat-icon
+            class="icon-size-4 font-bold"
+            [ngClass]="{
+              'text-emerald-600': step.color === 'green',
+              'text-amber-600': step.color === 'amber',
+              'text-orange-600': step.color === 'orange',
+              'text-red-500': step.color === 'red'
+            }"
+            >check</mat-icon
+          >
+          } @else if (step.status === 'active') {
+          <div class="relative w-6 h-6 flex items-center justify-center">
+            <div
+              class="w-4 h-4 rounded-full flex items-center justify-center"
+              [ngClass]="{
+                'bg-emerald-500': step.color === 'green',
+                'bg-amber-500': step.color === 'amber',
+                'bg-orange-500': step.color === 'orange',
+                'bg-red-500': step.color === 'red'
+              }"
+            >
+              <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+            </div>
+          </div>
+          } @else if (step.status === 'expired') {
+          <mat-icon class="icon-size-4 text-red-500 font-bold">close</mat-icon>
+          } @else {
+          <div
+            class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600"
+          ></div>
+          }
+        </div>
+
+        <!-- Node text details -->
+        <div class="flex-1 text-left md:text-center min-w-0">
+          <div
+            class="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-tight mb-0.5"
+          >
+            {{ step.label }}
+          </div>
+          <div class="text-xs text-gray-400 mb-1.5">{{ step.sublabel }}</div>
+          <span
+            class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wider"
+            [ngClass]="{
+              'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300': (step.status === 'done' || step.status === 'active') && step.color === 'green',
+              'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300': (step.status === 'done' || step.status === 'active') && step.color === 'amber',
+              'bg-orange-100 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300': (step.status === 'done' || step.status === 'active') && step.color === 'orange',
+              'bg-red-100 text-red-700 dark:bg-red-950/20 dark:text-red-300': step.status === 'expired' || step.color === 'red',
+              'bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-400': step.status === 'upcoming'
+            }"
+          >
+            {{ step.badgeText }}
+          </span>
+          <div class="text-xs text-gray-400 font-medium mt-1.5">
+            {{ step.text }}
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+
+    @if (getNextUpSub(); as nextUp) {
+    <div
+      class="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 w-fit"
+    >
+      <mat-icon
+        class="icon-size-4 text-blue-500"
+        [svgIcon]="'heroicons_outline:queue-list'"
+      ></mat-icon>
+      <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">
+        Next up: {{ nextUp.plan_name || 'Queued plan' }} — starts automatically
+        on expiry
+      </span>
+    </div>
+    }
+  </div>
+
+  <!-- ═══ ROW 3: CHARTS SIDE BY SIDE ══════════════════════════════════ -->
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <!-- Chart: Usage Trend (By Feature) -->
+    <div
+      class="bg-white dark:bg-gray-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[380px] lg:col-span-3"
+    >
+      <div
+        class="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 shrink-0"
+      >
+        <div class="flex items-center gap-2 min-w-0">
+          <mat-icon
+            class="icon-size-4 text-indigo-400"
+            [svgIcon]="'heroicons_outline:presentation-chart-line'"
+          ></mat-icon>
+          <h3 class="font-semibold text-sm text-gray-805 dark:text-gray-200">
+            Usage Trend
+          </h3>
+        </div>
+        <span
+          class="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 truncate"
+        >
+          {{ getTrendPeriodLabel(getSelectedFeature()) }}
+        </span>
+      </div>
+
+      <!-- Scrollable Body (like Usage Overview reference) -->
+      <div class="p-4 flex-1 overflow-y-auto flex flex-col justify-between">
+        <!-- Feature selector -->
+        <div class="flex items-center gap-2 pb-3 flex-wrap shrink-0">
+          @for (u of usages; track trackByFn($index, u)) {
+          <button
+            type="button"
+            (click)="selectFeature(u)"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all"
+            [ngClass]="getFeatureKey(u) === selectedFeatureId
+              ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-300 dark:border-indigo-900/40'
+              : 'bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800 hover:border-slate-300'"
+          >
+            <span
+              class="w-1.5 h-1.5 rounded-full"
+              [ngClass]="getFeatureColor(u.feature_name)"
+            ></span>
+            {{ u.feature_name }}
+          </button>
+          }
+        </div>
+
+        <div class="flex-1 flex flex-col justify-center min-h-[180px]">
+          @if (usages && usages.length > 0) {
+          <apx-chart
+            [series]="getSelectedFeature() ? trendChartOptions.series : []"
+            [chart]="trendChartOptions.chart"
+            [stroke]="trendChartOptions.stroke"
+            [fill]="trendChartOptions.fill"
+            [xaxis]="trendChartOptions.xaxis"
+            [yaxis]="trendChartOptions.yaxis"
+            [colors]="trendChartOptions.colors"
+            [grid]="trendChartOptions.grid"
+            [tooltip]="trendChartOptions.tooltip"
+            [dataLabels]="trendChartOptions.dataLabels"
+          ></apx-chart>
+          } @else {
+          <div
+            class="h-44 flex flex-col items-center justify-center text-gray-400 gap-2"
+          >
+            <mat-icon
+              class="icon-size-12"
+              [svgIcon]="'heroicons_outline:presentation-chart-line'"
+            ></mat-icon>
+            <p class="text-sm font-medium">
+              Select a feature to view usage trend
+            </p>
+          </div>
+          }
+        </div>
+      </div>
+
+      <div
+        class="px-5 py-2.5 text-xs text-gray-400 border-t border-slate-100 dark:border-slate-800/80 shrink-0"
+      >
+        Usage over the current billing cycle. Per-day history isn't collected.
+      </div>
+    </div>
+
+    <!-- Chart: Subscription Health (Feature Radar) -->
+    <div
+      class="bg-white dark:bg-gray-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between h-[380px] lg:col-span-2"
+    >
+      <div
+        class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 shrink-0"
+      >
+        <div class="flex items-center gap-2">
+          <mat-icon
+            class="icon-size-4 text-indigo-400"
+            [svgIcon]="'heroicons_outline:heart'"
+          ></mat-icon>
+          <h3 class="font-semibold text-sm text-gray-805 dark:text-gray-200">
+            Subscription Health (Feature Radar)
+          </h3>
+        </div>
+      </div>
+
+      <div class="flex-1 p-2 flex flex-col justify-center min-h-[300px]">
+        @if (usages && usages.length > 0) {
+        <apx-chart
+          [series]="getFeatureRadarChartOptions().series"
+          [chart]="getFeatureRadarChartOptions().chart"
+          [xaxis]="getFeatureRadarChartOptions().xaxis"
+          [yaxis]="getFeatureRadarChartOptions().yaxis"
+          [colors]="getFeatureRadarChartOptions().colors"
+          [stroke]="getFeatureRadarChartOptions().stroke"
+          [fill]="getFeatureRadarChartOptions().fill"
+          [markers]="getFeatureRadarChartOptions().markers"
+          [plotOptions]="getFeatureRadarChartOptions().plotOptions"
+          [tooltip]="getFeatureRadarChartOptions().tooltip"
+        ></apx-chart>
+        } @else {
+        <div
+          class="h-44 flex items-center justify-center text-gray-200 dark:text-gray-700"
+        >
+          <mat-icon
+            class="icon-size-12"
+            [svgIcon]="'heroicons_outline:presentation-chart-line'"
+          ></mat-icon>
+        </div>
+        }
+      </div>
+      <div
+        class="px-5 py-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-center gap-1 text-xs text-gray-400"
+      >
+        <span>Further from center = Higher usage</span>
+        <mat-icon
+          class="icon-size-3.5 text-gray-400"
+          [matTooltip]="'Usage visualization: each axis represents one feature'"
+          >info_outline</mat-icon
+        >
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ROW 4: DATA LISTS SIDE BY SIDE (Usage, Window) ══════════════ -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Left Column: Usage Overview List -->
+    <div
+      class="bg-white dark:bg-gray-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[380px]"
+    >
+      <div
+        class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 shrink-0"
+      >
+        <div class="flex items-center gap-2">
+          <mat-icon
+            class="icon-size-4 text-indigo-400"
+            [svgIcon]="'heroicons_outline:chart-bar'"
+          ></mat-icon>
+          <h3 class="font-semibold text-sm text-gray-805 dark:text-gray-200">
+            Usage Overview
+          </h3>
+        </div>
+        <span
+          class="text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-650 border border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/30 dark:text-indigo-305"
+        >
+          Current Period
+        </span>
+      </div>
+
+      <div class="p-4 flex-1 select-none overflow-y-auto">
+        @if (usages && usages.length > 0) {
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (u of usages; track trackByFn($index, u)) {
+          <div
+            class="border border-slate-150/70 hover:border-slate-350 dark:border-slate-800/80 dark:hover:border-slate-700/80 rounded-xl p-4 bg-slate-50/20 dark:bg-slate-905/20 flex items-center justify-between gap-4 h-[120px] transition-all"
+          >
+            <!-- Details (Left Column) -->
+            <div class="flex-1 flex flex-col justify-between h-full min-w-0">
+              <!-- Icon & Header row -->
+              <div class="flex items-center gap-1.5 min-w-0">
+                <div
+                  class="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center shrink-0 shadow-sm"
+                  [ngClass]="getUsageIconBg(u.feature_name)"
+                >
+                  <mat-icon
+                    class="icon-size-3.5"
+                    [ngClass]="getUsageIconColor(u.feature_name)"
+                    [svgIcon]="getUsageIcon(u.feature_name)"
+                  ></mat-icon>
+                </div>
+                <h4
+                  class="text-xs font-bold text-slate-750 dark:text-gray-200 leading-tight truncate"
+                >
+                  {{ u.feature_name }}
+                </h4>
+              </div>
+
+              <!-- Mid: Usage Counts & Remaining -->
+              <div class="flex items-baseline justify-between mt-1 min-w-0">
+                <div
+                  class="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-none"
+                >
+                  {{ u.usage ?? u.current ?? 0 }}
+                  <span class="text-xs text-slate-400 font-normal"
+                    >/ {{ u.limit === 0 || u.limit === null ? '∞' : (u.limit ??
+                    u.usage_count ?? '∞') }}</span
+                  >
+                </div>
+                <span
+                  class="text-xs text-slate-450 dark:text-slate-500 font-medium leading-none ml-2 truncate shrink-0"
+                >
+                  {{ (u.limit === 0 || u.limit === null || (!u.limit &&
+                  !u.usage_count)) ? 'Unlimited' : 'Remaining: ' + ((u.limit ??
+                  u.usage_count ?? 0) - (u.usage ?? u.current ?? 0)) }}
+                </span>
+              </div>
+
+              <!-- Bottom: Badge with dynamic color -->
+              <div class="mt-1 flex items-center">
+                <span
+                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider border shrink-0"
+                  [ngClass]="getUsageStatusBadgeClass(usagePercent(u))"
+                >
+                  <span
+                    class="w-1 h-1 rounded-full shrink-0"
+                    [ngClass]="getUsageStatusDotClass(usagePercent(u))"
+                  ></span>
+                  {{ getUsageStatusLabel(usagePercent(u)) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Radial Circle (Right Column) -->
+            <div
+              class="relative w-14 h-14 flex items-center justify-center shrink-0"
+            >
+              <svg class="w-full h-full -rotate-90" viewBox="0 0 40 40">
+                <circle
+                  cx="20"
+                  cy="20"
+                  r="16"
+                  stroke="#e2e8f0"
+                  stroke-width="3.5"
+                  fill="transparent"
+                  class="dark:stroke-gray-800"
+                />
+                <circle
+                  cx="20"
+                  cy="20"
+                  r="16"
+                  [attr.stroke]="getUsageStatusStrokeColor(usagePercent(u))"
+                  stroke-width="3.5"
+                  fill="transparent"
+                  stroke-linecap="round"
+                  [attr.stroke-dasharray]="100.5"
+                  [attr.stroke-dashoffset]="100.5 - (100.5 * usagePercent(u) / 100)"
+                />
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span
+                  class="text-xs font-bold text-slate-805 dark:text-gray-150 leading-none"
+                >
+                  ({{ usagePercent(u) | number:'1.0-0' }}%)
+                </span>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+        } @else {
+        <div
+          class="flex flex-col items-center justify-center py-10 text-center"
+        >
+          <mat-icon
+            class="icon-size-10 text-slate-200 mb-2"
+            [svgIcon]="'heroicons_outline:chart-bar'"
+          ></mat-icon>
+          <p class="text-sm text-gray-400">No usage data available</p>
+        </div>
+        }
+      </div>
+
+      <!-- Filter Indicators Footer -->
+      <div
+        class="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 px-5 py-2.5 text-xs text-gray-400 font-semibold flex-wrap gap-1.5"
+      >
+        <span>Limits refresh every 2 hours.</span>
+        <div class="flex items-center gap-2">
+          <span class="flex items-center gap-1"
+            ><span class="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span
+            >Low</span
+          >
+          <span class="flex items-center gap-1"
+            ><span class="w-1.5 h-1.5 rounded-full bg-[#3b82f6]"></span
+            >Normal</span
+          >
+          <span class="flex items-center gap-1"
+            ><span class="w-1.5 h-1.5 rounded-full bg-[#f97316]"></span
+            >High</span
+          >
+          <span class="flex items-center gap-1"
+            ><span class="w-1.5 h-1.5 rounded-full bg-[#ef4444]"></span
+            >Exceeded</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Window Usage Outline Cards Grid -->
+    <div
+      class="bg-white dark:bg-gray-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[380px]"
+    >
+      <div
+        class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 shrink-0"
+      >
+        <div class="flex items-center gap-2">
+          <mat-icon
+            class="icon-size-4 text-indigo-400"
+            [svgIcon]="'heroicons_outline:clock'"
+          ></mat-icon>
+          <h3 class="font-semibold text-sm text-gray-805 dark:text-gray-200">
+            Window Usage
+          </h3>
+          <mat-icon
+            class="icon-size-3.5 text-gray-400 cursor-pointer"
+            [matTooltip]="'Rolling window limit — resets automatically when the window expires'"
+            >info_outline</mat-icon
+          >
+        </div>
+        <span
+          class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1 rounded-md border border-indigo-100 dark:border-indigo-800"
+        >
+          {{ windowResetText }}
+        </span>
+      </div>
+
+      <!-- Outer Grid for Feature Cards -->
+      <div class="p-4 flex-1 select-none overflow-y-auto">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          @for (u of usages; track trackByFn($index, u)) {
+          <div
+            class="border border-slate-150/70 hover:border-slate-350 dark:border-slate-800/80 dark:hover:border-slate-700/80 rounded-xl p-3 bg-slate-50/20 dark:bg-slate-905/20 flex flex-col gap-1.5 h-[120px] justify-between transition-all"
+          >
+            <!-- Icon & Header row -->
+            <div class="flex items-center gap-1.5 min-w-0">
+              <div
+                class="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center shrink-0 shadow-sm"
+              >
+                <mat-icon
+                  class="icon-size-3.5 text-emerald-555 dark:text-emerald-400"
+                  [svgIcon]="getUsageIcon(u.feature_name)"
+                ></mat-icon>
+              </div>
+              <h4
+                class="text-xs font-bold text-slate-750 dark:text-gray-200 leading-tight truncate flex-1 text-left"
+              >
+                {{ u.feature_name }}
+              </h4>
+            </div>
+
+            <!-- Details -->
+            <div class="flex-1 flex flex-col justify-end">
+              @if (hasWindow(u)) {
+              <div class="flex items-center justify-between">
+                <span
+                  class="text-xs font-bold text-slate-900 dark:text-slate-100"
+                >
+                  {{ getWindowUsageVal(u) }} / {{ getWindowLimitVal(u) }}
+                </span>
+                <span
+                  class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider shrink-0"
+                  [ngClass]="getWindowStatusBadgeClass(u.window_status)"
+                >
+                  {{ getWindowStatusLabel(u.window_status) }}
+                </span>
+              </div>
+              <!-- Mini Progress Bar -->
+              <div
+                class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1 overflow-hidden mt-1"
+              >
+                <div
+                  class="h-full rounded-full transition-all duration-500"
+                  [ngClass]="getFeatureColor(u.feature_name)"
+                  [style.width.%]="getWindowUsagePercent(u)"
+                ></div>
+              </div>
+              <div
+                class="flex items-center justify-between text-xs text-gray-400 font-semibold mt-1"
+              >
+                <span>{{ getWindowLabel(u) }} Reset</span>
+                <span>{{ getWindowUsagePercent(u) }}%</span>
+              </div>
+              } @else {
+              <p class="text-xs text-slate-400 font-semibold text-left">
+                Not tracked for window
+              </p>
+              }
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+
+      <div
+        class="px-5 py-2.5 bg-slate-50/50 dark:bg-slate-800/10 border-t border-slate-100 dark:border-slate-800 text-xs text-gray-400"
+      >
+        Window limits are dynamically reset at the end of their respective
+        window periods.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ FOOTER STATUS BAR ════════════════════════════════════════════ -->
+  <div
+    class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl px-5 py-3 flex items-center justify-center gap-2"
+  >
+    <mat-icon
+      class="icon-size-4 text-emerald-500"
+      [svgIcon]="'heroicons_outline:primary-shield-check' || 'heroicons_outline:shield-check'"
+    ></mat-icon>
+    <span
+      class="text-xs text-emerald-800 dark:text-emerald-300 font-semibold text-center"
+      >Your subscription is active and in good standing. Thank you for being
+      with SellerBuz!</span
+    >
+  </div>
+
+  }
+</div>

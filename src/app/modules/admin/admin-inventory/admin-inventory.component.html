@@ -1,0 +1,517 @@
+<div
+  class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-card dark:bg-transparent"
+>
+  <!-- Header -->
+  <div class="xl:block lg:flex-0">
+    <div
+      class="relative gap-2 flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-2 px-6 md:px-4"
+    >
+      <!-- Title -->
+      <!-- <mat-icon class="icon-size-7 text-black" [svgIcon]="'heroicons_solid:information-circle'"
+    [matTooltip]="tooltip"></mat-icon> -->
+      <!-- <div class="text-4xl font-extrabold lg:mr-auto" style="margin-right: 229px">
+    Inventory
+  </div> -->
+      <div
+        class="flex items-center justify-between text-4xl font-extrabold tracking-tight"
+      >
+        <!-- Inventory Title with Icon -->
+        <div class="flex items-center space-x-2">
+          <a
+            class="z-20 w-8 h-8 min-h-8"
+            (click)="$event.preventDefault()"
+            mat-icon-button
+            [matTooltip]="tooltip"
+          >
+            <mat-icon
+              class="icon-size-5"
+              [svgIcon]="'heroicons_solid:clipboard-list'"
+            ></mat-icon>
+          </a>
+          <span>Inventory</span>
+        </div>
+
+        <!-- Seller Name Display -->
+        @if (selectedSeller) {
+          <span
+            class="text-xl font-semibold truncate px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text"
+          >
+            | Seller:
+            <span class="font-bold">{{
+              getSelectedSellerName(selectedSeller)
+            }}</span>
+          </span>
+        }
+      </div>
+      <!-- Actions -->
+      <div
+        class="flex flex-shrink-0 justify-end items-center mt-6 sm:mt-0 md:mt-0 sm:ml-4 w-full lg:w-4/6 md:w-3/4 sm:w-3/4 flex-auto flex-wrap"
+      >
+        <mat-form-field
+          class="fuse-mat-dense fuse-mat-no-subscript min-w-80 -mb-5"
+        >
+          <mat-select
+            [(ngModel)]="selectedSeller"
+            name="seller_id"
+            (selectionChange)="onChangeSellerReference($event.value)"
+            placeholder="Select Seller"
+          >
+            @for (seller of sellerNameList; track seller) {
+              <mat-option [value]="seller.id">
+                {{
+                  (seller.first_name || "") + "* " + (seller.last_name || "")
+                }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <!-- Search -->
+        @if (selectedSeller) {
+          <mat-form-field
+            class="custom-field fuse-mat-dense fuse-mat-no-subscript min-w-72 ml-2 mr-2"
+          >
+            <mat-icon
+              class="icon-size-5"
+              matPrefix
+              [svgIcon]="'heroicons_solid:search'"
+            ></mat-icon>
+            <input
+              matInput
+              [formControl]="searchInputControl"
+              maxlength="50"
+              [autocomplete]="'off'"
+              [placeholder]="'Search here...'"
+            />
+          </mat-form-field>
+        }
+        <button
+          type="button"
+          mat-mini-fab
+          (click)="refresh()"
+          class="rounded-none flex sm:items-center flex-col sm:flex-row lg:justify-center ml-3"
+          matTooltip="Refresh"
+        >
+          <mat-icon
+            class="icon-size-4"
+            svgIcon="mat_outline:refresh"
+          ></mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="flex flex-auto overflow-auto">
+    <div class="flex flex-col flex-auto overflow-hidden sm:overflow-y-auto">
+      <div class="grid overflow-auto lg:mb-14">
+        <div
+          class="inventory-grid z-10 sticky top-0 grid gap-1 py-1 px-1 md:px-2 shadow text-md font-semibold text-secondary bg-gray-50 dark:bg-black dark:bg-opacity-5"
+          matSort
+          matSortDisableClear
+        >
+          @for (header of headers; track header) {
+            <div
+              class="mx-auto"
+              [id]="header.key"
+              [ngClass]="{
+                'mx-auto': header.key === 'stock' || header.key === 'price',
+              }"
+            >
+              @if (header.key !== "image") {
+                <span
+                  class="mx-auto"
+                  [mat-sort-header]="header.sortKey || header.key"
+                >
+                  {{ header.label }}
+                </span>
+              }
+              @if (header.key === "image") {
+                <span class="mx-auto">
+                  {{ header.label }}
+                </span>
+              }
+            </div>
+          }
+        </div>
+        <!-- Rows -->
+
+        @if (inventoryFormInput | async; as inventoryList) {
+          @if (selectedSeller && inventoryList.length > 0) {
+            @for (
+              inventory of inventoryList;
+              track trackByFn(i, inventory);
+              let i = $index
+            ) {
+              <div
+                class="inventory-grid grid items-center gap-1 py-1 px-1 md:px-2 border-b"
+              >
+                <div class="text-sm font-semibold">
+                  {{
+                    inventory.createdAt
+                      ? (inventory.createdAt | date: "dd-MM-yyyy, HH:mm")
+                      : "-"
+                  }}
+                </div>
+                <div class="flex items-center justify-center">
+                  <div class="h-10 w-10">
+                    <button
+                      type="button"
+                      class="relative rounded overflow-hidden h-full w-full bg-gray-100"
+                      [imageViewer]="inventory.main_image_url | mediaUrl"
+                      matTooltip="View Image"
+                    >
+                      <img
+                        class="object-cover h-full w-full"
+                        [src]="inventory.main_image_url | mediaUrl"
+                        alt="product image"
+                        onerror="
+                          this.onerror = null;
+                          this.src =
+                            '../../../../../../assets/images/no-image-icon.png';
+                        "
+                      />
+                    </button>
+                  </div>
+                </div>
+                <div class="flex items-center flex-row bg-gray-200">
+                  <div
+                    class="h-fit text-center whitespace-normal rounded-full text-md font-semibold bg-gray-200 w-full"
+                  >
+                    {{ inventory.asin || "-" }}
+                    @if (inventory.asin) {
+                      <button
+                        type="button"
+                        [cdkCopyToClipboard]="inventory.asin"
+                      >
+                        <mat-icon
+                          svgIcon="mat_outline:content_copy"
+                          class="icon-size-4 ml-0.5"
+                        >
+                        </mat-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+                <div class="flex flex-col text-md bg-green-50">
+                  <div
+                    class="truncate items-start px-0.5 py-0 text-pink-700 font-semibold"
+                  >
+                    <div class="text-center text-md mx-auto truncate">
+                      <ng-container>
+                        <a>
+                          {{ inventory.sku || "-" }}
+                        </a>
+                      </ng-container>
+                      @if (inventory.sku) {
+                        <button
+                          type="button"
+                          [cdkCopyToClipboard]="inventory.sku"
+                        >
+                          <mat-icon
+                            svgIcon="mat_outline:content_copy"
+                            class="icon-size-4 ml-0.5"
+                          >
+                          </mat-icon>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                  @if (inventory.ean) {
+                    <div
+                      class="items-start px-0.5 py-0 text-green-900 font-semibold"
+                    >
+                      <div class="text-center text-md mx-auto truncate">
+                        {{ inventory.ean || "-" }}
+                        <button
+                          type="button"
+                          [cdkCopyToClipboard]="inventory.ean"
+                        >
+                          <mat-icon
+                            svgIcon="mat_outline:content_copy"
+                            class="icon-size-4 ml-0.5"
+                          >
+                          </mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+                <div>
+                  <div
+                    class="truncate font-semibold"
+                    [matTooltip]="inventory.title"
+                  >
+                    {{ inventory.title || "-" }}
+                  </div>
+                  @if (inventory.brand) {
+                    <div
+                      class="truncate text-gray-600 text-xs"
+                      [matTooltip]="inventory.brand"
+                    >
+                      {{ inventory.brand || "-" }}
+                    </div>
+                  }
+                  @if (inventory.product_type) {
+                    <div
+                      class="truncate cursor-default text-xs font-serif font-semibold text-gray-600"
+                      [matTooltip]="inventory.product_type"
+                    >
+                      {{ inventory.product_type || " - " }}
+                    </div>
+                  }
+                </div>
+                <div
+                  class="text-sm truncate mx-auto rounded-md px-2 py-0.5 font-semibold text-white"
+                  [matTooltip]="inventory.stock"
+                  [ngClass]="{
+                    'bg-yellow-500 text-black': inventory.stock <= 1,
+                    'bg-lime-600 text-white': inventory.stock > 1,
+                  }"
+                >
+                  {{ inventory.master_stock || "0" }}
+                </div>
+                <div
+                  class="truncate mx-auto px-1 py-0.5 bg-pink-200 text-pink-800 font-semibold"
+                >
+                  {{ inventory.master_price | number: "1.2-2" }}
+                </div>
+                @if (
+                  inventory.bullet_points && inventory.bullet_points?.length > 0
+                ) {
+                  <div
+                    class="truncate cursor-pointer"
+                    (click)="openBulletPointsPopup(inventory.bullet_points)"
+                  >
+                    @if (inventory.bullet_points) {
+                      <div class="truncate text-center text-sm">
+                        {{
+                          flateAndFetchBulletsPoints(
+                            inventory.bullet_points,
+                            0
+                          ) || "-"
+                        }}
+                      </div>
+                    }
+                    @if (inventory.bullet_points) {
+                      <div class="truncate text-center text-sm">
+                        {{
+                          flateAndFetchBulletsPoints(
+                            inventory.bullet_points,
+                            1
+                          ) || "-"
+                        }}
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="truncate text-center">-</div>
+                }
+                <ng-template #noPoint>
+                  <div class="truncate text-center">-</div>
+                </ng-template>
+                <ng-template #noPointFallback>
+                  <div class="truncate">-</div>
+                </ng-template>
+                <i
+                  class="truncate font-semibold text-sm text-blue-900"
+                  [matTooltip]="inventory.description"
+                >
+                  {{ inventory.description || "-" }}
+                </i>
+                <div class="text-sm font-semibold">
+                  {{
+                    inventory.updatedAt
+                      ? (inventory.updatedAt | date: "dd-MM-yyyy, HH:mm")
+                      : "-"
+                  }}
+                </div>
+              </div>
+            }
+          } @else {
+            <div
+              class="p-8 sm:p-16 border-t text-4xl font-semibold tracking-tight text-center"
+            >
+              <mat-icon
+                class="icon-size-10"
+                [svgIcon]="'heroicons_outline:clipboard-list'"
+              ></mat-icon>
+              <!-- Display the message only if selectedSeller is undefined -->
+              @if (!selectedSeller) {
+                <p>Please select a seller to view their inventory.</p>
+              }
+              @if (
+                selectedSeller &&
+                isInventoryLoaading &&
+                (!inventoryList || inventoryList.length === 0)
+              ) {
+                <p>Oops! No inventory is currently available.</p>
+              }
+            </div>
+          }
+        }
+      </div>
+
+      @if (inventoryFormInput | async; as inventoryList) {
+        @if (inventoryList?.length) {
+          <mat-paginator
+            class="sm:absolute mt-auto sm:inset-x-0 sm:bottom-0 border-b sm:border-t sm:border-b-0 z-10 bg-gray-50 dark:bg-transparent"
+            [ngClass]="{
+              'pointer-events-none': isLoading,
+            }"
+            [length]="
+              ((pagination?.page || 1) - 1) * (pagination?.size || 100) +
+              (inventoryList?.length || 0) +
+              (pagination?.hasNextPage ? 1 : 0)
+            "
+            [pageSize]="pagination?.size || 100"
+            [pageSizeOptions]="[5, 25, 50, 100]"
+            [pageIndex]="(pagination?.page || 1) - 1"
+            [showFirstLastButtons]="false"
+          >
+          </mat-paginator>
+        }
+      } @else {
+        <div
+          class="p-8 sm:p-16 border-t text-4xl font-semibold tracking-tight text-center"
+        >
+          <mat-icon
+            class="icon-size-10"
+            [svgIcon]="'heroicons_outline:clipboard-list'"
+          ></mat-icon>
+          <!-- Display the message only if selectedSeller is undefined -->
+          @if (!selectedSeller) {
+            <p>Please select a seller to view their inventory.</p>
+          }
+          @if (
+            selectedSeller &&
+            isInventoryLoaading &&
+            (!inventoryList || inventoryList.length === 0)
+          ) {
+            <p>Oops! No inventory is currently available.</p>
+          }
+        </div>
+      }
+
+      <ng-template #noInventory>
+        <div
+          class="p-8 sm:p-16 border-t text-4xl font-semibold tracking-tight text-center"
+        >
+          <mat-icon
+            class="icon-size-10"
+            [svgIcon]="'heroicons_outline:clipboard-list'"
+          ></mat-icon>
+          <!-- Display the message only if selectedSeller is undefined -->
+          @if (!selectedSeller) {
+            <p>Please select a seller to view their inventory.</p>
+          }
+          @if (
+            selectedSeller &&
+            isInventoryLoaading &&
+            (!inventoryList || inventoryList.length === 0)
+          ) {
+            <p>Oops! No inventory is currently available.</p>
+          }
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+
+<ng-template #sellerListTemplate>
+  <div class="flex flex-col max-w-160 md:min-w-160 -m-6">
+    <div
+      class="flex flex-0 items-center justify-between h-16 pr-3 sm:pr-5 pl-6 sm:pl-8 bg-primary text-on-accent"
+    >
+      <mat-icon
+        class="icon-size-6 text-white"
+        svgIcon="heroicons_outline:cog"
+        title="Buy Now"
+      >
+      </mat-icon>
+      <div class="text-lg font-medium">
+        Select a seller to view their inventory.
+      </div>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="closeSellerDialog()"
+        [tabIndex]="-1"
+      >
+        <mat-icon
+          class="text-current"
+          [svgIcon]="'heroicons_outline:x'"
+        ></mat-icon>
+      </button>
+    </div>
+    <div class="flex flex-col flex-auto p-12 sm:p-12 overflow-y-auto">
+      <div class="flex mt-3 justify-center">
+        @if (sellerNameList?.length > 0) {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Select Seller</mat-label>
+            <mat-select
+              [(ngModel)]="selectedSeller"
+              (selectionChange)="onChangeSellerReference($event.value)"
+            >
+              @for (seller of sellerNameList; track seller) {
+                <mat-option [value]="seller.id">
+                  {{ seller.first_name + " " + seller.last_name }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        } @else {
+          <div class="text-center text-gray-500 mt-4">
+            <mat-icon class="text-4xl mb-2">info</mat-icon>
+            <p>No authorized sellers available.</p>
+            <p>Please add or authorize one to continue.</p>
+          </div>
+        }
+
+        <!-- If no sellers are available -->
+        <ng-template #noSellers>
+          <div class="text-center text-gray-500 mt-4">
+            <mat-icon class="text-4xl mb-2">info</mat-icon>
+            <p>No authorized sellers available.</p>
+            <p>Please add or authorize one to continue.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</ng-template>
+<ng-template #bulletPoint>
+  <div class="flex flex-col max-w-240 max-h-128 md:min-w-160 -m-6">
+    <div class="flex flex-col bg-card shadow rounded overflow-hidden">
+      <div
+        class="flex items-center justify-between h-14 pr-2 sm:pr-8 pl-3 sm:pl-8 bg-gray-700 text-white font-semibold rounded-t-lg shadow-lg"
+      >
+        <!-- Title Section -->
+        <div class="flex flex-col">
+          <p class="text-lg font-medium">Bullet Points</p>
+        </div>
+        <button
+          type="button"
+          mat-icon-button
+          class="rounded-full p-2 transition"
+          (click)="closePopup()"
+        >
+          <mat-icon
+            [svgIcon]="'heroicons_outline:x'"
+            class="text-white"
+          ></mat-icon>
+        </button>
+      </div>
+      <div class="p-4 overflow-auto">
+        @for (bullet of bulletPoints; track bullet) {
+          <div class="grid" style="grid-template-columns: 30px 1fr">
+            @if (bullet) {
+              <span class="font-bold text-lg text-black">-></span>
+            }
+            <span>{{ bullet }}</span>
+            <br />
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</ng-template>

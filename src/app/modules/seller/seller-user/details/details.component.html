@@ -1,0 +1,252 @@
+<div
+  class="flex flex-col w-full h-full min-h-full flex-auto bg-white dark:bg-gray-800"
+>
+  <!-- Header -->
+  <div
+    class="flex flex-col sm:flex-row items-center justify-between px-4 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
+  >
+    <div class="flex items-center mb-2 sm:mb-0">
+      <button type="button" mat-icon-button (click)="onBack()">
+        <mat-icon svgIcon="heroicons_outline:arrow-left"></mat-icon>
+      </button>
+      <h2 class="text-lg font-semibold ml-2">
+        {{
+          isAdd
+            ? "Add Seller User"
+            : editMode
+              ? "Edit Seller User"
+              : "Seller
+        User Details"
+        }}
+      </h2>
+    </div>
+    <div class="flex items-center gap-2">
+      @if (!isAdd && !editMode && seller) {
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          (click)="toggleEditMode(true)"
+        >
+          <mat-icon
+            class="icon-size-4 mr-2"
+            svgIcon="heroicons_outline:pencil"
+          ></mat-icon>
+          Edit
+        </button>
+      }
+      @if (editMode || isAdd) {
+        <button
+          type="button"
+          mat-flat-button
+          (click)="updateSellerUser()"
+          [disabled]="sellerForm.invalid || isLoading || btnDisable"
+          class="bg-primary text-white"
+        >
+          <mat-icon
+            class="icon-size-4 mr-2"
+            svgIcon="heroicons_outline:check"
+          ></mat-icon>
+          {{ isAdd ? "Create" : "Save" }}
+        </button>
+      }
+      @if (editMode || isAdd) {
+        <button type="button" mat-stroked-button (click)="onCancel()">
+          Cancel
+        </button>
+      }
+      @if (!isAdd && seller && !editMode) {
+        <button
+          type="button"
+          mat-icon-button
+          color="warn"
+          (click)="deleteSellerUser()"
+        >
+          <mat-icon
+            class="text-red-500"
+            svgIcon="heroicons_outline:trash"
+          ></mat-icon>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="flex-1 overflow-y-auto p-4">
+    @if (isLoading) {
+      <!-- SKELETON LOADER FOR SELLER USER -->
+      <div class="space-y-4 animate-pulse max-w-xl mx-auto">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+          <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+        </div>
+        <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"></div>
+        <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"></div>
+        <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"></div>
+      </div>
+    } @else {
+      <form [formGroup]="sellerForm" class="space-y-4">
+        <!-- Avatar Section -->
+        <!--  <div class="flex items-center justify-center mb-6">
+        <div class="relative">
+          <div
+            class="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden"
+          >
+            @if (selectedAvatar || seller?.avatar || seller?.profileImgUrl) {
+              <img
+                [src]="
+                  selectedAvatar ||
+                  (seller?.profileImgUrl | mediaUrl:'') ||
+                  (seller?.avatar | mediaUrl:'')
+                "
+                class="w-full h-full object-cover"
+                alt="Avatar"
+              />
+            }
+            @if (!selectedAvatar && !seller?.avatar && !seller?.profileImgUrl) {
+              <mat-icon
+                class="icon-size-12 text-gray-400"
+                svgIcon="heroicons_outline:user"
+              ></mat-icon>
+            }
+          </div>
+          <input
+            #avatarFileInput
+            type="file"
+            accept="image/png,image/jpeg,image/jpg"
+            hidden
+            (change)="onAvatarSelected($event)"
+          />
+          @if (editMode || isAdd) {
+            <button
+              type="button"
+              mat-mini-fab
+              color="primary"
+              class="absolute bottom-0 right-0"
+              (click)="triggerAvatarUpload()"
+            >
+              <mat-icon svgIcon="heroicons_outline:camera"></mat-icon>
+            </button>
+          }
+        </div>
+      </div>-->
+
+        <!-- First Name & Last Name -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <mat-form-field class="w-full fuse-mat-no-subscript">
+            <mat-label>First Name</mat-label>
+            <input
+              matInput
+              formControlName="first_name"
+              placeholder="Enter first name"
+              [readonly]="!editMode && !isAdd"
+            />
+            @if (sellerForm.get("first_name").hasError("required")) {
+              <mat-error>First name is required</mat-error>
+            }
+            @if (sellerForm.get("first_name").hasError("maxlength")) {
+              <mat-error>First name cannot exceed 20 characters</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="w-full fuse-mat-no-subscript">
+            <mat-label>Last Name</mat-label>
+            <input
+              matInput
+              formControlName="last_name"
+              placeholder="Enter last name"
+              [readonly]="!editMode && !isAdd"
+            />
+            @if (sellerForm.get("last_name").hasError("required")) {
+              <mat-error>Last name is required</mat-error>
+            }
+            @if (sellerForm.get("last_name").hasError("maxlength")) {
+              <mat-error>Last name cannot exceed 20 characters</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Email -->
+        <mat-form-field class="w-full fuse-mat-no-subscript">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            formControlName="email"
+            placeholder="Enter email"
+            [readonly]="!editMode && !isAdd"
+          />
+          @if (sellerForm.get("email").hasError("required")) {
+            <mat-error>Email is required</mat-error>
+          }
+          @if (sellerForm.get("email").hasError("email")) {
+            <mat-error>Please enter a valid email</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Contact Number -->
+        <mat-form-field class="w-full fuse-mat-no-subscript">
+          <mat-label>Contact Number</mat-label>
+          <input
+            matInput
+            formControlName="contact_no"
+            placeholder="Enter contact number"
+            [readonly]="!editMode && !isAdd"
+          />
+          @if (sellerForm.get("contact_no").hasError("maxDigits")) {
+            <mat-error>Contact number cannot exceed 10 digits</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Role -->
+        <mat-form-field class="w-full fuse-mat-no-subscript">
+          <mat-label>Role</mat-label>
+          <mat-select
+            formControlName="role_id"
+            [disabled]="!editMode && !isAdd"
+            (openedChange)="triggerRoleEvent()"
+          >
+            <mat-option>
+              <ngx-mat-select-search
+                [formControl]="roleFilterCtrl"
+                [preventHomeEndKeyPropagation]="true"
+                placeholderLabel="Search role"
+                (keyup)="filterRoles($event.target.value)"
+                noEntriesFoundLabel="'No role found'"
+              >
+              </ngx-mat-select-search>
+            </mat-option>
+            @for (role of filteredRolesList; track role) {
+              <mat-option [value]="role.id">{{ role.role_name }}</mat-option>
+            }
+          </mat-select>
+          @if (sellerForm.get("role_id").hasError("required")) {
+            <mat-error>Role is required</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Status -->
+        @if (!isAdd) {
+          <div class="flex items-center gap-2">
+            <mat-label>Status:</mat-label>
+            <mat-slide-toggle
+              formControlName="status"
+              [checked]="sellerForm.get('status').value === 'active'"
+              (change)="
+                sellerForm
+                  .get('status')
+                  .setValue($event.checked ? 'active' : 'inactive')
+              "
+              [disabled]="!editMode"
+            >
+              {{
+                sellerForm.get("status").value === "active"
+                  ? "Active"
+                  : "Inactive"
+              }}
+            </mat-slide-toggle>
+          </div>
+        }
+      </form>
+    }
+  </div>
+</div>
