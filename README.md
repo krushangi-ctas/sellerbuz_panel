@@ -1,4 +1,4 @@
-# ctas_saas_panel
+# ctas_sellerbuz_panel
 
 Development:npm run docker:dev
 
